@@ -1,0 +1,1298 @@
+<%- include('partials/header') %>
+
+<style>
+  .calendar-day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+  }
+
+  .calendar-day-cell:hover:not(.disabled) {
+    background: rgba(0, 242, 254, 0.1);
+    border-color: rgba(0, 242, 254, 0.2);
+  }
+
+  .calendar-day-cell.selected {
+    background: var(--primary-gradient) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+  }
+
+  .calendar-day-cell.disabled {
+    color: var(--text-muted) !important;
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .calendar-day-cell.has-data::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent-red);
+  }
+
+  .calendar-day-cell.selected.has-data::after {
+    background: #0b0f19;
+  }
+
+  .calendar-day-cell.other-month {
+    opacity: 0.15;
+  }
+
+  /* Modal styling */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-content {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    width: 95%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+    box-shadow: var(--panel-shadow);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+  }
+
+  .modal-overlay.active .modal-content {
+    transform: scale(1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 0.75rem;
+  }
+
+  .modal-close-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+
+  .modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+  }
+</style>
+
+  <div class="page-title-section">
+    <h1 class="page-title">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+      </svg>
+      Nhập Số Liệu Khám Sức Khỏe Hàng Ngày
+    </h1>
+
+  </div>
+
+  <!-- Flash alerts -->
+  <% if (success) { %>
+    <div class="alert alert-success">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+      <%= success %>
+    </div>
+    <% } %>
+
+      <% if (error) { %>
+        <div class="alert alert-error">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <%= error %>
+        </div>
+        <% } %>
+
+          <!-- Role-based layout separation -->
+          <% if (user.role === 'admin') { %>
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+              
+              <!-- Table 1: General Reports (Khám chung tại Trạm) -->
+              <div class="glass-panel" style="overflow-x: auto;">
+                <h3
+                  style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; color: var(--primary-color);">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    </svg>
+                    Khám chung tại Trạm (Tất cả dữ liệu đã nhập)
+                  </span>
+                  <button class="btn btn-primary" onclick="openGeneralModal()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Thêm số liệu
+                  </button>
+                </h3>
+
+                <% 
+                  const generalReports = reports.filter(r => !r.adminWorkplace && r.unitId && r.unitId.toString() === selectedUnitId);
+                  const workplaceReports = reports.filter(r => r.adminWorkplace);
+                %>
+
+                <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">
+                      <th style="padding: 0.5rem; text-align: center; width: 40px;">STT</th>
+                      <th style="padding: 0.5rem; text-align: center; width: 100px;">Ngày khám</th>
+                      <th style="padding: 0.5rem;">Cơ sở khám</th>
+                      <th style="padding: 0.5rem; text-align: center;">Dưới 6 tuổi</th>
+                      <th style="padding: 0.5rem; text-align: center;">Từ 6 - 18</th>
+                      <th style="padding: 0.5rem; text-align: center;">Trên 18</th>
+                      <th style="padding: 0.5rem; text-align: center;">Tổng cộng</th>
+                      <th style="padding: 0.5rem; width: 90px; text-align: center;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="general-table-body">
+                    <% if (generalReports.length > 0) { %>
+                      <% generalReports.forEach((r, idx) => { %>
+                        <% const rTotal = (r.adminUnder6 || 0) + (r.adminFrom6To18 || 0) + (r.adminOver18 || 0); %>
+                        <% const rDate = new Date(r.date); const rDateStr = `${String(rDate.getUTCDate()).padStart(2, '0')}/${String(rDate.getUTCMonth() + 1).padStart(2, '0')}/${rDate.getUTCFullYear()}`; %>
+                        <% const rDateVal = `${rDate.getUTCFullYear()}-${String(rDate.getUTCMonth() + 1).padStart(2, '0')}-${String(rDate.getUTCDate()).padStart(2, '0')}`; %>
+                        <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.82rem;">
+                          <td style="padding: 0.5rem; text-align: center;"><%= idx + 1 %></td>
+                          <td style="padding: 0.5rem; text-align: center; color: var(--text-secondary);"><%= rDateStr %></td>
+                          <td style="padding: 0.5rem;"><%= r.centerId ? r.centerId.name : '-' %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminUnder6 || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminFrom6To18 || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminOver18 || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><strong style="color: var(--primary-color);"><%= rTotal %></strong></td>
+                          <td style="padding: 0.5rem; text-align: center;">
+                            <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                              <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;" 
+                                onclick="editAdminGeneralReport('<%= r._id %>', '<%= r.unitId ? r.unitId._id : '' %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= rDateVal %>', <%= r.adminUnder6 || 0 %>, <%= r.adminFrom6To18 || 0 %>, <%= r.adminOver18 || 0 %>)">
+                                Sửa
+                              </button>
+                              <form action="/input/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?')" style="margin: 0; display: inline;">
+                                <input type="hidden" name="reportId" value="<%= r._id %>">
+                                <input type="hidden" name="date" value="<%= selectedDateStr %>">
+                                <input type="hidden" name="unitId" value="<%= selectedUnitId %>">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto; background: var(--accent-red); border-color: var(--accent-red);">
+                                  Xóa
+                                </button>
+                              </form>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; font-size: 0.8rem;">Chưa có số liệu khám chung được nhập.</td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.82rem; color: var(--text-secondary);">
+                  <span id="general-page-info">Trang 1 / 1</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" id="general-prev-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="prevPage('general')">Trước</button>
+                    <button type="button" class="btn btn-secondary" id="general-next-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="nextPage('general')">Sau</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table 2: Workplace Reports (Khám theo đơn vị KSK) -->
+              <div class="glass-panel" style="overflow-x: auto;">
+                <h3
+                  style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; color: var(--primary-color);">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Khám theo đơn vị KSK (Tất cả dữ liệu đã nhập)
+                  </span>
+                  <button class="btn btn-primary" onclick="openWorkplaceModal()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Thêm đơn vị KSK
+                  </button>
+                </h3>
+
+                <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">
+                      <th style="padding: 0.5rem; text-align: center; width: 40px;">STT</th>
+                      <th style="padding: 0.5rem; text-align: center; width: 100px;">Ngày khám</th>
+                      <th style="padding: 0.5rem;">Đơn vị KSK</th>
+                      <th style="padding: 0.5rem; text-align: center;">CN/VC/NLĐ</th>
+                      <th style="padding: 0.5rem; text-align: center;">Trẻ em</th>
+                      <th style="padding: 0.5rem; text-align: center;">HT chính trị</th>
+                      <th style="padding: 0.5rem; text-align: center;">Khác</th>
+                      <th style="padding: 0.5rem; text-align: center;">Tổng cộng</th>
+                      <th style="padding: 0.5rem; width: 90px; text-align: center;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="workplace-table-body">
+                    <% if (workplaceReports.length > 0) { %>
+                      <% workplaceReports.forEach((r, idx) => { %>
+                        <% const rTotal = (r.adminWorkers || 0) + (r.adminChildren || 0) + (r.adminPolitical || 0) + (r.adminOthers || 0); %>
+                        <% const rDate = new Date(r.date); const rDateStr = `${String(rDate.getUTCDate()).padStart(2, '0')}/${String(rDate.getUTCMonth() + 1).padStart(2, '0')}/${rDate.getUTCFullYear()}`; %>
+                        <% const rDateVal = `${rDate.getUTCFullYear()}-${String(rDate.getUTCMonth() + 1).padStart(2, '0')}-${String(rDate.getUTCDate()).padStart(2, '0')}`; %>
+                        <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.82rem;">
+                          <td style="padding: 0.5rem; text-align: center;"><%= idx + 1 %></td>
+                          <td style="padding: 0.5rem; text-align: center; color: var(--text-secondary);"><%= rDateStr %></td>
+                          <td style="padding: 0.5rem;">
+                            <strong><%= r.adminWorkplace || '-' %></strong>
+                            <% if (r.centerId) { %>
+                              <br/><small style="color: var(--text-secondary);"><%= r.centerId.name %></small>
+                            <% } %>
+                          </td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminWorkers || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminChildren || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminPolitical || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= r.adminOthers || 0 %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><strong style="color: var(--primary-color);"><%= rTotal %></strong></td>
+                          <td style="padding: 0.5rem; text-align: center;">
+                            <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                              <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;" 
+                                onclick="editAdminWorkplaceReport('<%= r._id %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= r.adminWorkplace ? r.adminWorkplace.replace(/'/g, '\\\'').replace(/\"/g, '\\\"') : '' %>', '<%= rDateVal %>', <%= r.adminWorkers || 0 %>, <%= r.adminChildren || 0 %>, <%= r.adminPolitical || 0 %>, <%= r.adminOthers || 0 %>)">
+                                Sửa
+                              </button>
+                              <form action="/input/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?')" style="margin: 0; display: inline;">
+                                <input type="hidden" name="reportId" value="<%= r._id %>">
+                                <input type="hidden" name="date" value="<%= selectedDateStr %>">
+                                <input type="hidden" name="unitId" value="<%= selectedUnitId %>">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto; background: var(--accent-red); border-color: var(--accent-red);">
+                                  Xóa
+                                </button>
+                              </form>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; font-size: 0.8rem;">Chưa có số liệu đơn vị KSK được nhập.</td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.82rem; color: var(--text-secondary);">
+                  <span id="workplace-page-info">Trang 1 / 1</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" id="workplace-prev-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="prevPage('workplace')">Trước</button>
+                    <button type="button" class="btn btn-secondary" id="workplace-next-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="nextPage('workplace')">Sau</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table 3: BYT Linkage Reports (Liên thông cổng BYT) -->
+              <div class="glass-panel" style="overflow-x: auto;">
+                <h3
+                  style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; color: var(--primary-color);">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                    Liên thông cổng BYT (Tất cả dữ liệu đã nhập)
+                  </span>
+                  <button class="btn btn-primary" onclick="openBytModal()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Thêm lượt liên thông
+                  </button>
+                </h3>
+
+                <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">
+                      <th style="padding: 0.5rem; text-align: center; width: 40px;">STT</th>
+                      <th style="padding: 0.5rem; text-align: center; width: 150px;">Ngày liên thông</th>
+                      <th style="padding: 0.5rem; text-align: center;">Số lượt liên thông</th>
+                      <th style="padding: 0.5rem; text-align: center;">Người cập nhật</th>
+                      <th style="padding: 0.5rem; width: 90px; text-align: center;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="byt-table-body">
+                    <% if (bytLinkages.length > 0) { %>
+                      <% bytLinkages.forEach((b, idx) => { %>
+                        <% const bDate = new Date(b.date); const bDateStr = `${String(bDate.getUTCDate()).padStart(2, '0')}/${String(bDate.getUTCMonth() + 1).padStart(2, '0')}/${bDate.getUTCFullYear()}`; %>
+                        <% const bDateVal = `${bDate.getUTCFullYear()}-${String(bDate.getUTCMonth() + 1).padStart(2, '0')}-${String(bDate.getUTCDate()).padStart(2, '0')}`; %>
+                        <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.82rem;">
+                          <td style="padding: 0.5rem; text-align: center;"><%= idx + 1 %></td>
+                          <td style="padding: 0.5rem; text-align: center; color: var(--text-secondary);"><%= bDateStr %></td>
+                          <td style="padding: 0.5rem; text-align: center;"><strong style="color: var(--accent-red);"><%= b.count.toLocaleString('vi-VN') %></strong></td>
+                          <td style="padding: 0.5rem; text-align: center;"><%= b.updatedBy ? (b.updatedBy.unitName || b.updatedBy.username) : '-' %></td>
+                          <td style="padding: 0.5rem; text-align: center;">
+                            <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                              <button type="button" class="btn btn-secondary" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;" 
+                                onclick="editAdminBytLinkage('<%= bDateVal %>', <%= b.count %>)">
+                                Sửa
+                              </button>
+                              <form action="/admin/byt-linkage/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?')" style="margin: 0; display: inline;">
+                                <input type="hidden" name="linkageId" value="<%= b._id %>">
+                                <input type="hidden" name="date" value="<%= selectedDateStr %>">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto; background: var(--accent-red); border-color: var(--accent-red);">
+                                  Xóa
+                                </button>
+                              </form>
+                            </div>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    <% } else { %>
+                      <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; font-size: 0.8rem;">Chưa có số liệu liên thông cổng BYT được nhập.</td>
+                      </tr>
+                    <% } %>
+                  </tbody>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.82rem; color: var(--text-secondary);">
+                  <span id="byt-page-info">Trang 1 / 1</span>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-secondary" id="byt-prev-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="prevPage('byt')">Trước</button>
+                    <button type="button" class="btn btn-secondary" id="byt-next-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;" onclick="nextPage('byt')">Sau</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% } else { %>
+              <!-- Ward/Commune Input Layout -->
+              <div class="split-layout" style="align-items: stretch;">
+
+                <!-- Left Side: Forms -->
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+                  <!-- Data Input Form Panel -->
+                  <div class="glass-panel" id="input-form-card">
+                    <h3
+                      style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      Nhập Số Liệu Khám
+                    </h3>
+
+                    <form action="/input" method="POST">
+                      <input type="hidden" name="date" value="<%= selectedDateStr %>">
+
+                      <div class="form-group" style="margin-bottom: 1.25rem;">
+                        <label style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Ngày làm việc</label>
+                        <div class="calendar-wrapper">
+                          <div class="calendar-header"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                            <button type="button" class="btn btn-secondary btn-icon" id="prev-month-btn"
+                              style="padding: 0.15rem; height: auto;" onclick="changeCalendarMonth(-1)">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="15 18 9 12 15 6" />
+                              </svg>
+                            </button>
+                            <span id="calendar-month-title"
+                              style="font-weight: 700; color: var(--primary-color); font-size: 0.85rem;"></span>
+                            <button type="button" class="btn btn-secondary btn-icon" id="next-month-btn"
+                              style="padding: 0.15rem; height: auto;" onclick="changeCalendarMonth(1)">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div class="calendar-weekdays"
+                            style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem; padding-bottom: 0.15rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                            <div>CN</div>
+                            <div>T2</div>
+                            <div>T3</div>
+                            <div>T4</div>
+                            <div>T5</div>
+                            <div>T6</div>
+                            <div>T7</div>
+                          </div>
+
+                          <div class="calendar-days-grid" id="calendar-days"
+                            style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.15rem; text-align: center;">
+                            <!-- Rendered dynamically -->
+                          </div>
+                        </div>
+                      </div>
+
+
+
+                      <% if (centers && centers.length> 0) { %>
+                        <input type="hidden" name="centerId" id="centerId" value="<%= centers[0]._id %>">
+                        <% } else { %>
+                          <input type="hidden" name="centerId" id="centerId" value="">
+                          <% } %>
+
+                            <div
+                              style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem;">
+                              <div class="form-group" style="margin-bottom: 0;">
+                                <label for="under6">Dưới 6 tuổi</label>
+                                <div class="input-wrapper">
+                                  <div class="input-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                      stroke-width="2">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                                      <line x1="9" y1="9" x2="9.01" y2="9" />
+                                      <line x1="15" y1="9" x2="15.01" y2="9" />
+                                    </svg>
+                                  </div>
+                                  <input type="number" id="under6" name="under6" class="form-control" min="0" value="0"
+                                    required>
+                                </div>
+                              </div>
+
+                              <div class="form-group" style="margin-bottom: 0;">
+                                <label for="from6To18">Từ 6 - 18 tuổi</label>
+                                <div class="input-wrapper">
+                                  <div class="input-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                      stroke-width="2">
+                                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                                    </svg>
+                                  </div>
+                                  <input type="number" id="from6To18" name="from6To18" class="form-control" min="0"
+                                    value="0" required>
+                                </div>
+                              </div>
+
+                              <div class="form-group" style="margin-bottom: 0;">
+                                <label for="over18">Trên 18 tuổi</label>
+                                <div class="input-wrapper">
+                                  <div class="input-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                      stroke-width="2">
+                                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                      <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                  </div>
+                                  <input type="number" id="over18" name="over18" class="form-control" min="0" value="0"
+                                    required>
+                                </div>
+                              </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary"
+                              style="width: 100%; margin-top: 0.5rem; color: #ffffff;">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                              </svg>
+                              Lưu số liệu khám
+                            </button>
+                    </form>
+                  </div>
+
+                  <!-- Resident Population Panel -->
+                  <div class="glass-panel">
+                    <h3
+                      style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      </svg>
+                      Nhân Khẩu Thường Trú
+                    </h3>
+
+                    <form action="/input/resident-population" method="POST">
+                      <input type="hidden" name="date" value="<%= selectedDateStr %>">
+
+                      <div class="form-group">
+                        <label for="residentPopulation">Số lượng nhân khẩu thường trú hiện tại</label>
+                        <div class="input-wrapper">
+                          <div class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                            </svg>
+                          </div>
+                          <input type="number" id="residentPopulation" name="residentPopulation" class="form-control"
+                            min="0" value="<%= residentPopulation %>" required>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">
+                          Dùng để tính tỷ lệ bao phủ khám sức khỏe định kỳ.
+                        </span>
+                      </div>
+
+                      <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                        Cập nhật nhân khẩu
+                      </button>
+                    </form>
+                  </div>
+
+                  <!-- First Half Checked Card -->
+                  <div class="glass-panel">
+                    <h3
+                      style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                      </svg>
+                      Số KSK đã khám 6 tháng đầu năm
+                    </h3>
+
+                    <form action="/input/first-half-checked" method="POST">
+                      <input type="hidden" name="date" value="<%= selectedDateStr %>">
+
+                      <div class="form-group">
+                        <label for="firstHalfChecked">Số người đã khám 6 tháng đầu năm</label>
+                        <div class="input-wrapper">
+                          <div class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 14 14" />
+                            </svg>
+                          </div>
+                          <input type="number" id="firstHalfChecked" name="firstHalfChecked" class="form-control"
+                            min="0" value="<%= firstHalfChecked %>" required>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">
+                          Số lượng người dân đã được khám sức khỏe trong 6 tháng đầu năm.
+                        </span>
+                      </div>
+
+                      <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                        Cập nhật số liệu 6 tháng
+                      </button>
+                    </form>
+                  </div>
+
+                  <!-- Target 90 Days Card -->
+                  <div class="glass-panel">
+                    <h3
+                      style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="22" y1="12" x2="18" y2="12" />
+                        <line x1="6" y1="12" x2="2" y2="12" />
+                        <line x1="12" y1="6" x2="12" y2="2" />
+                        <line x1="12" y1="22" x2="12" y2="18" />
+                      </svg>
+                      Chỉ tiêu khám 90 ngày
+                    </h3>
+
+                    <form action="/input/plan-target" method="POST">
+                      <input type="hidden" name="date" value="<%= selectedDateStr %>">
+                      <% if (user.role === 'admin') { %>
+                        <input type="hidden" name="unitId" value="<%= selectedUnitId %>">
+                      <% } %>
+
+                      <div class="form-group">
+                        <label for="planTarget">Tổng số người cần khám 90 ngày</label>
+                        <div class="input-wrapper">
+                          <div class="input-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle cx="8.5" cy="7" r="4" />
+                              <line x1="20" y1="8" x2="20" y2="14" />
+                              <line x1="23" y1="11" x2="17" y2="11" />
+                            </svg>
+                          </div>
+                          <input type="number" id="planTarget" name="planTarget" class="form-control"
+                            min="0" value="<%= planTarget %>" required>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.1rem;">
+                          Chỉ tiêu số lượng người dân cần khám sức khỏe trong đợt cao điểm 90 ngày.
+                        </span>
+                      </div>
+
+                      <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                        Cập nhật chỉ tiêu 90 ngày
+                      </button>
+                    </form>
+                  </div>
+
+                </div>
+
+                <!-- Right Side: Daily History List -->
+                <div class="glass-panel" style="align-self: start; display: flex; flex-direction: column; width: 100%;">
+                  <h3
+                    style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                      <line x1="9" y1="9" x2="15" y2="9" />
+                      <line x1="9" y1="13" x2="15" y2="13" />
+                      <line x1="9" y1="17" x2="14" y2="17" />
+                    </svg>
+                    Danh Sách Số Liệu Đã Nhập Từng Ngày
+                  </h3>
+
+                  <div class="table-responsive"
+                    style="max-height: 380px; overflow-y: auto; border: 1px solid var(--panel-border); border-radius: 8px;">
+                    <table class="data-table" style="margin-bottom: 0;">
+                      <thead
+                        style="position: sticky; top: 0; background: var(--panel-bg); z-index: 10; box-shadow: 0 1px 0 var(--panel-border);">
+                        <tr>
+                          <th>Ngày</th>
+                          <th>Dưới 6 tuổi</th>
+                          <th>6 - 18 tuổi</th>
+                          <th>Trên 18 tuổi</th>
+                          <th>Tổng cộng</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% 
+                          const todayObj = new Date();
+                          const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
+                        %>
+                        <% allDays.forEach(item=> { %>
+                          <tr class="<%= item.dateStr === selectedDateStr ? 'highlight' : '' %>"
+                            onclick="window.location.href='/input?date=<%= item.dateStr %><%= user.role === 'admin' ? '&unitId=' + selectedUnitId : '' %>'"
+                            style="cursor: pointer; <%= item.dateStr === selectedDateStr ? 'background: rgba(0, 242, 254, 0.12); border-left: 3px solid var(--primary-color);' : '' %>"
+                            title="Nhấp để chọn ngày <%= item.dateDisplay %>">
+                            <td
+                              style="font-weight: 600; color: <%= item.dateStr === selectedDateStr ? 'var(--primary-color)' : 'var(--text-primary)' %>;">
+                              <%= item.dateDisplay %>
+                                <% if (item.dateStr===selectedDateStr) { %>
+                                  <span class="badge badge-info"
+                                    style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Đang
+                                    chọn</span>
+                                  <% } %>
+                                <% if (item.dateStr===todayStr) { %>
+                                  <span class="badge badge-success"
+                                    style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Hôm nay</span>
+                                  <% } %>
+                            </td>
+                            <td>
+                              <%= item.under6 %>
+                            </td>
+                            <td>
+                              <%= item.from6To18 %>
+                            </td>
+                            <td>
+                              <%= item.over18 %>
+                            </td>
+                            <td><strong
+                                style="<%= item.total > 0 ? 'color: var(--primary-color);' : 'color: var(--text-muted);' %>">
+                                <%= item.total %>
+                              </strong></td>
+                          </tr>
+                          <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="glass-panel"
+                    style="margin-top: 1.5rem; background: rgba(0, 242, 254, 0.02); border: 1px dashed rgba(0, 242, 254, 0.15);">
+                    <h4
+                      style="font-size: 0.95rem; font-weight: 600; color: var(--primary-color); margin-bottom: 0.5rem;">
+                      Lưu ý nhập liệu:</h4>
+                    <ul
+                      style="font-size: 0.85rem; color: var(--text-secondary); padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                      <li>Bảng bên phải hiển thị tất cả các ngày trong giai đoạn từ 01/07/2026 đến 30/09/2026. Các ngày
+                        chưa nhập sẽ hiển thị 0.</li>
+                      <li>Ngày đang được chọn sẽ có màu nổi bật hơn. Bạn có thể nhấp vào bất kỳ dòng nào trên bảng để chuyển ngày làm việc.</li>
+                      <li>Để sửa số liệu đã nhập, chỉ cần chọn ngày đó, nhập lại số liệu mới vào form bên trái và bấm
+                        lưu lại.</li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+              <% } %>
+
+                <script>
+                  // Parse existing reports on this date to auto-populate form values
+                  const existingReports = <%- JSON.stringify(reports.map(r => ({
+                    centerId: r.centerId ? r.centerId._id.toString() : r.centerId,
+                    under6: user.role === 'admin' ? r.adminUnder6 : r.under6,
+                    from6To18: user.role === 'admin' ? r.adminFrom6To18 : r.from6To18,
+                    over18: user.role === 'admin' ? r.adminOver18 : r.over18
+                  }))) %>;
+
+                   function handleCenterChange() {
+                    const select = document.getElementById('centerId');
+                    if (!select) return;
+                    const under6El = document.getElementById('under6');
+                    if (!under6El) return; // Skip for Admin form
+                    
+                    const selectedCenterId = select.value;
+                    const matched = existingReports.find(r => r.centerId === selectedCenterId);
+
+                    if (matched) {
+                      under6El.value = matched.under6;
+                      document.getElementById('from6To18').value = matched.from6To18;
+                      document.getElementById('over18').value = matched.over18;
+                    } else {
+                      under6El.value = '0';
+                      document.getElementById('from6To18').value = '0';
+                      document.getElementById('over18').value = '0';
+                    }
+                  }
+
+                               function editAdminGeneralReport(id, unitId, centerId, dateVal, under6, from6To18, over18) {
+                    document.getElementById('generalReportId').value = id;
+                    const unitSelect = document.getElementById('generalUnitId');
+                    if (unitSelect) {
+                      unitSelect.value = unitId;
+                      // Trigger change event to filter centers
+                      const event = new Event('change');
+                      unitSelect.dispatchEvent(event);
+                    }
+                    document.getElementById('generalDate').value = dateVal;
+                    document.getElementById('generalCenterId').value = centerId;
+                    document.getElementById('generalUnder6').value = under6;
+                    document.getElementById('generalFrom6To18').value = from6To18;
+                    document.getElementById('generalOver18').value = over18;
+                    
+                    document.getElementById('modal-general-title').textContent = 'Sửa Số Liệu Khám Chung';
+                    document.getElementById('modal-general').classList.add('active');
+                  }
+
+                  function editAdminWorkplaceReport(id, centerId, workplace, dateVal, workers, children, political, others) {
+                    document.getElementById('workplaceReportId').value = id;
+                    const cSelect = document.getElementById('workplaceCenterId');
+                    if (cSelect) cSelect.value = centerId;
+                    document.getElementById('workplaceDate').value = dateVal;
+                    document.getElementById('workplaceName').value = workplace;
+                    document.getElementById('workplaceWorkers').value = workers;
+                    document.getElementById('workplaceChildren').value = children;
+                    document.getElementById('workplacePolitical').value = political;
+                    document.getElementById('workplaceOthers').value = others;
+                    
+                    document.getElementById('modal-workplace-title').textContent = 'Sửa Số Liệu Đơn Vị KSK';
+                    document.getElementById('modal-workplace').classList.add('active');
+                  }
+
+                  function editAdminBytLinkage(dateVal, count) {
+                    document.getElementById('bytLinkageDate').value = dateVal;
+                    document.getElementById('bytLinkageCount').value = count;
+                    
+                    document.getElementById('modal-byt-title').textContent = 'Sửa Số Lượt Liên Thông BYT';
+                    document.getElementById('modal-byt').classList.add('active');
+                  }
+
+                  function openGeneralModal() {
+                    document.getElementById('generalReportId').value = '';
+                    const unitSelect = document.getElementById('generalUnitId');
+                    if (unitSelect) {
+                      unitSelect.value = '';
+                      const event = new Event('change');
+                      unitSelect.dispatchEvent(event);
+                    }
+                    
+                    const todayStr = new Date().toISOString().substring(0, 10);
+                    document.getElementById('generalDate').value = todayStr;
+                    document.getElementById('generalCenterId').value = '';
+                    document.getElementById('generalUnder6').value = '0';
+                    document.getElementById('generalFrom6To18').value = '0';
+                    document.getElementById('generalOver18').value = '0';
+                    
+                    document.getElementById('modal-general-title').textContent = 'Thêm Số Liệu Khám Chung';
+                    document.getElementById('modal-general').classList.add('active');
+                  }
+
+                  function closeGeneralModal() {
+                    document.getElementById('modal-general').classList.remove('active');
+                  }
+
+                  function openWorkplaceModal() {
+                    document.getElementById('workplaceReportId').value = '';
+                    const cSelect = document.getElementById('workplaceCenterId');
+                    if (cSelect) cSelect.value = '';
+                    const todayStr = new Date().toISOString().substring(0, 10);
+                    document.getElementById('workplaceDate').value = todayStr;
+                    document.getElementById('workplaceName').value = '';
+                    document.getElementById('workplaceWorkers').value = '0';
+                    document.getElementById('workplaceChildren').value = '0';
+                    document.getElementById('workplacePolitical').value = '0';
+                    document.getElementById('workplaceOthers').value = '0';
+                    
+                    document.getElementById('modal-workplace-title').textContent = 'Thêm Số Liệu Đơn Vị KSK';
+                    document.getElementById('modal-workplace').classList.add('active');
+                  }
+
+                  function closeWorkplaceModal() {
+                    document.getElementById('modal-workplace').classList.remove('active');
+                  }
+
+                  function openBytModal() {
+                    const todayStr = new Date().toISOString().substring(0, 10);
+                    document.getElementById('bytLinkageDate').value = todayStr;
+                    document.getElementById('bytLinkageCount').value = '0';
+                    
+                    document.getElementById('modal-byt-title').textContent = 'Thêm Số Lượt Liên Thông BYT';
+                    document.getElementById('modal-byt').classList.add('active');
+                  }
+
+                  function closeBytModal() {
+                    document.getElementById('modal-byt').classList.remove('active');
+                  }
+                  // Custom Inline Month Calendar JS
+                  const selectedDate = new Date('<%= selectedDateStr %>');
+                  let currentYear = selectedDate.getUTCFullYear();
+                  let currentMonth = selectedDate.getUTCMonth(); // 0-indexed
+
+                  const allDaysData = <%- JSON.stringify(allDays) %>;
+                  const unitIdParam = '<%= user.role === "admin" ? "&unitId=" + selectedUnitId : "" %>';
+
+                  const allDaysMap = {};
+                  if (typeof allDaysData !== 'undefined' && allDaysData) {
+                    allDaysData.forEach(dayObj => {
+                      allDaysMap[dayObj.dateStr] = dayObj.total;
+                    });
+                  }
+
+                  function drawCalendar() {
+                    const monthTitle = document.getElementById('calendar-month-title');
+                    const daysGrid = document.getElementById('calendar-days');
+                    if (!monthTitle || !daysGrid) return;
+
+                    // Set title
+                    monthTitle.innerText = `Tháng ${currentMonth + 1}, ${currentYear}`;
+
+                    // Clear days
+                    daysGrid.innerHTML = '';
+
+                    // Get first day of month (e.g. Wednesday)
+                    const firstDay = new Date(Date.UTC(currentYear, currentMonth, 1));
+                    const firstDayOfWeek = firstDay.getUTCDay(); // 0 (Sun) to 6 (Sat)
+
+                    // Get number of days in current month
+                    const totalDays = new Date(Date.UTC(currentYear, currentMonth + 1, 0)).getUTCDate();
+
+                    // Get number of days in previous month for padding
+                    const prevMonthTotalDays = new Date(Date.UTC(currentYear, currentMonth, 0)).getUTCDate();
+
+                    // Draw previous month padding days
+                    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+                      const cell = document.createElement('div');
+                      cell.classList.add('calendar-day-cell', 'disabled', 'other-month');
+                      cell.innerText = prevMonthTotalDays - i;
+                      daysGrid.appendChild(cell);
+                    }
+
+                    // Draw current month days
+                    for (let day = 1; day <= totalDays; day++) {
+                      const cell = document.createElement('div');
+                      cell.classList.add('calendar-day-cell');
+                      cell.innerText = day;
+
+                      const mStr = String(currentMonth + 1).padStart(2, '0');
+                      const dStr = String(day).padStart(2, '0');
+                      const fullDateStr = `${currentYear}-${mStr}-${dStr}`;
+
+                      // Boundaries check: July 1 to Sep 30
+                      const cellDate = new Date(Date.UTC(currentYear, currentMonth, day));
+                      const minDate = new Date(Date.UTC(2026, 6, 1));
+                      const maxDate = new Date(Date.UTC(2026, 8, 30));
+
+                      const isDateValid = cellDate >= minDate && cellDate <= maxDate;
+
+                      if (!isDateValid) {
+                        cell.classList.add('disabled');
+                      } else {
+                        // Highlight active selected date
+                        if (fullDateStr === '<%= selectedDateStr %>') {
+                          cell.classList.add('selected');
+                        }
+
+                        // Show green dot indicator if has submitted data
+                        if (allDaysMap[fullDateStr] > 0) {
+                          cell.classList.add('has-data');
+                        }
+
+                        // Click action: navigate to this date
+                        cell.addEventListener('click', () => {
+                          window.location.href = `/input?date=${fullDateStr}${unitIdParam}`;
+                        });
+                      }
+
+                      daysGrid.appendChild(cell);
+                    }
+
+                    // Next month padding cells to complete the grid
+                    const totalRendered = firstDayOfWeek + totalDays;
+                    const remaining = 42 - totalRendered;
+                    for (let i = 1; i <= remaining; i++) {
+                      const cell = document.createElement('div');
+                      cell.classList.add('calendar-day-cell', 'disabled', 'other-month');
+                      cell.innerText = i;
+                      daysGrid.appendChild(cell);
+                    }
+
+                    // Limit month navigation bounds: only allow July, Aug, Sept 2026
+                    const prevBtn = document.getElementById('prev-month-btn');
+                    const nextBtn = document.getElementById('next-month-btn');
+
+                    if (currentYear === 2026 && currentMonth === 6) {
+                      prevBtn.disabled = true;
+                      prevBtn.style.opacity = '0.3';
+                      prevBtn.style.cursor = 'not-allowed';
+                    } else {
+                      prevBtn.disabled = false;
+                      prevBtn.style.opacity = '1';
+                      prevBtn.style.cursor = 'pointer';
+                    }
+
+                    if (currentYear === 2026 && currentMonth === 8) {
+                      nextBtn.disabled = true;
+                      nextBtn.style.opacity = '0.3';
+                      nextBtn.style.cursor = 'not-allowed';
+                    } else {
+                      nextBtn.disabled = false;
+                      nextBtn.style.opacity = '1';
+                      nextBtn.style.cursor = 'pointer';
+                    }
+                  }
+
+                  function changeCalendarMonth(delta) {
+                    currentMonth += delta;
+                    if (currentMonth < 0) {
+                      currentMonth = 11;
+                      currentYear -= 1;
+                    } else if (currentMonth > 11) {
+                      currentMonth = 0;
+                      currentYear += 1;
+                    }
+                    drawCalendar();
+                  }
+
+                  // Bind change listener if center selection is a dropdown
+                  const centerSelect = document.getElementById('centerId');
+                  if (centerSelect && centerSelect.tagName === 'SELECT') {
+                    centerSelect.addEventListener('change', handleCenterChange);
+                  }
+
+                  // Initialize
+                  window.addEventListener('DOMContentLoaded', () => {
+                    const select = document.getElementById('centerId');
+                    if (select && select.tagName === 'SELECT' && select.options.length === 2) {
+                      select.selectedIndex = 1;
+                    }
+                    handleCenterChange();
+                    drawCalendar();
+
+                    // Scroll to active date row in history table
+                    const activeRow = document.querySelector('.data-table tr.highlight');
+                    if (activeRow) {
+                      const container = activeRow.closest('.table-responsive');
+                      if (container) {
+                        const containerHeight = container.clientHeight;
+                        const rowTop = activeRow.offsetTop;
+                        const rowHeight = activeRow.offsetHeight;
+                        container.scrollTop = rowTop - (containerHeight / 2) + (rowHeight / 2);
+                      }
+                    }
+
+                    // Initialize client-side table pagination
+                    updateTablePagination('general');
+                    updateTablePagination('workplace');
+                    updateTablePagination('byt');
+                  });
+
+                  // Client-side pagination logic
+                  const paginationState = {
+                    general: { currentPage: 1, pageSize: 5 },
+                    workplace: { currentPage: 1, pageSize: 5 },
+                    byt: { currentPage: 1, pageSize: 5 }
+                  };
+
+                  function updateTablePagination(type) {
+                    const tbody = document.getElementById(type + '-table-body');
+                    if (!tbody) return;
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    const infoSpan = document.getElementById(type + '-page-info');
+                    const prevBtn = document.getElementById(type + '-prev-btn');
+                    const nextBtn = document.getElementById(type + '-next-btn');
+
+                    // If no records or empty indicator row
+                    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length <= 1)) {
+                      if (infoSpan) infoSpan.style.display = 'none';
+                      if (prevBtn) prevBtn.style.display = 'none';
+                      if (nextBtn) nextBtn.style.display = 'none';
+                      return;
+                    }
+
+                    const state = paginationState[type];
+                    const totalPages = Math.ceil(rows.length / state.pageSize) || 1;
+                    
+                    if (state.currentPage < 1) state.currentPage = 1;
+                    if (state.currentPage > totalPages) state.currentPage = totalPages;
+
+                    rows.forEach((row, idx) => {
+                      const startIdx = (state.currentPage - 1) * state.pageSize;
+                      const endIdx = startIdx + state.pageSize;
+                      if (idx >= startIdx && idx < endIdx) {
+                        row.style.display = '';
+                      } else {
+                        row.style.display = 'none';
+                      }
+                    });
+
+                    if (infoSpan) infoSpan.textContent = `Trang ${state.currentPage} / ${totalPages} (Tổng ${rows.length})`;
+                    if (prevBtn) prevBtn.disabled = state.currentPage === 1;
+                    if (nextBtn) nextBtn.disabled = state.currentPage === totalPages;
+                  }
+
+                  function prevPage(type) {
+                    if (paginationState[type].currentPage > 1) {
+                      paginationState[type].currentPage--;
+                      updateTablePagination(type);
+                    }
+                  }
+
+                  function nextPage(type) {
+                    const tbody = document.getElementById(type + '-table-body');
+                    const rows = tbody ? tbody.querySelectorAll('tr') : [];
+                    const totalPages = Math.ceil(rows.length / paginationState[type].pageSize) || 1;
+                    if (paginationState[type].currentPage < totalPages) {
+                      paginationState[type].currentPage++;
+                      updateTablePagination(type);
+                    }
+                  }
+                </script>
+
+<% if (user.role === 'admin') { %>
+<!-- Modal 1: Khám chung tại Trạm -->
+<div class="modal-overlay" id="modal-general">
+  <div class="modal-content" style="border-top: 4px solid var(--primary-color);">
+    <div class="modal-header">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--primary-color);" id="modal-general-title">Thêm Số Liệu Khám Chung</h3>
+      <button class="modal-close-btn" onclick="closeGeneralModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <form action="/input" method="POST">
+      <input type="hidden" name="reportId" id="generalReportId" value="">
+      <input type="hidden" name="adminInputMode" value="general">
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="generalUnitId">Đơn vị (Xã/Phường)</label>
+        <select name="unitId" id="generalUnitId" class="form-control no-icon" required style="background: var(--input-bg);">
+          <option value="">-- Chọn Đơn vị --</option>
+          <% units.forEach(unit => { %>
+            <option value="<%= unit._id %>">
+              <%= unit.unitName %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="generalDate">Ngày làm việc</label>
+        <input type="date" name="date" id="generalDate" class="form-control" required style="background: var(--input-bg);">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="generalCenterId">Cơ sở khám sức khỏe (Trạm y tế)</label>
+        <select name="centerId" id="generalCenterId" class="form-control no-icon" required style="background: var(--input-bg);">
+          <option value="">-- Chọn Trạm y tế --</option>
+          <% allCenters.forEach(center => { %>
+            <option value="<%= center._id %>" data-unit="<%= center.unitId %>">
+              <%= center.name %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="generalUnder6" style="font-size: 0.75rem;">Dưới 6 tuổi</label>
+          <input type="number" id="generalUnder6" name="under6" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="generalFrom6To18" style="font-size: 0.75rem;">Từ 6 - 18 tuổi</label>
+          <input type="number" id="generalFrom6To18" name="from6To18" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="generalOver18" style="font-size: 0.75rem;">Trên 18 tuổi</label>
+          <input type="number" id="generalOver18" name="over18" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu số liệu</button>
+        <button type="button" class="btn btn-secondary" onclick="closeGeneralModal()">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 2: Khám theo đơn vị KSK -->
+<div class="modal-overlay" id="modal-workplace">
+  <div class="modal-content" style="border-top: 4px solid var(--primary-color);">
+    <div class="modal-header">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--primary-color);" id="modal-workplace-title">Thêm Số Liệu Đơn Vị KSK</h3>
+      <button class="modal-close-btn" onclick="closeWorkplaceModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <form action="/input" method="POST">
+      <input type="hidden" name="reportId" id="workplaceReportId" value="">
+      <input type="hidden" name="adminInputMode" value="workplace">
+      
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="workplaceDate">Ngày làm việc</label>
+        <input type="date" name="date" id="workplaceDate" class="form-control" required style="background: var(--input-bg);">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="workplaceName">Tên đơn vị KSK</label>
+        <input type="text" id="workplaceName" name="adminWorkplace" class="form-control" placeholder="Ví dụ: Công ty A" required style="background: var(--input-bg);">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="workplaceWorkers" style="font-size: 0.75rem;">CN, VC, NLĐ</label>
+          <input type="number" id="workplaceWorkers" name="adminWorkers" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="workplaceChildren" style="font-size: 0.75rem;">Trẻ em</label>
+          <input type="number" id="workplaceChildren" name="adminChildren" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="workplacePolitical" style="font-size: 0.75rem;">Hệ thống chính trị</label>
+          <input type="number" id="workplacePolitical" name="adminPolitical" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="workplaceOthers" style="font-size: 0.75rem;">Đối tượng khác</label>
+          <input type="number" id="workplaceOthers" name="adminOthers" class="form-control" min="0" value="0" style="background: var(--input-bg);">
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu số liệu</button>
+        <button type="button" class="btn btn-secondary" onclick="closeWorkplaceModal()">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal 3: Liên thông cổng BYT -->
+<div class="modal-overlay" id="modal-byt">
+  <div class="modal-content" style="border-top: 4px solid var(--accent-red);">
+    <div class="modal-header">
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--primary-color);" id="modal-byt-title">Nhập Số Lượt Liên Thông BYT</h3>
+      <button class="modal-close-btn" onclick="closeBytModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <form action="/admin/byt-linkage" method="POST">
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="bytLinkageDate">Ngày liên thông</label>
+        <input type="date" name="date" id="bytLinkageDate" class="form-control" required style="background: var(--input-bg);">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="bytLinkageCount">Số lượt đã liên thông trong ngày</label>
+        <input type="number" id="bytLinkageCount" name="count" class="form-control" min="0" value="0" required style="background: var(--input-bg);">
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu số lượt</button>
+        <button type="button" class="btn btn-secondary" onclick="closeBytModal()">Hủy</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const generalUnitSelect = document.getElementById('generalUnitId');
+    const generalCenterSelect = document.getElementById('generalCenterId');
+    if (generalUnitSelect && generalCenterSelect) {
+      generalUnitSelect.addEventListener('change', function() {
+        const selectedUnit = this.value;
+        Array.from(generalCenterSelect.options).forEach(opt => {
+          if (opt.value === "") {
+            opt.style.display = "";
+            return;
+          }
+          const optUnit = opt.getAttribute('data-unit');
+          if (optUnit === selectedUnit) {
+            opt.style.display = "";
+          } else {
+            opt.style.display = "none";
+          }
+        });
+        generalCenterSelect.value = "";
+      });
+    }
+  });
+</script>
+<% } %>
+
+<%- include('partials/footer') %>

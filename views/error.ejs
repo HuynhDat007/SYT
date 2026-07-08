@@ -1,0 +1,23 @@
+<%- include('partials/header') %>
+
+<div class="glass-panel" style="max-width: 500px; margin: 4rem auto; text-align: center; border-top: 4px solid var(--accent-red);">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 64px; height: 64px; color: var(--accent-red); margin-bottom: 1.5rem; filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.4));">
+    <octagon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  
+  <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Truy Cập Bị Từ Chối</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 1.5rem;"><%= message %></p>
+  
+  <a href="/" class="btn btn-primary">
+    <!-- Home Icon -->
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.25rem;">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Quay lại trang chủ
+  </a>
+</div>
+
+<%- include('partials/footer') %>

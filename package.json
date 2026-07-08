@@ -1,0 +1,21 @@
+{
+  "name": "syt-health-check",
+  "version": "1.0.0",
+  "description": "Citizen health check logging and dashboard application for So Y Te",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "seed": "node src/seed.js"
+  },
+  "dependencies": {
+    "@fontsource/momo-trust-sans": "^5.2.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.4.1",
+    "sharp": "^0.35.3"
+  }
+}
