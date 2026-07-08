@@ -1,0 +1,329 @@
+<%- include('../partials/header') %>
+
+<div class="page-title-section">
+  <h1 class="page-title">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+    Quản Lý Tài Khoản Đơn Vị (Xã / Phường)
+  </h1>
+  
+  <div class="input-wrapper" style="max-width: 320px; width: 100%;">
+    <div class="input-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
+    <input type="text" id="unit-search" class="form-control" placeholder="Tìm kiếm đơn vị, tài khoản..." onkeyup="searchUnitTable()">
+  </div>
+</div>
+
+<% if (success) { %>
+  <div class="alert alert-success">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <%= success %>
+  </div>
+<% } %>
+
+<% if (error) { %>
+  <div class="alert alert-error">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <%= error %>
+  </div>
+<% } %>
+
+<div class="split-layout" style="grid-template-columns: 2fr 1fr; align-items: start; gap: 1.5rem;">
+  
+  <!-- Left Side: Table List -->
+  <div class="glass-panel" style="margin-bottom: 0;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="8" y1="6" x2="21" y2="6"/>
+        <line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Danh Sách Tài Khoản Đơn Vị
+    </h3>
+    
+    <div class="table-responsive" style="max-height: 550px; overflow-y: auto;">
+      <table class="data-table" id="units-table">
+        <thead style="position: sticky; top: 0; background: #0b0f19; z-index: 10; box-shadow: 0 1px 0 var(--panel-border);">
+          <tr>
+            <th style="width: 50px;">STT</th>
+            <th>Tên Đơn Vị</th>
+            <th>Tên Đăng Nhập</th>
+            <th>Người Liên Hệ / SĐT</th>
+            <th style="width: 140px; text-align: center;">Thao Tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% units.forEach((unit, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td style="font-weight: 600; color: var(--text-primary);"><%= unit.unitName %></td>
+              <td style="font-family: monospace; font-size: 0.95rem; color: var(--primary-color);"><%= unit.username %></td>
+              <td>
+                <% if (unit.contactName) { %>
+                  <div><%= unit.contactName %></div>
+                  <div style="font-size: 0.78rem; color: var(--text-secondary);"><%= unit.contactPhone || '-' %></div>
+                <% } else { %>
+                  <span style="color: var(--text-secondary); font-style: italic;">Chưa cấu hình</span>
+                <% } %>
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                  <button type="button" class="btn btn-secondary btn-icon" title="Chỉnh sửa thông tin đơn vị" 
+                    onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
+                    <!-- Edit Pencil Icon SVG -->
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-icon" title="Đổi mật khẩu đơn vị" 
+                    onclick="openPasswordModal('<%= unit._id %>', '<%= unit.unitName %>')">
+                    <!-- Key icon SVG -->
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2">
+                      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                    </svg>
+                  </button>
+                  <form action="/admin/units/delete/<%= unit._id %>" method="POST" style="margin: 0; display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản đơn vị <%= unit.unitName %>?')">
+                    <button type="submit" class="btn btn-secondary btn-icon" title="Xóa tài khoản đơn vị">
+                      <!-- Trash icon SVG -->
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        <line x1="10" y1="11" x2="10" y2="17"/>
+                        <line x1="14" y1="11" x2="14" y2="17"/>
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right Side: Creation Form -->
+  <div class="glass-panel" style="margin-bottom: 0;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+      <!-- Plus User SVG -->
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="16" y1="11" x2="22" y2="11"/>
+      </svg>
+      Tạo Tài Khoản Mới
+    </h3>
+    
+    <form action="/admin/units/add" method="POST">
+      <div class="form-group">
+        <label for="add-unitName">Tên Đơn Vị (Xã / Phường / Cơ quan)</label>
+        <input type="text" name="unitName" id="add-unitName" class="form-control" placeholder="Ví dụ: Xã Phước Hậu" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="add-username">Tên Đăng Nhập</label>
+        <input type="text" name="username" id="add-username" class="form-control" placeholder="Ví dụ: xaphuochau" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="add-password">Mật Khẩu</label>
+        <input type="password" name="password" id="add-password" class="form-control" placeholder="Nhập mật khẩu đăng nhập" required>
+      </div>
+
+      <h4 style="font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.75rem 0; color: var(--text-secondary);">Thông Tin Liên Hệ (Không bắt buộc)</h4>
+
+      <div class="form-group">
+        <label for="add-contactName">Người Liên Hệ</label>
+        <input type="text" name="contactName" id="add-contactName" class="form-control" placeholder="Họ và tên cán bộ phụ trách">
+      </div>
+
+      <div class="form-group">
+        <label for="add-contactPhone">Số Điện Thoại</label>
+        <input type="text" name="contactPhone" id="add-contactPhone" class="form-control" placeholder="Số điện thoại liên hệ">
+      </div>
+
+      <div class="form-group">
+        <label for="add-contactEmail">Email</label>
+        <input type="email" name="contactEmail" id="add-contactEmail" class="form-control" placeholder="Địa chỉ email liên hệ">
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.7rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Tạo tài khoản
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- Modal: Edit Unit Info -->
+<div id="edit-modal" class="modal-overlay" style="display: none;">
+  <div class="glass-panel modal-content" style="max-width: 500px; width: 100%; border-top: 4px solid var(--primary-color);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700;" id="modal-title">Chỉnh sửa tài khoản đơn vị</h3>
+      <button class="btn btn-secondary btn-icon" onclick="closeEditModal()" style="padding: 0.25rem; border-radius: 50%;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <form action="/admin/units/update" method="POST">
+      <input type="hidden" name="unitId" id="modal-unitId">
+      
+      <div class="form-group">
+        <label for="modal-unitName">Tên Đơn Vị</label>
+        <input type="text" name="unitName" id="modal-unitName" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="modal-username">Tên Đăng Nhập</label>
+        <input type="text" name="username" id="modal-username" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="modal-contactName">Người Liên Hệ</label>
+        <input type="text" name="contactName" id="modal-contactName" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="modal-contactPhone">Số Điện Thoại</label>
+        <input type="text" name="contactPhone" id="modal-contactPhone" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="modal-contactEmail">Email</label>
+        <input type="email" name="contactEmail" id="modal-contactEmail" class="form-control">
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeEditModal()" style="flex: 1;">Hủy</button>
+        <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu thay đổi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Change Password -->
+<div id="password-modal" class="modal-overlay" style="display: none;">
+  <div class="glass-panel modal-content" style="max-width: 450px; width: 100%; border-top: 4px solid var(--accent-yellow);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.2rem; font-weight: 700;" id="password-modal-title">Đổi mật khẩu: Xã</h3>
+      <button class="btn btn-secondary btn-icon" onclick="closePasswordModal()" style="padding: 0.25rem; border-radius: 50%;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <form action="/admin/units/reset-password" method="POST">
+      <input type="hidden" name="unitId" id="password-unitId">
+      
+      <div class="form-group">
+        <label for="password-newPassword">Mật khẩu mới</label>
+        <input type="password" name="newPassword" id="password-newPassword" class="form-control" placeholder="Nhập mật khẩu mới cho đơn vị" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password-confirmPassword">Xác nhận mật khẩu mới</label>
+        <input type="password" name="confirmPassword" id="password-confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu mới" required>
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closePasswordModal()" style="flex: 1;">Hủy</button>
+        <button type="submit" class="btn btn-primary" style="flex: 1; background: var(--accent-yellow-gradient); border-color: #f59e0b;">Đổi mật khẩu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function searchUnitTable() {
+    const input = document.getElementById('unit-search');
+    const filter = input.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+    const table = document.getElementById('units-table');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 1; i < tr.length; i++) {
+      const tdName = tr[i].getElementsByTagName('td')[1];
+      const tdUsername = tr[i].getElementsByTagName('td')[2];
+      
+      if (tdName || tdUsername) {
+        const nameText = (tdName.textContent || tdName.innerText).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+        const userText = (tdUsername.textContent || tdUsername.innerText).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+        
+        if (nameText.indexOf(filter) > -1 || userText.indexOf(filter) > -1) {
+          tr[i].style.display = '';
+        } else {
+          tr[i].style.display = 'none';
+        }
+      }
+    }
+  }
+
+  // Edit Modal Controls
+  function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail) {
+    document.getElementById('modal-unitId').value = id;
+    document.getElementById('modal-unitName').value = unitName;
+    document.getElementById('modal-username').value = username;
+    document.getElementById('modal-contactName').value = contactName;
+    document.getElementById('modal-contactPhone').value = contactPhone;
+    document.getElementById('modal-contactEmail').value = contactEmail;
+    document.getElementById('edit-modal').style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+  }
+
+  // Password Modal Controls
+  function openPasswordModal(id, unitName) {
+    document.getElementById('password-unitId').value = id;
+    document.getElementById('password-modal-title').textContent = 'Đổi mật khẩu: ' + unitName;
+    document.getElementById('password-newPassword').value = '';
+    document.getElementById('password-confirmPassword').value = '';
+    document.getElementById('password-modal').style.display = 'flex';
+  }
+
+  function closePasswordModal() {
+    document.getElementById('password-modal').style.display = 'none';
+  }
+
+  // Close modals when clicking overlay
+  window.onclick = function(event) {
+    const editModal = document.getElementById('edit-modal');
+    const pwdModal = document.getElementById('password-modal');
+    if (event.target === editModal) {
+      closeEditModal();
+    }
+    if (event.target === pwdModal) {
+      closePasswordModal();
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

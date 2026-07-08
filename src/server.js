@@ -1737,6 +1737,183 @@ app.get('/admin/logs', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 // -------------------------------------------------------------
+// ROUTES: ADMIN UNIT ACCOUNTS MANAGEMENT (QUẢN LÝ TÀI KHOẢN ĐƠN VỊ)
+// -------------------------------------------------------------
+
+app.get('/admin/units', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+    res.render('admin/units', {
+      user: {
+        id: req.session.userId,
+        username: req.session.username,
+        role: req.session.userRole,
+        unitName: req.session.unitName
+      },
+      units,
+      success: req.query.success || null,
+      error: req.query.error || null
+    });
+  } catch (error) {
+    console.error('GET units error:', error);
+    res.status(500).send('Lỗi tải danh sách tài khoản đơn vị');
+  }
+});
+
+app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res) => {
+  const { unitName, username, password, contactName, contactPhone, contactEmail } = req.body;
+  try {
+    if (!unitName || !username || !password) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
+    }
+
+    const trimmedUsername = username.toLowerCase().trim();
+    const existingUser = await User.findOne({ username: trimmedUsername });
+    if (existingUser) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Tên đăng nhập đã tồn tại trên hệ thống'));
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUnit = await User.create({
+      unitName: unitName.trim(),
+      username: trimmedUsername,
+      password: hashedPassword,
+      contactName: contactName ? contactName.trim() : '',
+      contactPhone: contactPhone ? contactPhone.trim() : '',
+      contactEmail: contactEmail ? contactEmail.trim() : '',
+      role: 'unit'
+    });
+
+    // Log the creation
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'CREATE',
+      targetType: 'USER',
+      details: `Tạo tài khoản đơn vị mới: ${newUnit.unitName} (${newUnit.username})`
+    });
+
+    res.redirect('/admin/units?success=' + encodeURIComponent('Tạo tài khoản đơn vị mới thành công!'));
+  } catch (error) {
+    console.error('POST units/add error:', error);
+    res.redirect('/admin/units?error=' + encodeURIComponent('Đã xảy ra lỗi khi tạo tài khoản đơn vị'));
+  }
+});
+
+app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, res) => {
+  const { unitId, unitName, username, contactName, contactPhone, contactEmail } = req.body;
+  try {
+    if (!unitId || !unitName || !username) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
+    }
+
+    const unit = await User.findById(unitId);
+    if (!unit) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Không tìm thấy tài khoản đơn vị'));
+    }
+
+    const trimmedUsername = username.toLowerCase().trim();
+    if (trimmedUsername !== unit.username) {
+      const existingUser = await User.findOne({ username: trimmedUsername });
+      if (existingUser) {
+        return res.redirect('/admin/units?error=' + encodeURIComponent('Tên đăng nhập mới đã tồn tại trên hệ thống'));
+      }
+    }
+
+    const oldName = unit.unitName;
+    const oldUsername = unit.username;
+
+    unit.unitName = unitName.trim();
+    unit.username = trimmedUsername;
+    unit.contactName = contactName ? contactName.trim() : '';
+    unit.contactPhone = contactPhone ? contactPhone.trim() : '';
+    unit.contactEmail = contactEmail ? contactEmail.trim() : '';
+
+    await unit.save();
+
+    // Log the update
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'USER',
+      details: `Cập nhật thông tin đơn vị: ${oldName} (${oldUsername}) -> ${unit.unitName} (${unit.username})`
+    });
+
+    res.redirect('/admin/units?success=' + encodeURIComponent('Cập nhật thông tin đơn vị thành công!'));
+  } catch (error) {
+    console.error('POST units/update error:', error);
+    res.redirect('/admin/units?error=' + encodeURIComponent('Đã xảy ra lỗi khi cập nhật thông tin đơn vị'));
+  }
+});
+
+app.post('/admin/units/reset-password', requireAuth, requireRole('admin'), async (req, res) => {
+  const { unitId, newPassword, confirmPassword } = req.body;
+  try {
+    if (!unitId || !newPassword || !confirmPassword) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ thông tin mật khẩu'));
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Mật khẩu và xác nhận mật khẩu không khớp'));
+    }
+
+    const unit = await User.findById(unitId);
+    if (!unit) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Không tìm thấy tài khoản đơn vị'));
+    }
+
+    unit.password = await bcrypt.hash(newPassword, 10);
+    await unit.save();
+
+    // Log the reset
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'USER',
+      details: `Đổi mật khẩu cho đơn vị: ${unit.unitName} (${unit.username})`
+    });
+
+    res.redirect('/admin/units?success=' + encodeURIComponent(`Đã đổi mật khẩu cho đơn vị ${unit.unitName} thành công!`));
+  } catch (error) {
+    console.error('POST units/reset-password error:', error);
+    res.redirect('/admin/units?error=' + encodeURIComponent('Đã xảy ra lỗi khi đổi mật khẩu đơn vị'));
+  }
+});
+
+app.post('/admin/units/delete/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  const unitId = req.params.id;
+  try {
+    const unit = await User.findById(unitId);
+    if (!unit) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Không tìm thấy tài khoản đơn vị'));
+    }
+
+    // Prevent deleting itself
+    if (unitId === req.session.userId) {
+      return res.redirect('/admin/units?error=' + encodeURIComponent('Bạn không thể xóa tài khoản của chính mình'));
+    }
+
+    await User.findByIdAndDelete(unitId);
+
+    // Log the delete
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'DELETE',
+      targetType: 'USER',
+      details: `Xóa tài khoản đơn vị: ${unit.unitName} (${unit.username})`
+    });
+
+    res.redirect('/admin/units?success=' + encodeURIComponent('Đã xóa tài khoản đơn vị thành công!'));
+  } catch (error) {
+    console.error('POST units/delete error:', error);
+    res.redirect('/admin/units?error=' + encodeURIComponent('Đã xảy ra lỗi khi xóa tài khoản đơn vị'));
+  }
+});
+
+// -------------------------------------------------------------
 // ROUTES: PROFILE MANAGEMENT
 // -------------------------------------------------------------
 
