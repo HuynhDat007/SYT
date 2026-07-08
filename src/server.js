@@ -518,7 +518,8 @@ app.get('/', async (req, res) => {
     let grandAdminCumulative = { under6: 0, from6To18: 0, over18: 0, total: 0 };
 
     let grandTarget = 0;
-    let grandResidentPopulation = 0;
+    let grandResidentPopulation = 3194187;
+    let grandLocalManagedPopulation = 0;
     let grandFirstHalfChecked = 833233;
 
     let grandMonthly = {
@@ -605,7 +606,7 @@ app.get('/', async (req, res) => {
       grandAdminCumulative.total += adminCumulative.total;
 
       grandTarget += unit.planTarget;
-      grandResidentPopulation += unit.residentPopulation;
+      grandLocalManagedPopulation += (unit.residentPopulation || 0);
 
       // Sum monthly grand totals
       [7, 8, 9].forEach(m => {
@@ -827,6 +828,7 @@ app.get('/', async (req, res) => {
       grandCumulative: displayCumulative,
       grandTarget,
       grandResidentPopulation,
+      grandLocalManagedPopulation,
       grandFirstHalfChecked,
       grandYearCumulative: displayYearCumulative,
       overallCompletionRate: displayOverallCompletionRate,
