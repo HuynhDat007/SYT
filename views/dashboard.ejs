@@ -8,20 +8,26 @@
       font-style: normal;
       font-display: swap;
     }
+
     .report-canvas-wrapper svg {
       width: 100%;
       height: 100%;
     }
-    .report-canvas-wrapper svg text, .report-canvas-wrapper svg tspan {
+
+    .report-canvas-wrapper svg text,
+    .report-canvas-wrapper svg tspan {
       font-family: 'Momo Trust Display Web', sans-serif !important;
       paint-order: stroke fill;
     }
-    .report-canvas-wrapper svg .center-text, .report-canvas-wrapper svg .center-text tspan {
+
+    .report-canvas-wrapper svg .center-text,
+    .report-canvas-wrapper svg .center-text tspan {
       text-anchor: middle !important;
     }
   </style>
 
-  <div class="page-title-section" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div class="page-title-section"
+    style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
     <h1 class="page-title" style="margin: 0;">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 28px; height: 28px;">
@@ -66,7 +72,7 @@
         </svg>
       </div>
       <div class="stat-info">
-        <span class="stat-label">Lũy kế toàn tỉnh (01/07 - hiện nay)</span>
+        <span class="stat-label">Lũy kế toàn tỉnh (01/07 - hiện tại)</span>
         <span class="stat-number">
           <%= grandCumulative.total.toLocaleString('vi-VN') %>
         </span>
@@ -116,22 +122,40 @@
 
   <!-- Figma A4 Report Section -->
   <div class="glass-panel" id="figma-report-panel" style="margin-bottom: 2rem; scroll-margin-top: 5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-      <h3 style="font-size: 1.2rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+      <h3
+        style="font-size: 1.2rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-          <polyline points="10 9 9 9 8 9"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10 9 9 9 8 9" />
         </svg>
         Báo cáo ngày
-        <input type="date" id="dashboard-date-picker" class="form-control" value="<%= dailyMatchDateStr %>" onchange="window.location.href='/?date=' + this.value" style="display: inline-block; width: auto; padding: 0.25rem 0.5rem; font-size: 1.1rem; font-weight: 700; border: 1px solid var(--panel-border); border-radius: 6px; cursor: pointer; color: var(--primary-color); background: var(--bg-card); vertical-align: middle; margin-left: 0.25rem;">
+        <div style="position: relative; display: inline-block; vertical-align: middle; margin-left: 0.25rem;">
+          <span
+            style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem; font-size: 1.1rem; font-weight: 700; border: 1px solid var(--panel-border); border-radius: 6px; color: var(--primary-color); background: var(--bg-card); pointer-events: none;">
+            <%= dailyMatchDateStr.split('-').reverse().join('/') %>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="margin-left: 0.2rem; opacity: 0.8;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+          </span>
+          <input type="date" id="dashboard-date-picker" value="<%= dailyMatchDateStr %>"
+            onchange="window.location.href='/?date=' + this.value"
+            style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
+        </div>
       </h3>
-      
+
       <div style="display: flex; gap: 0.75rem;">
         <!-- Download PNG Button -->
-        <button class="btn btn-secondary" onclick="downloadFigmaReportPng()" style="padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #007bff; border-color: #007bff; color: white;">
+        <button class="btn btn-secondary" onclick="downloadFigmaReportPng()"
+          style="padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #007bff; border-color: #007bff; color: white;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
@@ -140,7 +164,8 @@
           Tải file PNG (Ảnh)
         </button>
         <!-- Print Button -->
-        <button class="btn btn-primary" onclick="printFigmaReport()" style="padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
+        <button class="btn btn-primary" onclick="printFigmaReport()"
+          style="padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="6 9 6 2 18 2 18 9" />
             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
@@ -153,7 +178,8 @@
 
     <!-- Interactive Report container with customized fonts and scaling -->
     <div style="display: flex; justify-content: center; width: 100%; overflow: auto; padding: 1rem 0;">
-      <div class="report-canvas-wrapper" id="report-canvas-wrapper" style="box-shadow: 0 4px 30px rgba(0,0,0,0.15); background: white; border-radius: 8px; width: 100%; max-width: 900px; aspect-ratio: 1 / 1.414; display: flex; justify-content: center; align-items: center; border: 1px solid var(--panel-border);">
+      <div class="report-canvas-wrapper" id="report-canvas-wrapper"
+        style="box-shadow: 0 4px 30px rgba(0,0,0,0.15); background: white; border-radius: 8px; width: 100%; max-width: 900px; aspect-ratio: 1 / 1.414; display: flex; justify-content: center; align-items: center; border: 1px solid var(--panel-border);">
         <%- svgContent %>
       </div>
     </div>
@@ -171,9 +197,11 @@
         Số liệu chi tiết đơn vị: <%= unitStats.unitName %>
       </h3>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: stretch;">
+      <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: stretch;">
         <div style="display: flex; flex-direction: column;">
-          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tiến độ chỉ tiêu đơn vị</h4>
+          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tiến độ chỉ tiêu đơn vị
+          </h4>
           <div
             style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -194,7 +222,8 @@
         </div>
 
         <div style="display: flex; flex-direction: column;">
-          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tỷ lệ bao phủ dân số</h4>
+          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tỷ lệ bao phủ dân số
+          </h4>
           <div
             style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -218,8 +247,10 @@
         </div>
 
         <div style="display: flex; flex-direction: column;">
-          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Phân rã độ tuổi (Lũy kế)</h4>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; flex: 1; align-content: stretch;">
+          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Phân rã độ tuổi (Lũy kế)
+          </h4>
+          <div
+            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; flex: 1; align-content: stretch;">
             <div
               style="background: rgba(0, 242, 254, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
               <div style="font-size: 0.8rem; color: var(--text-secondary);">Dưới 6 tuổi</div>
@@ -455,12 +486,12 @@
                     Tháng 9</th>
                   <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                   <% campaignDays.forEach(day=> { %>
-                    <% const isCurrentDay = (day.dateStr === dailyMatchDateStr); %>
-                    <th rowspan="2" class="col-day" id="col-day-<%= day.dateStr %>"
-                      style="vertical-align: middle; text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.3)' : 'rgba(2, 132, 199, 0.08)' %>; border-bottom: 2px solid <%= isCurrentDay ? '#eab308' : 'var(--primary-color)' %>; display: none; min-width: 65px; font-size: 0.75rem; padding: 0.5rem 0.25rem; font-weight: <%= isCurrentDay ? '800' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                      <%= day.dateDisplay %>
-                    </th>
-                    <% }) %>
+                    <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                      <th rowspan="2" class="col-day" id="col-day-<%= day.dateStr %>"
+                        style="vertical-align: middle; text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.3)' : 'rgba(2, 132, 199, 0.08)' %>; border-bottom: 2px solid <%= isCurrentDay ? '#eab308' : 'var(--primary-color)' %>; display: none; min-width: 65px; font-size: 0.75rem; padding: 0.5rem 0.25rem; font-weight: <%= isCurrentDay ? '800' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                        <%= day.dateDisplay %>
+                      </th>
+                      <% }) %>
                 </tr>
                 <tr>
                   <!-- Tháng 7 -->
@@ -568,12 +599,12 @@
                   <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                   <% campaignDays.forEach(day=> { %>
                     <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
-                    <% const isCurrentDay = (day.dateStr === dailyMatchDateStr); %>
-                      <td class="col-day"
-                        style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                        <%= dayTotal || '-' %>
-                      </td>
-                      <% }) %>
+                      <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                        <td class="col-day"
+                          style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                          <%= dayTotal || '-' %>
+                        </td>
+                        <% }) %>
                 </tr>
 
                 <% reportsTable.forEach((row, index)=> { %>
@@ -677,12 +708,12 @@
                             <% campaignDays.forEach(day=> { %>
                               <% const cellData=dailyGridMap[row.unitId] ? dailyGridMap[row.unitId][day.dateStr] : null;
                                 const cellTotal=cellData ? cellData.total : 0; %>
-                                <% const isCurrentDay = (day.dateStr === dailyMatchDateStr); %>
-                                <td class="col-day"
-                                  style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                                  <%= cellTotal || '-' %>
-                                </td>
-                                <% }) %>
+                                <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                                  <td class="col-day"
+                                    style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                                    <%= cellTotal || '-' %>
+                                  </td>
+                                  <% }) %>
                           </tr>
                           <% }) %>
               </tbody>
@@ -756,19 +787,19 @@
                   <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                   <% campaignDays.forEach(day=> { %>
                     <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
-                    <% const isCurrentDay = (day.dateStr === dailyMatchDateStr); %>
-                      <td class="col-day"
-                        style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                        <%= dayTotal || '-' %>
-                      </td>
-                      <% }) %>
+                      <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                        <td class="col-day"
+                          style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                          <%= dayTotal || '-' %>
+                        </td>
+                        <% }) %>
                 </tr>
               </tfoot>
             </table>
           </div>
         </div>
 
-        <% if (user.role === 'admin' && typeof adminCentersData !== 'undefined' && adminCentersData.length > 0) { %>
+        <% if (user.role==='admin' && typeof adminCentersData !=='undefined' && adminCentersData.length> 0) { %>
           <div class="glass-panel" style="margin-top: 2rem; overflow-x: auto;">
             <h3
               style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
@@ -781,7 +812,8 @@
 
             <table class="table" style="width: 100%; border-collapse: collapse; min-width: 800px;">
               <thead>
-                <tr style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+                <tr
+                  style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
                   <th style="padding: 0.75rem 0.5rem; width: 50px; text-align: center;">STT</th>
                   <th style="padding: 0.75rem 0.5rem;">Cơ sở khám (Trạm y tế)</th>
                   <th style="padding: 0.75rem 0.5rem;">Địa bàn (Xã/Phường)</th>
@@ -794,330 +826,349 @@
                 </tr>
               </thead>
               <tbody>
-                <% adminCentersData.forEach((row, idx) => { %>
+                <% adminCentersData.forEach((row, idx)=> { %>
                   <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
-                    <td style="padding: 0.75rem 0.5rem; text-align: center;"><%= idx + 1 %></td>
-                    <td style="padding: 0.75rem 0.5rem; font-weight: 600;"><%= row.centerName %></td>
-                    <td style="padding: 0.75rem 0.5rem;"><%= row.unitName %></td>
-                    <td style="padding: 0.75rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= row.workplaces.join(', ') %>">
-                      <%= row.workplaces.join(', ') || '-' %>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <%= idx + 1 %>
                     </td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center;"><%= row.workers %></td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center;"><%= row.children %></td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center;"><%= row.political %></td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center;"><%= row.others %></td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color);"><%= row.total %></td>
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600;">
+                      <%= row.centerName %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem;">
+                      <%= row.unitName %>
+                    </td>
+                    <td
+                      style="padding: 0.75rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                      title="<%= row.workplaces.join(', ') %>">
+                      <%= row.workplaces.join(', ') || ' -' %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <%= row.workers %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <%= row.children %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <%= row.political %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center;">
+                      <%= row.others %>
+                    </td>
+                    <td
+                      style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color);">
+                      <%= row.total %>
+                    </td>
                   </tr>
-                <% }) %>
+                  <% }) %>
               </tbody>
             </table>
           </div>
-        <% } %>
+          <% } %>
 
-        <script>
-          const MOMO_FONT_BASE64 = "<%= momoFontBase64 %>";
-          // Draw Top 5 Completion Rate Chart
-          const topUnitsData = <%- JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
-          const ctxCompletion = document.getElementById('completionChart').getContext('2d');
+            <script>
+              const MOMO_FONT_BASE64 = "<%= momoFontBase64 %>";
+              // Draw Top 5 Completion Rate Chart
+              const topUnitsData = <% - JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
+              const ctxCompletion = document.getElementById('completionChart').getContext('2d');
 
-          const chartGridColor = document.documentElement.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
-          const chartTextColor = document.documentElement.classList.contains('light-theme') ? '#475569' : '#94a3b8';
+              const chartGridColor = document.documentElement.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+              const chartTextColor = document.documentElement.classList.contains('light-theme') ? '#475569' : '#94a3b8';
 
-          window.completionChart = new Chart(ctxCompletion, {
-            type: 'bar',
-            plugins: [{
-              id: 'datalabels',
-              afterDatasetsDraw(chart, args, options) {
-                const { ctx } = chart;
-                ctx.save();
-                ctx.font = 'bold 11px Inter, system-ui';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                chart.data.datasets.forEach((dataset, i) => {
-                  chart.getDatasetMeta(i).data.forEach((bar, index) => {
-                    const value = dataset.data[index];
-                    const valueString = value.toFixed(1) + '%';
-                    ctx.fillStyle = document.documentElement.classList.contains('light-theme') ? '#0f172a' : '#f8fafc';
-                    ctx.fillText(valueString, bar.x, bar.y - 5);
-                  });
-                });
-                ctx.restore();
-              }
-            }],
-            data: {
-              labels: topUnitsData.map(u => u.name),
-              datasets: [{
-                label: 'Tỷ lệ hoàn thành (%)',
-                data: topUnitsData.map(u => u.rate),
-                backgroundColor: [
-                  'rgba(0, 242, 254, 0.8)',
-                  'rgba(6, 182, 212, 0.8)',
-                  'rgba(16, 185, 129, 0.8)',
-                  'rgba(59, 130, 246, 0.8)',
-                  'rgba(251, 191, 36, 0.8)'
-                ],
-                borderColor: [
-                  '#00f2fe',
-                  '#06b6d4',
-                  '#10b981',
-                  '#3b82f6',
-                  '#fbbf24'
-                ],
-                borderWidth: 1.5,
-                borderRadius: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                tooltip: {
-                  callbacks: {
-                    label: function (context) {
-                      return 'Tỷ lệ: ' + context.parsed.y.toFixed(2) + '%';
-                    }
-                  }
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  grace: '8%',
-                  grid: { color: chartGridColor },
-                  ticks: { color: chartTextColor }
-                },
-                x: {
-                  grid: { display: false },
-                  ticks: { color: chartTextColor }
-                }
-              }
-            }
-          });
-
-          // Draw Cumulative Timeline Chart
-          const timelineLabels = <%- progressTimelineLabels %>;
-          const timelineData = <%- progressTimelineData %>;
-          const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
-
-          window.timelineChart = new Chart(ctxTimeline, {
-            type: 'line',
-            plugins: [{
-              id: 'timelineDatalabels',
-              afterDatasetsDraw(chart, args, options) {
-                const { ctx } = chart;
-                ctx.save();
-                ctx.font = 'bold 10px Inter, system-ui';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                chart.data.datasets.forEach((dataset, i) => {
-                  const meta = chart.getDatasetMeta(i);
-                  meta.data.forEach((point, index) => {
-                    const value = dataset.data[index];
-                    if (value === 0) return;
-                    
-                    const totalPoints = dataset.data.length;
-                    // If many points exist, draw labels at intervals of 5 to avoid overlap, but always draw the last point
-                    if (totalPoints > 15 && index % 5 !== 0 && index !== totalPoints - 1) {
-                      return;
-                    }
-                    
-                    const valueString = value.toLocaleString('vi-VN');
-                    ctx.fillStyle = document.documentElement.classList.contains('light-theme') ? '#0f172a' : '#f8fafc';
-                    ctx.fillText(valueString, point.x, point.y - 6);
-                  });
-                });
-                ctx.restore();
-              }
-            }],
-            data: {
-              labels: timelineLabels,
-              datasets: [{
-                label: 'Lũy kế toàn tỉnh',
-                data: timelineData,
-                fill: true,
-                backgroundColor: document.documentElement.classList.contains('light-theme') ? 'rgba(2, 132, 199, 0.05)' : 'rgba(0, 242, 254, 0.05)',
-                borderColor: document.documentElement.classList.contains('light-theme') ? '#0284c7' : '#00f2fe',
-                borderWidth: 2,
-                tension: 0.3,
-                pointBackgroundColor: document.documentElement.classList.contains('light-theme') ? '#0284c7' : '#00f2fe',
-                pointRadius: timelineData.length > 20 ? 2 : 4,
-                pointHoverRadius: 6
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  grace: '10%',
-                  grid: { color: chartGridColor },
-                  ticks: { color: chartTextColor }
-                },
-                x: {
-                  grid: { display: false },
-                  ticks: { color: chartTextColor }
-                }
-              }
-            }
-          });
-
-          // Multi-select Dropdown Table Filtering Logic
-          document.addEventListener('DOMContentLoaded', () => {
-            const trigger = document.getElementById('multiselect-trigger');
-            const dropdown = document.getElementById('multiselect-dropdown');
-            const arrow = document.getElementById('multiselect-arrow');
-            const searchInput = document.getElementById('multiselect-search');
-            const label = document.getElementById('multiselect-value');
-            const selectAllBtn = document.getElementById('multiselect-select-all');
-            const deselectAllBtn = document.getElementById('multiselect-deselect-all');
-            const checkboxes = document.querySelectorAll('.multiselect-checkbox');
-            const tableRows = document.querySelectorAll('#units-table tbody tr');
-
-            if (!trigger || !dropdown) return;
-
-            // Toggle dropdown visibility
-            trigger.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const isOpen = dropdown.style.display === 'block';
-              dropdown.style.display = isOpen ? 'none' : 'block';
-              arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-              if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
-                dropdown.style.display = 'none';
-                arrow.style.transform = 'rotate(0deg)';
-              }
-            });
-
-            // Search filter inside dropdown checklist options
-            searchInput.addEventListener('keyup', () => {
-              const query = searchInput.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
-              const items = document.querySelectorAll('.multiselect-option-item');
-              items.forEach(item => {
-                const text = item.querySelector('label').textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
-                if (text.indexOf(query) > -1) {
-                  item.style.display = 'flex';
-                } else {
-                  item.style.display = 'none';
-                }
-              });
-            });
-
-            // Function to apply filters to the table rows and update status label
-            function filterTable() {
-              const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
-              const totalUnits = checkboxes.length;
-
-              // Update label text
-              if (checkedBoxes.length === totalUnits) {
-                label.textContent = `Tất cả đơn vị (${totalUnits})`;
-              } else if (checkedBoxes.length === 0) {
-                label.textContent = 'Chưa chọn đơn vị nào';
-              } else {
-                const names = checkedBoxes.map(cb => cb.value);
-                if (names.length <= 2) {
-                  label.textContent = names.join(', ');
-                } else {
-                  label.textContent = `Đã chọn ${checkedBoxes.length} đơn vị`;
-                }
-              }
-
-              // Hide or show table rows based on checks
-              const checkedNames = checkedBoxes.map(cb => cb.value.trim());
-              tableRows.forEach(row => {
-                const unitCell = row.cells[1];
-                if (unitCell) {
-                  // Extract plain text (ignoring potential badge elements)
-                  const unitName = unitCell.childNodes[0].textContent.trim();
-                  if (checkedBoxes.length === totalUnits || checkedNames.includes(unitName)) {
-                    row.style.display = '';
-                  } else {
-                    row.style.display = 'none';
-                  }
-                }
-              });
-            }
-
-            // Checkbox toggle listener
-            checkboxes.forEach(cb => {
-              cb.addEventListener('change', filterTable);
-            });
-
-            // Select All action button
-            selectAllBtn.addEventListener('click', () => {
-              checkboxes.forEach(cb => {
-                cb.checked = true;
-              });
-              filterTable();
-            });
-
-            // Deselect All action button
-            deselectAllBtn.addEventListener('click', () => {
-              checkboxes.forEach(cb => {
-                cb.checked = false;
-              });
-              filterTable();
-            });
-
-            // Switch table display modes client-side
-            window.switchTableMode = function (mode) {
-              const monthCols = document.querySelectorAll('.col-month');
-              const dayCols = document.querySelectorAll('.col-day');
-              const btnMonth = document.getElementById('btn-mode-month');
-              const btnDay = document.getElementById('btn-mode-day');
-
-              if (mode === 'month') {
-                monthCols.forEach(el => el.style.display = '');
-                dayCols.forEach(el => el.style.display = 'none');
-
-                btnMonth.style.background = 'var(--primary-color)';
-                btnMonth.style.color = '#ffffff';
-                btnDay.style.background = 'transparent';
-                btnDay.style.color = 'var(--text-secondary)';
-              } else {
-                monthCols.forEach(el => el.style.display = 'none');
-                dayCols.forEach(el => el.style.display = '');
-
-                btnMonth.style.background = 'transparent';
-                btnMonth.style.color = 'var(--text-secondary)';
-                btnDay.style.background = 'var(--primary-color)';
-                btnDay.style.color = '#ffffff';
-
-                // Auto-scroll to current day column
-                setTimeout(() => {
-                  const targetStr = '<%= dailyMatchDateStr %>';
-                  const targetCol = document.getElementById('col-day-' + targetStr);
-                  if (targetCol) {
-                    const container = targetCol.closest('.table-responsive');
-                    if (container) {
-                      container.scrollTo({
-                        left: targetCol.offsetLeft - container.offsetWidth / 2 + targetCol.offsetWidth / 2,
-                        behavior: 'smooth'
+              window.completionChart = new Chart(ctxCompletion, {
+                type: 'bar',
+                plugins: [{
+                  id: 'datalabels',
+                  afterDatasetsDraw(chart, args, options) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    ctx.font = 'bold 11px Inter, system-ui';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    chart.data.datasets.forEach((dataset, i) => {
+                      chart.getDatasetMeta(i).data.forEach((bar, index) => {
+                        const value = dataset.data[index];
+                        const valueString = value.toFixed(1) + '%';
+                        ctx.fillStyle = document.documentElement.classList.contains('light-theme') ? '#0f172a' : '#f8fafc';
+                        ctx.fillText(valueString, bar.x, bar.y - 5);
                       });
+                    });
+                    ctx.restore();
+                  }
+                }],
+                data: {
+                  labels: topUnitsData.map(u => u.name),
+                  datasets: [{
+                    label: 'Tỷ lệ hoàn thành (%)',
+                    data: topUnitsData.map(u => u.rate),
+                    backgroundColor: [
+                      'rgba(0, 242, 254, 0.8)',
+                      'rgba(6, 182, 212, 0.8)',
+                      'rgba(16, 185, 129, 0.8)',
+                      'rgba(59, 130, 246, 0.8)',
+                      'rgba(251, 191, 36, 0.8)'
+                    ],
+                    borderColor: [
+                      '#00f2fe',
+                      '#06b6d4',
+                      '#10b981',
+                      '#3b82f6',
+                      '#fbbf24'
+                    ],
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: function (context) {
+                          return 'Tỷ lệ: ' + context.parsed.y.toFixed(2) + '%';
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grace: '8%',
+                      grid: { color: chartGridColor },
+                      ticks: { color: chartTextColor }
+                    },
+                    x: {
+                      grid: { display: false },
+                      ticks: { color: chartTextColor }
                     }
                   }
-                }, 150);
-              }
-            };
+                }
+              });
+
+              // Draw Cumulative Timeline Chart
+              const timelineLabels = <% - progressTimelineLabels %>;
+              const timelineData = <% - progressTimelineData %>;
+              const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+
+              window.timelineChart = new Chart(ctxTimeline, {
+                type: 'line',
+                plugins: [{
+                  id: 'timelineDatalabels',
+                  afterDatasetsDraw(chart, args, options) {
+                    const { ctx } = chart;
+                    ctx.save();
+                    ctx.font = 'bold 10px Inter, system-ui';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    chart.data.datasets.forEach((dataset, i) => {
+                      const meta = chart.getDatasetMeta(i);
+                      meta.data.forEach((point, index) => {
+                        const value = dataset.data[index];
+                        if (value === 0) return;
+
+                        const totalPoints = dataset.data.length;
+                        // If many points exist, draw labels at intervals of 5 to avoid overlap, but always draw the last point
+                        if (totalPoints > 15 && index % 5 !== 0 && index !== totalPoints - 1) {
+                          return;
+                        }
+
+                        const valueString = value.toLocaleString('vi-VN');
+                        ctx.fillStyle = document.documentElement.classList.contains('light-theme') ? '#0f172a' : '#f8fafc';
+                        ctx.fillText(valueString, point.x, point.y - 6);
+                      });
+                    });
+                    ctx.restore();
+                  }
+                }],
+                data: {
+                  labels: timelineLabels,
+                  datasets: [{
+                    label: 'Lũy kế toàn tỉnh',
+                    data: timelineData,
+                    fill: true,
+                    backgroundColor: document.documentElement.classList.contains('light-theme') ? 'rgba(2, 132, 199, 0.05)' : 'rgba(0, 242, 254, 0.05)',
+                    borderColor: document.documentElement.classList.contains('light-theme') ? '#0284c7' : '#00f2fe',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointBackgroundColor: document.documentElement.classList.contains('light-theme') ? '#0284c7' : '#00f2fe',
+                    pointRadius: timelineData.length > 20 ? 2 : 4,
+                    pointHoverRadius: 6
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grace: '10%',
+                      grid: { color: chartGridColor },
+                      ticks: { color: chartTextColor }
+                    },
+                    x: {
+                      grid: { display: false },
+                      ticks: { color: chartTextColor }
+                    }
+                  }
+                }
+              });
+
+              // Multi-select Dropdown Table Filtering Logic
+              document.addEventListener('DOMContentLoaded', () => {
+                const trigger = document.getElementById('multiselect-trigger');
+                const dropdown = document.getElementById('multiselect-dropdown');
+                const arrow = document.getElementById('multiselect-arrow');
+                const searchInput = document.getElementById('multiselect-search');
+                const label = document.getElementById('multiselect-value');
+                const selectAllBtn = document.getElementById('multiselect-select-all');
+                const deselectAllBtn = document.getElementById('multiselect-deselect-all');
+                const checkboxes = document.querySelectorAll('.multiselect-checkbox');
+                const tableRows = document.querySelectorAll('#units-table tbody tr');
+
+                if (!trigger || !dropdown) return;
+
+                // Toggle dropdown visibility
+                trigger.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  const isOpen = dropdown.style.display === 'block';
+                  dropdown.style.display = isOpen ? 'none' : 'block';
+                  arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                  if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                    arrow.style.transform = 'rotate(0deg)';
+                  }
+                });
+
+                // Search filter inside dropdown checklist options
+                searchInput.addEventListener('keyup', () => {
+                  const query = searchInput.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+                  const items = document.querySelectorAll('.multiselect-option-item');
+                  items.forEach(item => {
+                    const text = item.querySelector('label').textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+                    if (text.indexOf(query) > -1) {
+                      item.style.display = 'flex';
+                    } else {
+                      item.style.display = 'none';
+                    }
+                  });
+                });
+
+                // Function to apply filters to the table rows and update status label
+                function filterTable() {
+                  const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
+                  const totalUnits = checkboxes.length;
+
+                  // Update label text
+                  if (checkedBoxes.length === totalUnits) {
+                    label.textContent = `Tất cả đơn vị (${totalUnits})`;
+                  } else if (checkedBoxes.length === 0) {
+                    label.textContent = 'Chưa chọn đơn vị nào';
+                  } else {
+                    const names = checkedBoxes.map(cb => cb.value);
+                    if (names.length <= 2) {
+                      label.textContent = names.join(', ');
+                    } else {
+                      label.textContent = `Đã chọn ${checkedBoxes.length} đơn vị`;
+                    }
+                  }
+
+                  // Hide or show table rows based on checks
+                  const checkedNames = checkedBoxes.map(cb => cb.value.trim());
+                  tableRows.forEach(row => {
+                    const unitCell = row.cells[1];
+                    if (unitCell) {
+                      // Extract plain text (ignoring potential badge elements)
+                      const unitName = unitCell.childNodes[0].textContent.trim();
+                      if (checkedBoxes.length === totalUnits || checkedNames.includes(unitName)) {
+                        row.style.display = '';
+                      } else {
+                        row.style.display = 'none';
+                      }
+                    }
+                  });
+                }
+
+                // Checkbox toggle listener
+                checkboxes.forEach(cb => {
+                  cb.addEventListener('change', filterTable);
+                });
+
+                // Select All action button
+                selectAllBtn.addEventListener('click', () => {
+                  checkboxes.forEach(cb => {
+                    cb.checked = true;
+                  });
+                  filterTable();
+                });
+
+                // Deselect All action button
+                deselectAllBtn.addEventListener('click', () => {
+                  checkboxes.forEach(cb => {
+                    cb.checked = false;
+                  });
+                  filterTable();
+                });
+
+                // Switch table display modes client-side
+                window.switchTableMode = function (mode) {
+                  const monthCols = document.querySelectorAll('.col-month');
+                  const dayCols = document.querySelectorAll('.col-day');
+                  const btnMonth = document.getElementById('btn-mode-month');
+                  const btnDay = document.getElementById('btn-mode-day');
+
+                  if (mode === 'month') {
+                    monthCols.forEach(el => el.style.display = '');
+                    dayCols.forEach(el => el.style.display = 'none');
+
+                    btnMonth.style.background = 'var(--primary-color)';
+                    btnMonth.style.color = '#ffffff';
+                    btnDay.style.background = 'transparent';
+                    btnDay.style.color = 'var(--text-secondary)';
+                  } else {
+                    monthCols.forEach(el => el.style.display = 'none');
+                    dayCols.forEach(el => el.style.display = '');
+
+                    btnMonth.style.background = 'transparent';
+                    btnMonth.style.color = 'var(--text-secondary)';
+                    btnDay.style.background = 'var(--primary-color)';
+                    btnDay.style.color = '#ffffff';
+
+                    // Auto-scroll to current day column
+                    setTimeout(() => {
+                      const targetStr = '<%= dailyMatchDateStr %>';
+                      const targetCol = document.getElementById('col-day-' + targetStr);
+                      if (targetCol) {
+                        const container = targetCol.closest('.table-responsive');
+                        if (container) {
+                          container.scrollTo({
+                            left: targetCol.offsetLeft - container.offsetWidth / 2 + targetCol.offsetWidth / 2,
+                            behavior: 'smooth'
+                          });
+                        }
+                      }
+                    }, 150);
+                  }
+                };
 
 
-            // Download report as PNG
-            window.downloadFigmaReportPng = function () {
-              const svgEl = document.querySelector('#report-canvas-wrapper svg');
-              if (!svgEl) return;
+                // Download report as PNG
+                window.downloadFigmaReportPng = function () {
+                  const svgEl = document.querySelector('#report-canvas-wrapper svg');
+                  if (!svgEl) return;
 
-              const serializer = new XMLSerializer();
-              let source = serializer.serializeToString(svgEl);
+                  const serializer = new XMLSerializer();
+                  let source = serializer.serializeToString(svgEl);
 
-              // Inline the base64 font styles so the browser can resolve custom fonts offline/canvas
-              const fontStyle = `
+                  // Inline the base64 font styles so the browser can resolve custom fonts offline/canvas
+                  const fontStyle = `
 <defs>
   <style type="text/css">
     @font-face {
@@ -1131,59 +1182,59 @@
   </style>
 </defs>
 `;
-              source = source.replace(/<svg([^>]*)>/, `<svg$1>${fontStyle}`);
+                  source = source.replace(/<svg([^>]*)>/, `<svg$1>${fontStyle}`);
 
-              const img = new Image();
-              const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-              const url = URL.createObjectURL(blob);
+                  const img = new Image();
+                  const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+                  const url = URL.createObjectURL(blob);
 
-              img.onload = function () {
-                const canvas = document.createElement('canvas');
-                canvas.width = 2480;
-                canvas.height = 3508;
-                const ctx = canvas.getContext('2d');
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                try {
-                  canvas.toBlob(function (pngBlob) {
-                    const pngUrl = URL.createObjectURL(pngBlob);
-                    const link = document.createElement("a");
-                    link.href = pngUrl;
-                    link.download = `bao-cao-syt-figma-${document.getElementById('dashboard-date-picker').value}.png`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(pngUrl);
-                    URL.revokeObjectURL(url);
-                  }, 'image/png');
-                } catch (e) {
-                  console.error('toBlob failed, falling back to data URL', e);
-                  const pngUrl = canvas.toDataURL('image/png');
-                  const link = document.createElement("a");
-                  link.href = pngUrl;
-                  link.download = `bao-cao-syt-figma-${document.getElementById('dashboard-date-picker').value}.png`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-                }
-              };
+                  img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 2480;
+                    canvas.height = 3508;
+                    const ctx = canvas.getContext('2d');
 
-              img.src = url;
-            };
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Print report in a dedicated printable tab
-            window.printFigmaReport = function () {
-              window.open('/report?date=<%= dailyMatchDateStr %>&print=true', '_blank');
-            };
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            // Initial filter run
-            filterTable();
-          });
-        </script>
+                    try {
+                      canvas.toBlob(function (pngBlob) {
+                        const pngUrl = URL.createObjectURL(pngBlob);
+                        const link = document.createElement("a");
+                        link.href = pngUrl;
+                        link.download = `bao-cao-syt-figma-${document.getElementById('dashboard-date-picker').value}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(pngUrl);
+                        URL.revokeObjectURL(url);
+                      }, 'image/png');
+                    } catch (e) {
+                      console.error('toBlob failed, falling back to data URL', e);
+                      const pngUrl = canvas.toDataURL('image/png');
+                      const link = document.createElement("a");
+                      link.href = pngUrl;
+                      link.download = `bao-cao-syt-figma-${document.getElementById('dashboard-date-picker').value}.png`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(url);
+                    }
+                  };
 
-        <%- include('partials/footer') %>
+                  img.src = url;
+                };
+
+                // Print report in a dedicated printable tab
+                window.printFigmaReport = function () {
+                  window.open('/report?date=<%= dailyMatchDateStr %>&print=true', '_blank');
+                };
+
+                // Initial filter run
+                filterTable();
+              });
+            </script>
+
+            <%- include('partials/footer') %>

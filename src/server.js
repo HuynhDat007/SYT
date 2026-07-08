@@ -89,7 +89,11 @@ async function compileReportSvg(dateStr) {
         under6: { $sum: '$under6' },
         from6To18: { $sum: '$from6To18' },
         over18: { $sum: '$over18' },
-        total: { $sum: { $add: ['$under6', '$from6To18', '$over18'] } }
+        total: { $sum: { $add: ['$under6', '$from6To18', '$over18'] } },
+        adminUnder6: { $sum: '$adminUnder6' },
+        adminFrom6To18: { $sum: '$adminFrom6To18' },
+        adminOver18: { $sum: '$adminOver18' },
+        adminTotal: { $sum: { $add: ['$adminUnder6', '$adminFrom6To18', '$adminOver18'] } }
       }
     }
   ]);
@@ -103,28 +107,38 @@ async function compileReportSvg(dateStr) {
         under6: { $sum: '$under6' },
         from6To18: { $sum: '$from6To18' },
         over18: { $sum: '$over18' },
-        total: { $sum: { $add: ['$under6', '$from6To18', '$over18'] } }
+        total: { $sum: { $add: ['$under6', '$from6To18', '$over18'] } },
+        adminUnder6: { $sum: '$adminUnder6' },
+        adminFrom6To18: { $sum: '$adminFrom6To18' },
+        adminOver18: { $sum: '$adminOver18' },
+        adminTotal: { $sum: { $add: ['$adminUnder6', '$adminFrom6To18', '$adminOver18'] } }
       }
     }
   ]);
 
+  let dailyWorkplaceTotal = 0;
   const dailyMap = {};
   dailyAgg.forEach(item => {
     if (item._id) {
       dailyMap[item._id.toString()] = item;
+    } else {
+      dailyWorkplaceTotal = item.adminTotal || 0;
     }
   });
 
+  let cumulativeWorkplaceTotal = 0;
   const cumulativeMap = {};
   cumulativeAgg.forEach(item => {
     if (item._id) {
       cumulativeMap[item._id.toString()] = item;
+    } else {
+      cumulativeWorkplaceTotal = item.adminTotal || 0;
     }
   });
 
   let grandDailyTotal = 0;
   let grandCumulativeTotal = 0;
-  let grandFirstHalfTotal = 0;
+  let grandFirstHalfTotal = 833233;
   let grandTargetTotal = 0;
   let grandResidentPopulation = 0;
 
@@ -142,7 +156,6 @@ async function compileReportSvg(dateStr) {
 
     grandDailyTotal += dailyVal;
     grandCumulativeTotal += cumulativeVal;
-    grandFirstHalfTotal += (unit.firstHalfChecked || 0);
     grandTargetTotal += (unit.planTarget || 0);
     grandResidentPopulation += (unit.residentPopulation || 0);
   });
@@ -157,7 +170,7 @@ async function compileReportSvg(dateStr) {
   ]);
   const grandBytLuyKe = bytLuyKeAgg.length > 0 ? bytLuyKeAgg[0].total : 0;
 
-  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal;
+  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal + cumulativeWorkplaceTotal;
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = grandTargetTotal > 0 ? (grandCumulativeTotal / grandTargetTotal) * 100 : 0;
 
@@ -394,16 +407,34 @@ app.get('/', async (req, res) => {
 
     // Convert arrays to hash maps
     const dailyMap = {};
+    let dailyWorkplaceUnder6 = 0;
+    let dailyWorkplaceFrom6To18 = 0;
+    let dailyWorkplaceOver18 = 0;
+    let dailyWorkplaceTotal = 0;
     dailyAgg.forEach(item => {
       if (item._id) {
         dailyMap[item._id.toString()] = item;
+      } else {
+        dailyWorkplaceUnder6 = item.adminUnder6 || 0;
+        dailyWorkplaceFrom6To18 = item.adminFrom6To18 || 0;
+        dailyWorkplaceOver18 = item.adminOver18 || 0;
+        dailyWorkplaceTotal = item.adminTotal || 0;
       }
     });
 
     const cumulativeMap = {};
+    let cumulativeWorkplaceUnder6 = 0;
+    let cumulativeWorkplaceFrom6To18 = 0;
+    let cumulativeWorkplaceOver18 = 0;
+    let cumulativeWorkplaceTotal = 0;
     cumulativeAgg.forEach(item => {
       if (item._id) {
         cumulativeMap[item._id.toString()] = item;
+      } else {
+        cumulativeWorkplaceUnder6 = item.adminUnder6 || 0;
+        cumulativeWorkplaceFrom6To18 = item.adminFrom6To18 || 0;
+        cumulativeWorkplaceOver18 = item.adminOver18 || 0;
+        cumulativeWorkplaceTotal = item.adminTotal || 0;
       }
     });
 
@@ -435,10 +466,27 @@ app.get('/', async (req, res) => {
     ]);
 
     const monthlyMap = {};
+    const monthlyWorkplace = {
+      7: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
+      8: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
+      9: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 }
+    };
     monthlyAgg.forEach(item => {
-      if (!item._id.unitId) return;
-      const uId = item._id.unitId.toString();
       const month = item._id.month; // 7, 8, or 9
+      if (!item._id.unitId) {
+        if (month === 7 || month === 8 || month === 9) {
+          monthlyWorkplace[month] = {
+            under6: item.under6 || 0,
+            from6To18: item.from6To18 || 0,
+            over18: item.over18 || 0,
+            adminUnder6: item.adminUnder6 || 0,
+            adminFrom6To18: item.adminFrom6To18 || 0,
+            adminOver18: item.adminOver18 || 0
+          };
+        }
+        return;
+      }
+      const uId = item._id.unitId.toString();
       if (!monthlyMap[uId]) {
         monthlyMap[uId] = {
           7: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
@@ -471,7 +519,7 @@ app.get('/', async (req, res) => {
 
     let grandTarget = 0;
     let grandResidentPopulation = 0;
-    let grandFirstHalfChecked = 0;
+    let grandFirstHalfChecked = 833233;
 
     let grandMonthly = {
       7: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
@@ -558,7 +606,6 @@ app.get('/', async (req, res) => {
 
       grandTarget += unit.planTarget;
       grandResidentPopulation += unit.residentPopulation;
-      grandFirstHalfChecked += unit.firstHalfChecked;
 
       // Sum monthly grand totals
       [7, 8, 9].forEach(m => {
@@ -574,7 +621,7 @@ app.get('/', async (req, res) => {
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = displayCumulative.total + grandFirstHalfChecked;
+    const displayYearCumulative = displayCumulative.total + grandFirstHalfChecked + cumulativeWorkplaceTotal;
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -689,7 +736,16 @@ app.get('/', async (req, res) => {
         $group: {
           _id: '$date',
           total: { $sum: { $add: ['$under6', '$from6To18', '$over18'] } },
-          adminTotal: { $sum: { $add: ['$adminUnder6', '$adminFrom6To18', '$adminOver18'] } }
+          adminTotal: { $sum: { $add: ['$adminUnder6', '$adminFrom6To18', '$adminOver18'] } },
+          workplaceTotal: {
+            $sum: {
+              $cond: [
+                { $ne: ['$adminWorkplace', ''] },
+                { $add: ['$adminWorkers', '$adminChildren', '$adminPolitical', '$adminOthers'] },
+                0
+              ]
+            }
+          }
         }
       },
       { $sort: { _id: 1 } }
