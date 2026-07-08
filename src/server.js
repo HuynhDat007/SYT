@@ -20,8 +20,7 @@ const { requireAuth, requireRole } = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to Database
-connectDB();
+// Database connection will be initiated before starting the server
 
 // Express configuration
 app.set('view engine', 'ejs');
@@ -1746,7 +1745,9 @@ app.post('/profile', requireAuth, async (req, res) => {
   }
 });
 
-// Start Express Server
-app.listen(PORT, () => {
-  console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
+// Connect to Database and then start Express Server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
+  });
 });
