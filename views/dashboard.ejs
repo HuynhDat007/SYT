@@ -870,7 +870,7 @@
             <script>
               const MOMO_FONT_BASE64 = "<%= momoFontBase64 %>";
               // Draw Top 5 Completion Rate Chart
-              const topUnitsData = <% - JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
+              const topUnitsData = <%- JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
               const ctxCompletion = document.getElementById('completionChart').getContext('2d');
 
               const chartGridColor = document.documentElement.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
@@ -949,8 +949,8 @@
               });
 
               // Draw Cumulative Timeline Chart
-              const timelineLabels = <% - progressTimelineLabels %>;
-              const timelineData = <% - progressTimelineData %>;
+              const timelineLabels = <%- progressTimelineLabels %>;
+              const timelineData = <%- progressTimelineData %>;
               const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
 
               window.timelineChart = new Chart(ctxTimeline, {
