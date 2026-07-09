@@ -208,9 +208,19 @@ async function compileReportSvg(dateStr) {
   const grandBytLuyKe = bytLuyKeAgg.length > 0 ? bytLuyKeAgg[0].total : 0;
 
   // Fetch BytLinkage for global metrics on this date
-  const linkageObj = await BytLinkage.findOne({ date: selectedDate }) || { cnldCount: 0, tehsCount: 0 };
-  const cnldLuyKe = linkageObj.cnldCount || 0;
-  const tehsLuyKe = linkageObj.tehsCount || 0;
+  // Fetch BytLinkage cumulative for the selected date
+  const linkageLuyKeAgg = await BytLinkage.aggregate([
+    { $match: { date: { $lte: selectedDate } } },
+    { 
+      $group: { 
+        _id: null, 
+        totalCnld: { $sum: '$cnldCount' },
+        totalTehs: { $sum: '$tehsCount' }
+      } 
+    }
+  ]);
+  const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
+  const tehsLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalTehs : 0;
 
   // Aggregate cumulative CBCCVC (political reports)
   const politicalAgg = await DailyReport.aggregate([
@@ -267,8 +277,7 @@ async function compileReportSvg(dateStr) {
     const daily = unit.daily.toLocaleString('vi-VN');
     const cumulative = unit.cumulative.toLocaleString('vi-VN');
     
-    const yearCumulative = unit.cumulative + unit.firstHalfChecked;
-    const rateVal = unit.residentPopulation > 0 ? (yearCumulative / unit.residentPopulation) * 100 : 0;
+    const rateVal = unit.residentPopulation > 0 ? (unit.cumulative / unit.residentPopulation) * 100 : 0;
     const rate = rateVal.toFixed(1) + '%';
 
     dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
@@ -624,7 +633,7 @@ app.get('/', async (req, res) => {
       // Commune data
       const daily = dailyMap[uId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
       const cumulative = cumulativeMap[uId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
-      const yearCumulative = cumulative.total + unit.firstHalfChecked;
+      const yearCumulative = cumulative.total;
       const completionRate = unit.planTarget > 0 ? (yearCumulative / unit.planTarget) * 100 : 0;
 
       // Admin data
@@ -642,7 +651,7 @@ app.get('/', async (req, res) => {
         total: cumulativeMap[uId].adminTotal || 0
       } : { under6: 0, from6To18: 0, over18: 0, total: 0 };
 
-      const adminYearCumulative = adminCumulative.total + unit.firstHalfChecked;
+      const adminYearCumulative = adminCumulative.total;
       const adminCompletionRate = unit.planTarget > 0 ? (adminYearCumulative / unit.planTarget) * 100 : 0;
 
       // Get monthly breakdown for this unit
@@ -711,10 +720,41 @@ app.get('/', async (req, res) => {
       });
     });
 
+    // Fetch BytLinkage cumulative for the selected date
+    const linkageLuyKeAgg = await BytLinkage.aggregate([
+      { $match: { date: { $lte: dailyMatchDate } } },
+      { 
+        $group: { 
+          _id: null, 
+          totalCnld: { $sum: '$cnldCount' },
+          totalTehs: { $sum: '$tehsCount' }
+        } 
+      }
+    ]);
+    const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
+    const tehsLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalTehs : 0;
+
+    // Fetch cumulative CBCCVC (political reports)
+    const politicalAgg = await DailyReport.aggregate([
+      { 
+        $match: { 
+          date: { $gte: startDate, $lte: dailyMatchDate },
+          adminIsPolitical: true
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          totalPolitical: { $sum: '$adminPolitical' }
+        }
+      }
+    ]);
+    const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
+
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum + cumulativeWorkplaceTotal - 40000;
+    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + cnldLuyKe + tehsLuyKe + cbccvcLuyKe;
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -760,7 +800,7 @@ app.get('/', async (req, res) => {
       const myDaily = dailyMap[currentUnitId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
       const myCumulative = cumulativeMap[currentUnitId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
 
-      const myYearCumulative = myCumulative.total + myUnit.firstHalfChecked;
+      const myYearCumulative = myCumulative.total;
       unitStats = {
         unitName: myUnit.unitName,
         planTarget: myUnit.planTarget,

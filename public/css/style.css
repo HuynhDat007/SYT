@@ -1154,6 +1154,8 @@ html.light-theme .calendar-grid div.no-data-day {
 .data-table th.col-sticky-2 {
   background: #0f172a !important;
   /* Solid Slate-900 */
+  top: 0;
+  z-index: 30;
 }
 
 .data-table tbody tr td.col-sticky-1,
@@ -1209,7 +1211,6 @@ html.light-theme .data-table tbody tr:hover td.col-sticky-2 {
 
 /* Make detailed table #units-table transparent to match other dashboard tables */
 #units-table th:not(.col-sticky-1):not(.col-sticky-2) {
-  background: transparent !important;
   color: var(--text-secondary) !important;
 }
 
@@ -1290,4 +1291,36 @@ html.light-theme #units-table th.col-current-day,
 html.light-theme #units-table td.col-current-day {
   background: rgba(253, 224, 71, 0.35) !important;
   color: #a16207 !important; /* dark yellow/brown text in light theme */
+}
+
+/* Custom Sticky Header Rules for Commune/Ward Detailed Table (#units-table) */
+#units-table thead th {
+  position: sticky;
+  z-index: 10;
+  background: #0f172a !important;
+}
+
+html.light-theme #units-table thead th {
+  background: #f8fafc !important;
+}
+
+/* Row 1 sticky header cells offset */
+#units-table thead tr:first-child th {
+  top: 0;
+}
+
+/* Row 2 sticky header cells offset (Month 7, 8, 9 subheadings) */
+#units-table thead tr:nth-child(2) th {
+  top: 52px; /* Height of the first row */
+}
+
+/* Dual sticky columns inside header */
+#units-table thead tr:first-child th.col-sticky-1 {
+  left: 0;
+  z-index: 30;
+}
+
+#units-table thead tr:first-child th.col-sticky-2 {
+  left: 50px;
+  z-index: 30;
 }
