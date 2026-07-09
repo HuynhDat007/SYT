@@ -164,7 +164,7 @@ async function seed() {
       username: 'admin',
       password: adminPasswordHash,
       role: 'admin',
-      unitName: 'Sở Y Tế',
+      unitName: 'Sở Y Tế Tây Ninh',
       contactName: 'Ban Quản Trị',
       contactPhone: '0281234567',
       contactEmail: 'admin@syt.gov.vn'
@@ -175,7 +175,7 @@ async function seed() {
     const unitPasswordHash = await bcrypt.hash('VNPT2026', 10);
     const createdUnits = [];
     const usedUsernames = new Set();
-    
+
     // Admin is a reserved username
     usedUsernames.add('admin');
 
@@ -183,12 +183,12 @@ async function seed() {
       let base = cleanName(unitName);
       let username = `${base}.tayninh`;
       let counter = 1;
-      
+
       while (usedUsernames.has(username)) {
         counter++;
         username = `${base}${counter}.tayninh`;
       }
-      
+
       usedUsernames.add(username);
 
       // Strip prefix "Xã" or "Phường" and look up population size
