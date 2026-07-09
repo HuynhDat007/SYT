@@ -571,7 +571,7 @@
                           <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                           <% campaignDays.forEach(day=> { %>
                             <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                              <th rowspan="2" class="col-day" id="col-day-<%= day.dateStr %>"
+                              <th rowspan="2" class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>" id="col-day-<%= day.dateStr %>"
                                 style="vertical-align: middle; text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.3)' : 'rgba(2, 132, 199, 0.08)' %>; border-bottom: 2px solid <%= isCurrentDay ? '#eab308' : 'var(--primary-color)' %>; display: none; min-width: 65px; font-size: 0.75rem; padding: 0.5rem 0.25rem; font-weight: <%= isCurrentDay ? '800' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
                                 <%= day.dateDisplay %>
                               </th>
@@ -686,7 +686,7 @@
                           <% campaignDays.forEach(day=> { %>
                             <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
                               <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                                <td class="col-day"
+                                <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                                   style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
                                   <%= dayTotal || '-' %>
                                 </td>
@@ -799,7 +799,7 @@
                                       <% const cellData=dailyGridMap[row.unitId] ? dailyGridMap[row.unitId][day.dateStr]
                                         : null; const cellTotal=cellData ? cellData.total : 0; %>
                                         <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                                          <td class="col-day"
+                                          <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                                             style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
                                             <%= cellTotal || '-' %>
                                           </td>
@@ -880,7 +880,7 @@
                           <% campaignDays.forEach(day=> { %>
                             <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
                               <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                                <td class="col-day"
+                                <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                                   style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
                                   <%= dayTotal || '-' %>
                                 </td>

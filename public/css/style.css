@@ -1277,3 +1277,17 @@ html.light-theme #units-table tbody tr:hover {
 html.light-theme .sticky-thead {
   background: #f8fafc !important;
 }
+
+/* Current Day column highlighting override */
+#units-table th.col-current-day,
+#units-table td.col-current-day {
+  background: rgba(253, 224, 71, 0.22) !important;
+  color: #fbbf24 !important; /* amber/yellow text in dark theme */
+  font-weight: 700 !important;
+}
+
+html.light-theme #units-table th.col-current-day,
+html.light-theme #units-table td.col-current-day {
+  background: rgba(253, 224, 71, 0.35) !important;
+  color: #a16207 !important; /* dark yellow/brown text in light theme */
+}
