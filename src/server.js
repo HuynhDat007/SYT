@@ -622,6 +622,7 @@ app.get('/', async (req, res) => {
         username: unit.username,
         planTarget: unit.planTarget,
         residentPopulation: unit.residentPopulation,
+        localManagedPopulation: unit.localManagedPopulation || 0,
         firstHalfChecked: unit.firstHalfChecked,
         // Commune metrics
         daily,
@@ -660,7 +661,7 @@ app.get('/', async (req, res) => {
       grandAdminCumulative.total += adminCumulative.total;
 
       grandTarget += unit.planTarget;
-      grandLocalManagedPopulation += (unit.residentPopulation || 0);
+      grandLocalManagedPopulation += (unit.localManagedPopulation || 0);
       grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
 
       // Sum monthly grand totals
@@ -921,6 +922,21 @@ app.get('/input', requireAuth, async (req, res) => {
     const queryDateStr = req.query.date || defaultDate;
     const selectedDate = parseDateUTC(queryDateStr);
 
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    // Future date check
+    if (queryDateStr > todayStr) {
+      return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được chọn ngày trong tương lai')}`);
+    }
+
+    // Past date check for standard units
+    if (req.session.userRole !== 'admin') {
+      const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
+      if (!allowPastDateInput && queryDateStr < todayStr) {
+        return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được phép chọn số liệu ngày cũ')}`);
+      }
+    }
+
     // List of units for Admin dropdown selector (sorted by order, type, name)
     let units = [];
     if (req.session.userRole === 'admin') {
@@ -971,6 +987,7 @@ app.get('/input', requireAuth, async (req, res) => {
     // Fetch resident population, first half stats, and plan target of selected unit
     const selectedUnitObj = await User.findById(selectedUnitId);
     const residentPopulation = selectedUnitObj ? selectedUnitObj.residentPopulation : 0;
+    const localManagedPopulation = selectedUnitObj ? (selectedUnitObj.localManagedPopulation || 0) : 0;
     const firstHalfChecked = selectedUnitObj ? selectedUnitObj.firstHalfChecked : 0;
     const planTarget = selectedUnitObj ? (selectedUnitObj.planTarget || 0) : 0;
 
@@ -1048,6 +1065,7 @@ app.get('/input', requireAuth, async (req, res) => {
 
     const dashboardNoteText = await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)');
     const dashboardNoteVisible = await getConfigValue('dashboard_note_visible', true);
+    const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
 
     res.render('input', {
       user: {
@@ -1065,11 +1083,13 @@ app.get('/input', requireAuth, async (req, res) => {
       reports,
       units,
       residentPopulation,
+      localManagedPopulation,
       firstHalfChecked,
       planTarget,
       allDays,
       dashboardNoteText,
       dashboardNoteVisible,
+      allowPastDateInput,
       success: req.session.success || req.query.success || null,
       error: req.session.error || req.query.error || null
     });
@@ -1101,6 +1121,20 @@ app.post('/input', requireAuth, async (req, res) => {
   }
 
   try {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    if (date > todayStr) {
+      return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được phép nhập số liệu ngày tương lai')}`);
+    }
+
+    if (req.session.userRole !== 'admin') {
+      const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
+      if (!allowPastDateInput && date < todayStr) {
+        return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được phép nhập số liệu ngày cũ')}`);
+      }
+    }
+
     const selectedDate = parseDateUTC(date);
     const startDate = parseDateUTC('2026-07-01');
     const endDate = parseDateUTC('2026-09-30');
@@ -1425,7 +1459,7 @@ app.post('/centers/add', requireAuth, async (req, res) => {
 
 // Update resident population
 app.post('/input/resident-population', requireAuth, async (req, res) => {
-  const { residentPopulation, date } = req.body;
+  const { residentPopulation, localManagedPopulation, date } = req.body;
   
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
@@ -1433,14 +1467,29 @@ app.post('/input/resident-population', requireAuth, async (req, res) => {
   }
 
   try {
-    const valPop = parseInt(residentPopulation) || 0;
     const unit = await User.findById(targetUnitId);
     if (!unit || unit.role !== 'unit') {
       return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Đơn vị không hợp lệ')}`);
     }
 
     const oldPop = unit.residentPopulation;
-    unit.residentPopulation = valPop;
+    const oldLocPop = unit.localManagedPopulation || 0;
+    const valLocPop = parseInt(localManagedPopulation) || 0;
+
+    let detailsMsg = '';
+
+    if (req.session.userRole === 'admin') {
+      // Admin can update both fields
+      const valPop = parseInt(residentPopulation) || 0;
+      unit.residentPopulation = valPop;
+      unit.localManagedPopulation = valLocPop;
+      detailsMsg = `Cập nhật nhân khẩu (Admin) cho đơn vị ${unit.unitName}: Tổng NK (${oldPop.toLocaleString('vi-VN')} -> ${valPop.toLocaleString('vi-VN')}), NK ĐPQL (${oldLocPop.toLocaleString('vi-VN')} -> ${valLocPop.toLocaleString('vi-VN')})`;
+    } else {
+      // Regular unit can only update localManagedPopulation
+      unit.localManagedPopulation = valLocPop;
+      detailsMsg = `Cập nhật nhân khẩu địa phương quản lý cho đơn vị ${unit.unitName}: ${oldLocPop.toLocaleString('vi-VN')} -> ${valLocPop.toLocaleString('vi-VN')}`;
+    }
+
     await unit.save();
 
     // Log update
@@ -1449,10 +1498,10 @@ app.post('/input/resident-population', requireAuth, async (req, res) => {
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'USER',
-      details: `Cập nhật nhân khẩu thường trú cho đơn vị ${unit.unitName}: ${oldPop.toLocaleString('vi-VN')} -> ${valPop.toLocaleString('vi-VN')}`
+      details: detailsMsg
     });
 
-    return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&success=${encodeURIComponent('Cập nhật nhân khẩu thường trú thành công!')}`);
+    return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&success=${encodeURIComponent('Cập nhật số liệu nhân khẩu thành công!')}`);
   } catch (error) {
     console.error('Update population error:', error);
     return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật nhân khẩu')}`);
@@ -1536,8 +1585,9 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
   }
 
-  const { noteText, noteVisible, date, unitId } = req.body;
+  const { noteText, noteVisible, allowPastDateInput, date, unitId } = req.body;
   const isVisible = noteVisible === 'true' || noteVisible === true;
+  const isAllowPast = allowPastDateInput === 'true' || allowPastDateInput === true;
 
   try {
     await SystemConfig.findOneAndUpdate(
@@ -1552,16 +1602,22 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       { upsert: true, new: true }
     );
 
+    await SystemConfig.findOneAndUpdate(
+      { key: 'allow_past_date_input' },
+      { value: isAllowPast },
+      { upsert: true, new: true }
+    );
+
     // Log update
     await AuditLog.create({
       userId: req.session.userId,
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình ghi chú KSK: hiển thị=${isVisible}, nội dung="${noteText}"`
+      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}`
     });
 
-    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình ghi chú thành công!')}`);
+    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);
   } catch (error) {
     console.error('Update dashboard note config error:', error);
     return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật cấu hình ghi chú')}`);
@@ -1746,7 +1802,7 @@ app.get('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =>
 });
 
 app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitId, planTarget, residentPopulation, firstHalfChecked, contactName, contactPhone, contactEmail } = req.body;
+  const { unitId, planTarget, residentPopulation, localManagedPopulation, firstHalfChecked, contactName, contactPhone, contactEmail } = req.body;
 
   try {
     const unit = await User.findById(unitId);
@@ -1758,11 +1814,14 @@ app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =
     const newTarget = parseInt(planTarget) || 0;
     const oldPop = unit.residentPopulation;
     const newPop = parseInt(residentPopulation) || 0;
+    const oldLocPop = unit.localManagedPopulation || 0;
+    const newLocPop = parseInt(localManagedPopulation) || 0;
     const oldFirstHalf = unit.firstHalfChecked;
     const newFirstHalf = parseInt(firstHalfChecked) || 0;
 
     unit.planTarget = newTarget;
     unit.residentPopulation = newPop;
+    unit.localManagedPopulation = newLocPop;
     unit.firstHalfChecked = newFirstHalf;
     unit.contactName = contactName ? contactName.trim() : '';
     unit.contactPhone = contactPhone ? contactPhone.trim() : '';
@@ -1776,7 +1835,7 @@ app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Thay đổi cấu hình đơn vị ${unit.unitName}: Chỉ tiêu kế hoạch (${oldTarget}->${newTarget}), Nhân khẩu (${oldPop}->${newPop}), Khám 6T đầu năm (${oldFirstHalf}->${newFirstHalf}), Họ tên liên hệ (${unit.contactName}), SĐT (${unit.contactPhone}), Email (${unit.contactEmail})`
+      details: `Thay đổi cấu hình đơn vị ${unit.unitName}: Chỉ tiêu kế hoạch (${oldTarget}->${newTarget}), Tổng NK (${oldPop}->${newPop}), NK ĐPQL (${oldLocPop}->${newLocPop}), Khám 6T đầu năm (${oldFirstHalf}->${newFirstHalf}), Họ tên liên hệ (${unit.contactName}), SĐT (${unit.contactPhone}), Email (${unit.contactEmail})`
     });
 
     return res.redirect('/admin/targets?success=' + encodeURIComponent(`Đã cập nhật chỉ số cho đơn vị ${unit.unitName}`));
@@ -1977,7 +2036,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
 });
 
 app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitId, unitName, username, contactName, contactPhone, contactEmail, order } = req.body;
+  const { unitId, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation } = req.body;
   try {
     if (!unitId || !unitName || !username) {
       return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
@@ -2005,6 +2064,8 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
     unit.contactPhone = contactPhone ? contactPhone.trim() : '';
     unit.contactEmail = contactEmail ? contactEmail.trim() : '';
     unit.order = Number(order) || 0;
+    unit.residentPopulation = parseInt(residentPopulation) || 0;
+    unit.localManagedPopulation = parseInt(localManagedPopulation) || 0;
 
     await unit.save();
 
@@ -2014,7 +2075,7 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'USER',
-      details: `Cập nhật thông tin đơn vị: ${oldName} (${oldUsername}) -> ${unit.unitName} (${unit.username})`
+      details: `Cập nhật thông tin đơn vị: ${oldName} (${oldUsername}) -> ${unit.unitName} (${unit.username}), Tổng NK: ${unit.residentPopulation}, NK ĐPQL: ${unit.localManagedPopulation}`
     });
 
     res.redirect('/admin/units?success=' + encodeURIComponent('Cập nhật thông tin đơn vị thành công!'));

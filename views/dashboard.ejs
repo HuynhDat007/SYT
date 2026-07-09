@@ -635,7 +635,7 @@
                               <%= row.residentPopulation.toLocaleString('vi-VN') %>
                             </td>
                             <td style="text-align: center;">
-                              <%= row.residentPopulation.toLocaleString('vi-VN') %>
+                              <%= (row.localManagedPopulation || 0).toLocaleString('vi-VN') %>
                             </td>
                             <td style="text-align: center;">
                               <%= row.firstHalfChecked.toLocaleString('vi-VN') %>

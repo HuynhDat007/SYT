@@ -88,7 +88,7 @@
               <td>
                 <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                   <button type="button" class="btn btn-secondary btn-icon" title="Chỉnh sửa thông tin đơn vị" 
-                    onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>', <%= unit.order || 0 %>)">
+                    onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>', <%= unit.order || 0 %>, <%= unit.residentPopulation || 0 %>, <%= unit.localManagedPopulation || 0 %>)">
                     <!-- Edit Pencil Icon SVG -->
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -217,6 +217,16 @@
       </div>
 
       <div class="form-group">
+        <label for="modal-residentPopulation">Số lượng nhân khẩu thường trú (Tổng nhân khẩu)</label>
+        <input type="number" name="residentPopulation" id="modal-residentPopulation" class="form-control" min="0">
+      </div>
+
+      <div class="form-group">
+        <label for="modal-localManagedPopulation">Số lượng nhân khẩu địa phương quản lý</label>
+        <input type="number" name="localManagedPopulation" id="modal-localManagedPopulation" class="form-control" min="0">
+      </div>
+
+      <div class="form-group">
         <label for="modal-contactName">Người Liên Hệ</label>
         <input type="text" name="contactName" id="modal-contactName" class="form-control">
       </div>
@@ -298,7 +308,7 @@
   }
 
   // Edit Modal Controls
-  function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail, order) {
+  function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation) {
     document.getElementById('modal-unitId').value = id;
     document.getElementById('modal-unitName').value = unitName;
     document.getElementById('modal-username').value = username;
@@ -306,6 +316,8 @@
     document.getElementById('modal-contactName').value = contactName;
     document.getElementById('modal-contactPhone').value = contactPhone;
     document.getElementById('modal-contactEmail').value = contactEmail;
+    document.getElementById('modal-residentPopulation').value = residentPopulation || 0;
+    document.getElementById('modal-localManagedPopulation').value = localManagedPopulation || 0;
     document.getElementById('edit-modal').style.display = 'flex';
   }
 

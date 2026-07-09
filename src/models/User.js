@@ -41,6 +41,10 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  localManagedPopulation: {
+    type: Number,
+    default: 0
+  },
   firstHalfChecked: {
     type: Number,
     default: 0
