@@ -555,6 +555,9 @@
                             Số người cần<br>khám 90 ngày</th>
                           <th rowspan="2"
                             style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2;">
+                            Số người đã KSK<br>trong 90 ngày</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2;">
                             Tỷ lệ hoàn thành<br>90 ngày</th>
 
                           <th colspan="3" class="col-month"
@@ -627,6 +630,9 @@
                           </td>
                           <td style="text-align: center;">
                             <%= grandTarget.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center; font-weight: 700;">
+                            <%= grandCumulative.total.toLocaleString('vi-VN') %>
                           </td>
                           <td style="text-align: center;">
                             <% const topChecked90=grandCumulative.total; %>
@@ -716,6 +722,9 @@
                                     <td style="text-align: center;"><strong>
                                         <%= row.planTarget.toLocaleString('vi-VN') %>
                                       </strong></td>
+                                    <td style="text-align: center; font-weight: 600;">
+                                      <%= checked90Days.toLocaleString('vi-VN') %>
+                                    </td>
 
                                     <!-- Tỷ lệ hoàn thành 90 ngày -->
                                     <td style="text-align: center;">
@@ -797,6 +806,9 @@
                           </td>
                           <td style="text-align: center;">
                             <%= grandTarget.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center; font-weight: 700;">
+                            <%= grandCumulative.total.toLocaleString('vi-VN') %>
                           </td>
                           <td style="text-align: center;">
                             <% const grandChecked90=grandCumulative.total; %>
