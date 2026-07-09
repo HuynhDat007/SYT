@@ -12,6 +12,18 @@ const BytLinkageSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
+  cnldCount: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  tehsCount: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

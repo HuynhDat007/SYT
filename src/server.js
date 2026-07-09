@@ -186,7 +186,9 @@ async function compileReportSvg(dateStr) {
     reportsTable.push({
       unitName: unit.unitName,
       daily: dailyVal,
-      cumulative: cumulativeVal
+      cumulative: cumulativeVal,
+      residentPopulation: unit.residentPopulation || 0,
+      firstHalfChecked: unit.firstHalfChecked || 0
     });
 
     grandDailyTotal += dailyVal;
@@ -205,9 +207,31 @@ async function compileReportSvg(dateStr) {
   ]);
   const grandBytLuyKe = bytLuyKeAgg.length > 0 ? bytLuyKeAgg[0].total : 0;
 
-  const grandOverallTotal = 833233 + grandCumulativeTotal + grandFirstHalfCheckedSum + cumulativeWorkplaceTotal - 40000;
+  // Fetch BytLinkage for global metrics on this date
+  const linkageObj = await BytLinkage.findOne({ date: selectedDate }) || { cnldCount: 0, tehsCount: 0 };
+  const cnldLuyKe = linkageObj.cnldCount || 0;
+  const tehsLuyKe = linkageObj.tehsCount || 0;
+
+  // Aggregate cumulative CBCCVC (political reports)
+  const politicalAgg = await DailyReport.aggregate([
+    { 
+      $match: { 
+        date: { $gte: startDate, $lte: selectedDate },
+        adminIsPolitical: true
+      } 
+    },
+    {
+      $group: {
+        _id: null,
+        totalPolitical: { $sum: '$adminPolitical' }
+      }
+    }
+  ]);
+  const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
+
+  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + cnldLuyKe + tehsLuyKe + cbccvcLuyKe;
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
-  const progressRateCampaign = grandTargetTotal > 0 ? (grandCumulativeTotal / grandTargetTotal) * 100 : 0;
+  const progressRateCampaign = 2128099 > 0 ? (grandOverallTotal / 2128099) * 100 : 0;
 
   // Generate the SVG dynamic text nodes for the 96 communes
   let dynamicTexts = '';
@@ -218,44 +242,51 @@ async function compileReportSvg(dateStr) {
     const col = Math.floor(i / 32); // Columns: 0, 1, 2
     const row = i % 32;
 
-    let xName = 220;
-    let xDaily = 584;
-    let xCumulative = 707;
-    let xStt = 143;
+    let xName = 120;
+    let xDaily = 490;
+    let xCumulative = 621;
+    let xRate = 736;
 
     if (col === 1) {
-      xName = 1003;
-      xDaily = 1366;
-      xCumulative = 1494;
-      xStt = 920;
+      xName = 907;
+      xDaily = 1277;
+      xCumulative = 1408;
+      xRate = 1523;
     } else if (col === 2) {
-      xName = 1786;
-      xDaily = 2151;
-      xCumulative = 2260;
-      xStt = 1703;
+      xName = 1694;
+      xDaily = 2064;
+      xCumulative = 2195;
+      xRate = 2310;
     }
 
-    const yName = 1175.75 + row * 51;
-    const yVal = 1176.75 + row * 51;
+    const yName = 1171.75 + row * 51;
+    const yVal = 1172.75 + row * 51;
 
     const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
     const name = escapeXml(unit.unitName);
     const daily = unit.daily.toLocaleString('vi-VN');
     const cumulative = unit.cumulative.toLocaleString('vi-VN');
-    const stt = String(i + 1);
+    
+    const yearCumulative = unit.cumulative + unit.firstHalfChecked;
+    const rateVal = unit.residentPopulation > 0 ? (yearCumulative / unit.residentPopulation) * 100 : 0;
+    const rate = rateVal.toFixed(1) + '%';
 
     dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
     dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
     dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xStt}" y="${yVal}">${stt}</tspan></text>\n`;
+    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
   }
 
   // Read templates and replace variables
   let template = fs.readFileSync(path.join(__dirname, '../views/report_template.svg'), 'utf8');
-  
+
   // Replace dynamic text elements
   template = template.replace('<!-- DYNAMIC_TEXT_ELEMENTS -->', dynamicTexts);
-  
+
+  // Replace "Tổng khám" text with placeholders so they get dynamic overall total values
+  template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/\{5\}/g, '{4}/{5}');
+  template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/2\.128\.099/g, '{4}/2.128.099');
+
   // Replace top card counters using placeholders
   template = template.replace('%%GRAND_DAILY_TOTAL%%', grandDailyTotal.toLocaleString('vi-VN'));
   template = template.replace('%%GRAND_CUMULATIVE_TOTAL%%', grandCumulativeTotal.toLocaleString('vi-VN'));
@@ -273,9 +304,12 @@ async function compileReportSvg(dateStr) {
   template = template.replace(/\{8\}/g, grandBytToday.toLocaleString('vi-VN'));
   template = template.replace(/\{9\}/g, progressRateCampaign.toFixed(1) + '%');
   template = template.replace(/\{10\}/g, grandBytLuyKe.toLocaleString('vi-VN'));
-  
+  template = template.replace(/\{CNLD_KSK\}/g, cnldLuyKe.toLocaleString('vi-VN'));
+  template = template.replace(/\{TEHS_KSK\}/g, tehsLuyKe.toLocaleString('vi-VN'));
+  template = template.replace(/\{CBCCVC_KSK\}/g, cbccvcLuyKe.toLocaleString('vi-VN'));
+
   // Replace report date globally
-  template = template.replace(/03\/07\/2026/g, dateString);
+  template = template.replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, dateString);
 
   return template;
 }
@@ -286,6 +320,7 @@ async function compileReportSvg(dateStr) {
 app.get('/report', async (req, res) => {
   try {
     let date = req.query.date;
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     if (!date) {
       const latestReport = await DailyReport.findOne().sort({ date: -1 });
       if (latestReport) {
@@ -308,6 +343,7 @@ app.get('/report', async (req, res) => {
 app.get('/download-report', async (req, res) => {
   try {
     let date = req.query.date;
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     if (!date) {
       const latestReport = await DailyReport.findOne().sort({ date: -1 });
       if (latestReport) {
@@ -394,7 +430,7 @@ app.get('/', async (req, res) => {
     }
 
     const selectedDate = (queryDateStr && queryDateStr !== "") ? parseDateUTC(queryDateStr) : null;
-    
+
     // Date bounds for checking
     const startDate = parseDateUTC('2026-07-01');
     const endDate = parseDateUTC('2026-09-30');
@@ -566,7 +602,7 @@ app.get('/', async (req, res) => {
     const reportsTable = [];
     let grandDaily = { under6: 0, from6To18: 0, over18: 0, total: 0 };
     let grandCumulative = { under6: 0, from6To18: 0, over18: 0, total: 0 };
-    
+
     let grandAdminDaily = { under6: 0, from6To18: 0, over18: 0, total: 0 };
     let grandAdminCumulative = { under6: 0, from6To18: 0, over18: 0, total: 0 };
 
@@ -584,13 +620,13 @@ app.get('/', async (req, res) => {
 
     units.forEach(unit => {
       const uId = unit._id.toString();
-      
+
       // Commune data
       const daily = dailyMap[uId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
       const cumulative = cumulativeMap[uId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
       const yearCumulative = cumulative.total + unit.firstHalfChecked;
       const completionRate = unit.planTarget > 0 ? (yearCumulative / unit.planTarget) * 100 : 0;
-      
+
       // Admin data
       const adminDaily = dailyMap[uId] ? {
         under6: dailyMap[uId].adminUnder6 || 0,
@@ -685,7 +721,7 @@ app.get('/', async (req, res) => {
     let adminCentersData = [];
     if (isUserAdmin) {
       const adminReports = await DailyReport.find({ adminWorkplace: { $ne: '' } }).populate('centerId').populate('unitId');
-      
+
       const centerGroups = {};
       adminReports.forEach(r => {
         if (!r.centerId) return;
@@ -720,10 +756,10 @@ app.get('/', async (req, res) => {
     if (req.session.userRole === 'unit') {
       const currentUnitId = req.session.userId;
       const myUnit = await User.findById(currentUnitId);
-      
+
       const myDaily = dailyMap[currentUnitId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
       const myCumulative = cumulativeMap[currentUnitId] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
-      
+
       const myYearCumulative = myCumulative.total + myUnit.firstHalfChecked;
       unitStats = {
         unitName: myUnit.unitName,
@@ -739,14 +775,14 @@ app.get('/', async (req, res) => {
       // Get breakdown for each health center under this unit (commune's own inputs)
       const centers = await HealthCenter.find({ unitId: currentUnitId });
       const centerDailyReports = await DailyReport.find({ date: dailyMatchDate, unitId: currentUnitId });
-      const centerCumulativeReports = await DailyReport.find({ 
-        date: { $gte: startDate, $lte: cumulativeMatchLimit }, 
-        unitId: currentUnitId 
+      const centerCumulativeReports = await DailyReport.find({
+        date: { $gte: startDate, $lte: cumulativeMatchLimit },
+        unitId: currentUnitId
       });
 
       centers.forEach(center => {
         const cId = center._id.toString();
-        
+
         // daily for this center
         const cDailyReport = centerDailyReports.find(r => r.centerId.toString() === cId);
         const cDaily = cDailyReport ? {
@@ -785,7 +821,7 @@ app.get('/', async (req, res) => {
       ...u,
       completionRate: isUserAdmin ? u.adminCompletionRate : u.completionRate
     }));
-    
+
     // Daily progress timeline (aggregate daily total counts from 01/07 to endDate)
     const dailyProgressAgg = await DailyReport.aggregate([
       { $match: { date: { $gte: startDate, $lte: endDate } } },
@@ -818,7 +854,7 @@ app.get('/', async (req, res) => {
     const progressTimelineLabels = [];
     const progressTimelineData = [];
     let rollingSum = 0;
-    
+
     // To ensure a continuous timeline, loop through the days in range up to endDate
     let loopDate = new Date(startDate);
     while (loopDate <= endDate) {
@@ -826,11 +862,11 @@ app.get('/', async (req, res) => {
       const dayData = dailyProgressAgg.find(d => formatDateString(d._id) === formattedDate);
       const dayTotal = dayData ? (isUserAdmin ? dayData.adminTotal : dayData.total) : 0;
       rollingSum += dayTotal;
-      
+
       const dayStr = loopDate.getUTCDate() + '/' + String(loopDate.getUTCMonth() + 1).padStart(2, '0');
       progressTimelineLabels.push(dayStr);
       progressTimelineData.push(rollingSum);
-      
+
       loopDate.setUTCDate(loopDate.getUTCDate() + 1);
     }
 
@@ -936,7 +972,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const selectedDate = parseDateUTC(queryDateStr);
 
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    
+
     // Future date check
     if (queryDateStr > todayStr) {
       return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được chọn ngày trong tương lai')}`);
@@ -986,17 +1022,17 @@ app.get('/input', requireAuth, async (req, res) => {
     // Load centers for selected unit
     const centers = await HealthCenter.find({ unitId: selectedUnitId }).sort({ name: 1 });
     const allCenters = req.session.userRole === 'admin' ? await HealthCenter.find().sort({ name: 1 }) : [];
-    
+
     // Load daily reports for this date and unit (or all dates and workplace reports for admin)
     const reports = req.session.userRole === 'admin'
       ? await DailyReport.find({
-          $or: [
-            { unitId: selectedUnitId },
-            { adminWorkplace: { $ne: '', $ne: null } }
-          ]
-        }).populate('centerId').sort({ date: -1 })
+        $or: [
+          { unitId: selectedUnitId },
+          { adminWorkplace: { $ne: '', $ne: null } }
+        ]
+      }).populate('centerId').sort({ date: -1 })
       : await DailyReport.find({ date: selectedDate, unitId: selectedUnitId }).populate('centerId');
-    
+
     // Fetch resident population, first half stats, and plan target of selected unit
     const selectedUnitObj = await User.findById(selectedUnitId);
     const residentPopulation = selectedUnitObj ? selectedUnitObj.residentPopulation : 0;
@@ -1032,7 +1068,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const allDays = [];
     const startDate = new Date(Date.UTC(2026, 6, 1)); // 2026-07-01
     const endDate = new Date(Date.UTC(2026, 8, 30));  // 2026-09-30
-    
+
     let loopDate = new Date(startDate);
     while (loopDate <= endDate) {
       const year = loopDate.getUTCFullYear();
@@ -1041,11 +1077,11 @@ app.get('/input', requireAuth, async (req, res) => {
       const dateStr = `${year}-${month}-${day}`;
       const dateDisplay = `${day}/${month}/${year}`;
 
-      const matched = historyMap[dateStr] || { 
+      const matched = historyMap[dateStr] || {
         under6: 0, from6To18: 0, over18: 0,
         adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0
       };
-      
+
       const u6 = isUserAdmin ? matched.adminUnder6 : matched.under6;
       const f6 = isUserAdmin ? matched.adminFrom6To18 : matched.from6To18;
       const o18 = isUserAdmin ? matched.adminOver18 : matched.over18;
@@ -1068,11 +1104,15 @@ app.get('/input', requireAuth, async (req, res) => {
     // Fetch all BYT linkage records for admin input page, sorted by date descending
     let bytLinkages = [];
     let bytLinkageCount = 0;
+    let cnldCount = 0;
+    let tehsCount = 0;
     if (req.session.userRole === 'admin') {
       bytLinkages = await BytLinkage.find().populate('updatedBy').sort({ date: -1 });
       const currentLinkage = bytLinkages.find(b => new Date(b.date).getTime() === selectedDate.getTime());
       if (currentLinkage) {
         bytLinkageCount = currentLinkage.count;
+        cnldCount = currentLinkage.cnldCount || 0;
+        tehsCount = currentLinkage.tehsCount || 0;
       }
     }
 
@@ -1089,6 +1129,8 @@ app.get('/input', requireAuth, async (req, res) => {
       },
       selectedDateStr: queryDateStr,
       bytLinkageCount,
+      cnldCount,
+      tehsCount,
       bytLinkages,
       selectedUnitId,
       centers,
@@ -1114,12 +1156,12 @@ app.get('/input', requireAuth, async (req, res) => {
 
 // Submit / Edit report data
 app.post('/input', requireAuth, async (req, res) => {
-  const { 
+  const {
     reportId,
-    date, 
-    centerId, 
-    under6, 
-    from6To18, 
+    date,
+    centerId,
+    under6,
+    from6To18,
     over18,
     adminWorkplace,
     adminWorkers,
@@ -1128,7 +1170,7 @@ app.post('/input', requireAuth, async (req, res) => {
     adminOthers,
     adminInputMode
   } = req.body;
-  
+
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
     targetUnitId = req.body.unitId;
@@ -1186,7 +1228,7 @@ app.post('/input', requireAuth, async (req, res) => {
         political = parseInt(adminPolitical) || 0; // Số đã KSK
         children = 0;
         others = 0;
-        
+
         // Mapped values for dashboard
         valUnder6 = 0;
         valFrom6To18 = 0;
@@ -1197,7 +1239,7 @@ app.post('/input', requireAuth, async (req, res) => {
         children = parseInt(adminChildren) || 0;
         political = parseInt(adminPolitical) || 0;
         others = parseInt(adminOthers) || 0;
-        
+
         // Map categories to age groups for homepage view compatibility
         valUnder6 = 0;
         valFrom6To18 = children;
@@ -1226,7 +1268,7 @@ app.post('/input', requireAuth, async (req, res) => {
     } else if (!isAdmin) {
       existing = await DailyReport.findOne({ date: selectedDate, centerId: cId });
     }
-    
+
     if (existing) {
       // Update
       const oldUnder6 = isAdmin ? existing.adminUnder6 : existing.under6;
@@ -1264,12 +1306,12 @@ app.post('/input', requireAuth, async (req, res) => {
         username: req.session.username,
         action: 'UPDATE',
         targetType: 'REPORT',
-        details: isAdmin 
-          ? (isGeneralAdminInput 
-              ? `Cập nhật số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
-              : (isPoliticalInput
-                  ? `Cập nhật số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
-                  : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
+        details: isAdmin
+          ? (isGeneralAdminInput
+            ? `Cập nhật số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
+            : (isPoliticalInput
+              ? `Cập nhật số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
+              : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
           : `Cập nhật số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
       });
 
@@ -1279,7 +1321,7 @@ app.post('/input', requireAuth, async (req, res) => {
         date: selectedDate,
         updatedBy: req.session.userId
       };
-      
+
       if (isAdmin) {
         if (isGeneralAdminInput) {
           createData.unitId = uId;
@@ -1306,7 +1348,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminOthers = others;
           createData.adminIsPolitical = isPoliticalInput;
         }
-        
+
         createData.under6 = 0;
         createData.from6To18 = 0;
         createData.over18 = 0;
@@ -1316,7 +1358,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.under6 = valUnder6;
         createData.from6To18 = valFrom6To18;
         createData.over18 = valOver18;
-        
+
         createData.adminUnder6 = 0;
         createData.adminFrom6To18 = 0;
         createData.adminOver18 = 0;
@@ -1327,7 +1369,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.adminOthers = 0;
         createData.adminIsPolitical = false;
       }
-      
+
       await DailyReport.create(createData);
 
       // Log details
@@ -1338,10 +1380,10 @@ app.post('/input', requireAuth, async (req, res) => {
         targetType: 'REPORT',
         details: isAdmin
           ? (isGeneralAdminInput
-              ? `Nhập mới số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
-              : (isPoliticalInput
-                  ? `Nhập mới số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
-                  : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
+            ? `Nhập mới số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
+            : (isPoliticalInput
+              ? `Nhập mới số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
+              : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
           : `Nhập mới số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
       });
     }
@@ -1356,7 +1398,7 @@ app.post('/input', requireAuth, async (req, res) => {
 // Delete report entry
 app.post('/input/delete', requireAuth, async (req, res) => {
   const { reportId, date, unitId } = req.body;
-  
+
   try {
     const report = await DailyReport.findById(reportId).populate('centerId');
     if (!report) {
@@ -1423,7 +1465,7 @@ app.post('/input/delete', requireAuth, async (req, res) => {
 // Add Health Center
 app.post('/centers/add', requireAuth, async (req, res) => {
   const { name, date, redirect } = req.body;
-  
+
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
     targetUnitId = req.body.unitId;
@@ -1449,9 +1491,9 @@ app.post('/centers/add', requireAuth, async (req, res) => {
     }
 
     // Check if name already exists in unit
-    const existing = await HealthCenter.findOne({ 
-      name: name.trim(), 
-      unitId: targetUnitId 
+    const existing = await HealthCenter.findOne({
+      name: name.trim(),
+      unitId: targetUnitId
     });
 
     if (existing) {
@@ -1494,7 +1536,7 @@ app.post('/centers/add', requireAuth, async (req, res) => {
 // Update resident population
 app.post('/input/resident-population', requireAuth, async (req, res) => {
   const { residentPopulation, localManagedPopulation, date } = req.body;
-  
+
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
     targetUnitId = req.body.unitId;
@@ -1545,7 +1587,7 @@ app.post('/input/resident-population', requireAuth, async (req, res) => {
 // Update first half checked population
 app.post('/input/first-half-checked', requireAuth, async (req, res) => {
   const { firstHalfChecked, date } = req.body;
-  
+
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
     targetUnitId = req.body.unitId;
@@ -1581,7 +1623,7 @@ app.post('/input/first-half-checked', requireAuth, async (req, res) => {
 // Update plan target (90 days)
 app.post('/input/plan-target', requireAuth, async (req, res) => {
   const { planTarget, date } = req.body;
-  
+
   let targetUnitId = req.session.userId;
   if (req.session.userRole === 'admin' && req.body.unitId) {
     targetUnitId = req.body.unitId;
@@ -1684,7 +1726,7 @@ app.get('/admin/centers', requireAuth, requireRole('admin'), async (req, res) =>
       return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
     });
     const centers = await HealthCenter.find().populate('unitId').sort({ name: 1 });
-    
+
     // Sort in memory by unit name alphabetically
     centers.sort((a, b) => {
       const nameA = a.unitId ? a.unitId.unitName : '';
@@ -1860,7 +1902,7 @@ app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =
     unit.contactName = contactName ? contactName.trim() : '';
     unit.contactPhone = contactPhone ? contactPhone.trim() : '';
     unit.contactEmail = contactEmail ? contactEmail.trim() : '';
-    
+
     await unit.save();
 
     // Log target change
@@ -1916,6 +1958,53 @@ app.post('/admin/byt-linkage', requireAuth, requireRole('admin'), async (req, re
   } catch (error) {
     console.error('POST byt-linkage error:', error);
     return res.redirect(`/input?error=${encodeURIComponent('Lỗi lưu số lượt liên thông cổng BYT')}`);
+  }
+});
+
+app.post('/admin/global-metrics', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { date, cnldCount, tehsCount } = req.body;
+    if (!date) {
+      return res.redirect(`/input?error=${encodeURIComponent('Ngày không hợp lệ')}`);
+    }
+
+    const selectedDate = parseDateUTC(date);
+    const cnldVal = cnldCount !== undefined ? (parseInt(cnldCount) || 0) : undefined;
+    const tehsVal = tehsCount !== undefined ? (parseInt(tehsCount) || 0) : undefined;
+
+    const existing = await BytLinkage.findOne({ date: selectedDate });
+    if (existing) {
+      if (cnldVal !== undefined) existing.cnldCount = cnldVal;
+      if (tehsVal !== undefined) existing.tehsCount = tehsVal;
+      existing.updatedBy = req.session.userId;
+      await existing.save();
+    } else {
+      await BytLinkage.create({
+        date: selectedDate,
+        count: 0,
+        cnldCount: cnldVal !== undefined ? cnldVal : 0,
+        tehsCount: tehsVal !== undefined ? tehsVal : 0,
+        updatedBy: req.session.userId
+      });
+    }
+
+    // Log this action
+    let details = `Cập nhật số liệu KSK tỉnh ngày ${date}:`;
+    if (cnldVal !== undefined) details += ` CNLĐ = ${cnldVal}`;
+    if (tehsVal !== undefined) details += ` TE&HS = ${tehsVal}`;
+
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'REPORT',
+      details
+    });
+
+    return res.redirect(`/input?date=${date}&success=${encodeURIComponent('Đã cập nhật số liệu KSK')}`);
+  } catch (error) {
+    console.error('POST global-metrics error:', error);
+    return res.redirect(`/input?error=${encodeURIComponent('Lỗi lưu số liệu KSK')}`);
   }
 });
 
