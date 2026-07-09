@@ -140,7 +140,8 @@ async function compileReportSvg(dateStr) {
   let grandCumulativeTotal = 0;
   let grandFirstHalfTotal = 833233;
   let grandTargetTotal = 0;
-  let grandResidentPopulation = 0;
+  let grandResidentPopulation = 3194187;
+  let grandFirstHalfCheckedSum = 0;
 
   const reportsTable = [];
   units.forEach(unit => {
@@ -157,7 +158,7 @@ async function compileReportSvg(dateStr) {
     grandDailyTotal += dailyVal;
     grandCumulativeTotal += cumulativeVal;
     grandTargetTotal += (unit.planTarget || 0);
-    grandResidentPopulation += (unit.residentPopulation || 0);
+    grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
   });
 
   // Fetch BYT Linkage count for this date and cumulative
@@ -170,7 +171,7 @@ async function compileReportSvg(dateStr) {
   ]);
   const grandBytLuyKe = bytLuyKeAgg.length > 0 ? bytLuyKeAgg[0].total : 0;
 
-  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal + cumulativeWorkplaceTotal;
+  const grandOverallTotal = 833233 + grandCumulativeTotal + grandFirstHalfCheckedSum + cumulativeWorkplaceTotal - 40000;
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = grandTargetTotal > 0 ? (grandCumulativeTotal / grandTargetTotal) * 100 : 0;
 
@@ -521,6 +522,7 @@ app.get('/', async (req, res) => {
     let grandResidentPopulation = 3194187;
     let grandLocalManagedPopulation = 0;
     let grandFirstHalfChecked = 833233;
+    let grandFirstHalfCheckedSum = 0;
 
     let grandMonthly = {
       7: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
@@ -607,6 +609,7 @@ app.get('/', async (req, res) => {
 
       grandTarget += unit.planTarget;
       grandLocalManagedPopulation += (unit.residentPopulation || 0);
+      grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
 
       // Sum monthly grand totals
       [7, 8, 9].forEach(m => {
@@ -622,7 +625,7 @@ app.get('/', async (req, res) => {
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = displayCumulative.total + grandFirstHalfChecked + cumulativeWorkplaceTotal;
+    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum + cumulativeWorkplaceTotal - 40000;
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -830,6 +833,7 @@ app.get('/', async (req, res) => {
       grandResidentPopulation,
       grandLocalManagedPopulation,
       grandFirstHalfChecked,
+      grandFirstHalfCheckedSum,
       grandYearCumulative: displayYearCumulative,
       overallCompletionRate: displayOverallCompletionRate,
       reportsTable,

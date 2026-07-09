@@ -754,7 +754,7 @@
 <text fill="#DD0000" xml:space="preserve" font-family="Momo Trust Display" font-size="80" letter-spacing="0em" text-anchor="middle" class="center-text center-text"><tspan x="1652" y="710">{3}</tspan></text>
 <text fill="black"  xml:space="preserve" font-family="Momo Trust Display" font-size="40" letter-spacing="0em" text-anchor="middle" class="center-text"><tspan x="2220" y="786">S&#x1ed0; NG&#x1af;&#x1edc;I </tspan><tspan x="2220" y="838">&#x110;&#xc3; KSK </tspan><tspan x="2220" y="890">TO&#xc0;N T&#x1ec8;NH</tspan></text>
 <text fill="#DD0000" xml:space="preserve" font-family="Momo Trust Display" font-size="80" letter-spacing="0em" text-anchor="middle" class="center-text center-text"><tspan x="2220" y="710">{4}</tspan></text>
-<text fill="#003136"  xml:space="preserve" font-family="Momo Trust Display" font-size="30" letter-spacing="0em" text-anchor="middle" class="center-text"><tspan x="2214" y="3101.75">{7} / {5}</tspan></text>
+<text fill="#003136"  xml:space="preserve" font-family="Momo Trust Display" font-size="30" letter-spacing="0em" text-anchor="middle" class="center-text"><tspan x="2214" y="3101.75">{2} / {7}</tspan></text>
 <text fill="#003136"  xml:space="preserve" font-family="Momo Trust Display" font-size="40" letter-spacing="0em" text-anchor="middle" class="center-text"><tspan x="2214" y="3007">TI&#x1ebe;N &#x110;&#x1ed8;&#x2028;</tspan><tspan x="2214" y="3059">&#x110;&#xc3; TH&#x1ef0;C HI&#x1ec6;N</tspan></text>
 
 <text xml:space="preserve" font-family="Momo Trust Display" font-size="40" letter-spacing="0em" text-anchor="middle" class="center-text"><tspan fill="#003136" x="2214" y="3150">T&#x1ef6; L&#x1ec6;: </tspan><tspan fill="#B70000" y="3150">{9}</tspan></text>

@@ -325,7 +325,7 @@
     <% } %>
 
       <!-- Charts Grid -->
-      <div class="charts-grid">
+      <div class="charts-grid" style="display: none;">
         <!-- Bar chart of top units -->
         <div class="glass-panel chart-panel">
           <h3 class="chart-title">
@@ -542,7 +542,7 @@
                     <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
                   </td>
                   <td style="text-align: center;">
-                    <%= grandFirstHalfChecked.toLocaleString('vi-VN') %>
+                    <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
                   </td>
                   <td style="text-align: center;">
                     <%= grandTarget.toLocaleString('vi-VN') %>
@@ -557,7 +557,7 @@
                             topChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)</div>
                   </td>
                   <td style="text-align: center;">
-                    <% const topTotalChecked=grandFirstHalfChecked + topChecked90; %>
+                    <% const topTotalChecked=grandFirstHalfCheckedSum + topChecked90; %>
                       <% const topOverallRate=grandResidentPopulation> 0 ? (topTotalChecked / grandResidentPopulation) *
                         100 : 0; %>
                         <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
@@ -730,7 +730,7 @@
                     <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
                   </td>
                   <td style="text-align: center;">
-                    <%= grandFirstHalfChecked.toLocaleString('vi-VN') %>
+                    <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
                   </td>
                   <td style="text-align: center;">
                     <%= grandTarget.toLocaleString('vi-VN') %>
@@ -745,7 +745,7 @@
                             grandChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)</div>
                   </td>
                   <td style="text-align: center;">
-                    <% const grandTotalChecked=grandFirstHalfChecked + grandChecked90; %>
+                    <% const grandTotalChecked=grandFirstHalfCheckedSum + grandChecked90; %>
                       <% const grandOverallRate=grandResidentPopulation> 0 ? (grandTotalChecked /
                         grandResidentPopulation) * 100 : 0; %>
                         <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
