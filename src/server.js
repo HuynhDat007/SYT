@@ -253,20 +253,20 @@ async function compileReportSvg(dateStr) {
     const row = i % 32;
 
     let xName = 120;
-    let xDaily = 490;
-    let xCumulative = 621;
-    let xRate = 736;
+    let xDaily = 455;
+    let xCumulative = 586;
+    let xRate = 716;
 
     if (col === 1) {
       xName = 907;
-      xDaily = 1277;
-      xCumulative = 1408;
-      xRate = 1523;
+      xDaily = 1242;
+      xCumulative = 1373;
+      xRate = 1503;
     } else if (col === 2) {
       xName = 1694;
-      xDaily = 2064;
-      xCumulative = 2195;
-      xRate = 2310;
+      xDaily = 2029;
+      xCumulative = 2160;
+      xRate = 2290;
     }
 
     const yName = 1171.75 + row * 51;
