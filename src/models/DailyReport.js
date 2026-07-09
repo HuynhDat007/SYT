@@ -55,6 +55,10 @@ const DailyReportSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  adminIsPolitical: {
+    type: Boolean,
+    default: false
+  },
   adminWorkers: {
     type: Number,
     min: 0,

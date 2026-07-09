@@ -167,7 +167,7 @@
                       <circle cx="12" cy="12" r="10" />
                       <path d="M8 14s1.5 2 4 2 4-2 4-2" />
                     </svg>
-                    Khám chung tại Trạm (Tất cả dữ liệu đã nhập)
+                    Khám chung tại Trạm
                   </span>
                   <button class="btn btn-primary" onclick="openGeneralModal()"
                     style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -182,7 +182,7 @@
 
                 <% const generalReports=reports.filter(r=> !r.adminWorkplace && r.unitId && r.unitId.toString() ===
                   selectedUnitId);
-                  const workplaceReports = reports.filter(r => r.adminWorkplace);
+                  const workplaceReports = reports.filter(r => r.adminWorkplace && !r.adminIsPolitical);
                   %>
 
                   <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
@@ -286,7 +286,7 @@
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
-                    Khám theo đơn vị KSK (Tất cả dữ liệu đã nhập)
+                    Khám theo đơn vị KSK
                   </span>
                   <button class="btn btn-primary" onclick="openWorkplaceModal()"
                     style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -358,10 +358,17 @@
                                   </strong></td>
                                 <td style="padding: 0.5rem; text-align: center;">
                                   <div style="display: flex; gap: 0.35rem; justify-content: center;">
-                                    <button type="button" class="btn btn-secondary"
-                                      style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
-                                      onclick="editAdminWorkplaceReport('<%= r._id %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= r.adminWorkplace ? r.adminWorkplace.replace(/'/g, '\\\'').replace(/\"/g, '\\\"') : '' %>', '<%= rDateVal %>', <%= r.adminWorkers || 0 %>, <%= r.adminChildren || 0 %>, <%= r.adminPolitical || 0 %>, <%= r.adminOthers || 0 %>)">
-                                                Sửa
+                                    <button type="button" class="btn btn-secondary edit-workplace-btn"
+                                       style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
+                                       data-id="<%= r._id %>"
+                                       data-center="<%= r.centerId ? r.centerId._id : '' %>"
+                                       data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('&quot;').split('\'').join('&#39;') : '' %>"
+                                       data-date="<%= rDateVal %>"
+                                       data-workers="<%= r.adminWorkers || 0 %>"
+                                       data-children="<%= r.adminChildren || 0 %>"
+                                       data-political="<%= r.adminPolitical || 0 %>"
+                                       data-others="<%= r.adminOthers || 0 %>">
+                                       Sửa
                                     </button>
                                     <form action="/input/delete" method="POST"
                                       onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?')"
@@ -402,6 +409,126 @@
                 </div>
               </div>
 
+              <!-- Table 2.5: Political System Reports (Thống kê KSK các CQ trong hệ thống chính trị) -->
+              <div class="glass-panel" style="overflow-x: auto; margin-top: 0.5rem;">
+                <h3
+                  style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; color: var(--primary-color);">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    THỐNG KÊ KSK CÁC CQ TRONG HỆ THỐNG CHÍNH TRỊ
+                  </span>
+                  <button class="btn btn-primary" onclick="openPoliticalModal()"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Thêm cơ quan chính trị
+                  </button>
+                </h3>
+
+                <% const politicalReports=reports.filter(r=> r.adminWorkplace && r.adminIsPolitical); %>
+
+                  <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                      <tr
+                        style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">
+                        <th
+                          style="padding: 0.5rem; text-align: center; width: 40px; border-right: 1px solid var(--panel-border);">
+                          STT</th>
+                        <th style="padding: 0.5rem; border-right: 1px solid var(--panel-border);">Tên cơ quan, đơn vị
+                        </th>
+                        <th style="padding: 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                          CBCC CV NLĐ</th>
+                        <th style="padding: 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                          đã KSK</th>
+                        <th
+                          style="padding: 0.5rem; text-align: center; width: 100px; border-right: 1px solid var(--panel-border);">
+                          Ngày báo cáo</th>
+                        <th style="padding: 0.5rem; width: 90px; text-align: center;">Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody id="political-table-body">
+                      <% if (politicalReports.length> 0) { %>
+                        <% politicalReports.forEach((r, idx)=> { %>
+                          <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
+                            )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
+                            <% const rDateVal=`${rDate.getUTCFullYear()}-${String(rDate.getUTCMonth() +
+                              1).padStart(2, '0' )}-${String(rDate.getUTCDate()).padStart(2, '0' )}`; %>
+                              <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.82rem;">
+                                <td
+                                  style="padding: 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                                  <%= idx + 1 %>
+                                </td>
+                                <td
+                                  style="padding: 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
+                                  <%= r.adminWorkplace %>
+                                </td>
+                                <td
+                                  style="padding: 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                                  <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
+                                </td>
+                                <td
+                                  style="padding: 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
+                                  <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
+                                </td>
+                                <td
+                                  style="padding: 0.5rem; text-align: center; color: var(--text-secondary); border-right: 1px solid var(--panel-border);">
+                                  <%= rDateStr %>
+                                </td>
+                                <td style="padding: 0.5rem; text-align: center;">
+                                  <div style="display: flex; gap: 0.35rem; justify-content: center;">
+                                    <button type="button" class="btn btn-secondary edit-political-btn"
+                                       style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
+                                       data-id="<%= r._id %>"
+                                       data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('&quot;').split('\'').join('&#39;') : '' %>"
+                                       data-date="<%= rDateVal %>"
+                                       data-workers="<%= r.adminWorkers || 0 %>"
+                                       data-political="<%= r.adminPolitical || 0 %>">
+                                       Sửa
+                                    </button>
+                                    <form action="/input/delete" method="POST"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa bản ghi này?')"
+                                      style="margin: 0; display: inline;">
+                                      <input type="hidden" name="reportId" value="<%= r._id %>">
+                                      <input type="hidden" name="date" value="<%= selectedDateStr %>">
+                                      <input type="hidden" name="unitId" value="<%= selectedUnitId %>">
+                                      <button type="submit" class="btn btn-danger"
+                                        style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto; background: var(--accent-red); border-color: var(--accent-red);">
+                                        Xóa
+                                      </button>
+                                    </form>
+                                  </div>
+                                </td>
+                              </tr>
+                              <% }) %>
+                                <% } else { %>
+                                  <tr>
+                                    <td colspan="6"
+                                      style="text-align: center; color: var(--text-secondary); padding: 1.5rem 0; font-size: 0.8rem;">
+                                      Chưa có số liệu cơ quan chính trị nào được nhập.</td>
+                                  </tr>
+                                  <% } %>
+                    </tbody>
+                  </table>
+
+                  <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.82rem; color: var(--text-secondary);">
+                    <span id="political-page-info">Trang 1 / 1</span>
+                    <div style="display: flex; gap: 0.5rem;">
+                      <button type="button" class="btn btn-secondary" id="political-prev-btn"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;"
+                        onclick="prevPage('political')">Trước</button>
+                      <button type="button" class="btn btn-secondary" id="political-next-btn"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto;"
+                        onclick="nextPage('political')">Sau</button>
+                    </div>
+                  </div>
+              </div>
+
               <!-- Table 3: BYT Linkage Reports (Liên thông cổng BYT) -->
               <div class="glass-panel" style="overflow-x: auto;">
                 <h3
@@ -411,7 +538,7 @@
                       <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                       <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                     </svg>
-                    Liên thông cổng BYT (Tất cả dữ liệu đã nhập)
+                    Liên thông cổng BYT
                   </span>
                   <button class="btn btn-primary" onclick="openBytModal()"
                     style="padding: 0.35rem 0.75rem; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 6px; cursor: pointer;">
@@ -926,14 +1053,30 @@
               </div>
               <% } %>
 
-                <script>
-                  // Parse existing reports on this date to auto-populate form values
-                  const existingReports = <%- JSON.stringify(reports.map(r => ({
+                <script id="page-config-data" type="application/json">
+                  {
+                    "userRole": "<%= user.role %>",
+                    "allowPastDateInput": <%= allowPastDateInput ? true : false %>
+                  }
+                </script>
+
+                <script id="existing-reports-data" type="application/json">
+                  <%- JSON.stringify(reports.map(r => ({
                     centerId: r.centerId ? r.centerId._id.toString() : r.centerId,
                     under6: user.role === 'admin' ? r.adminUnder6 : r.under6,
                     from6To18: user.role === 'admin' ? r.adminFrom6To18 : r.from6To18,
                     over18: user.role === 'admin' ? r.adminOver18 : r.over18
-                  }))) %>;
+                  }))) %>
+                </script>
+
+                <script id="all-days-data" type="application/json">
+                  <%- JSON.stringify(allDays) %>
+                </script>
+
+                <script>
+                  // Parse existing reports on this date to auto-populate form values
+                  const pageConfig = JSON.parse(document.getElementById('page-config-data').textContent);
+                  const existingReports = JSON.parse(document.getElementById('existing-reports-data').textContent);
 
                   function handleCenterChange() {
                     const select = document.getElementById('centerId');
@@ -1053,12 +1196,39 @@
                   function closeBytModal() {
                     document.getElementById('modal-byt').classList.remove('active');
                   }
+
+                  function editAdminPoliticalReport(id, workplace, dateVal, workers, political) {
+                    document.getElementById('politicalReportId').value = id;
+                    document.getElementById('politicalDate').value = dateVal;
+                    document.getElementById('politicalName').value = workplace;
+                    document.getElementById('politicalWorkers').value = workers;
+                    document.getElementById('politicalChecked').value = political;
+
+                    document.getElementById('modal-political-title').textContent = 'Sửa Số Liệu CQ Chính Trị';
+                    document.getElementById('modal-political').classList.add('active');
+                  }
+
+                  function openPoliticalModal() {
+                    document.getElementById('politicalReportId').value = '';
+                    const todayStr = new Date().toISOString().substring(0, 10);
+                    document.getElementById('politicalDate').value = todayStr;
+                    document.getElementById('politicalName').value = '';
+                    document.getElementById('politicalWorkers').value = '0';
+                    document.getElementById('politicalChecked').value = '0';
+
+                    document.getElementById('modal-political-title').textContent = 'Thêm Số Liệu CQ Chính Trị';
+                    document.getElementById('modal-political').classList.add('active');
+                  }
+
+                  function closePoliticalModal() {
+                    document.getElementById('modal-political').classList.remove('active');
+                  }
                   // Custom Inline Month Calendar JS
                   const selectedDate = new Date('<%= selectedDateStr %>');
                   let currentYear = selectedDate.getUTCFullYear();
                   let currentMonth = selectedDate.getUTCMonth(); // 0-indexed
 
-                  const allDaysData = <%- JSON.stringify(allDays) %>;
+                  const allDaysData = JSON.parse(document.getElementById('all-days-data').textContent);
                   const unitIdParam = '<%= user.role === "admin" ? "&unitId=" + selectedUnitId : "" %>';
 
                   const allDaysMap = {};
@@ -1119,7 +1289,7 @@
 
                       // Past date check for regular units
                       const isPast = cellDate < todayDate;
-                      const isPastRestricted = <%= user.role !== 'admin' %> && !<%= allowPastDateInput %> && isPast;
+                      const isPastRestricted = pageConfig.userRole !== 'admin' && !pageConfig.allowPastDateInput && isPast;
 
                       const isDateValid = cellDate >= minDate && cellDate <= maxDate && !isFuture && !isPastRestricted;
 
@@ -1223,13 +1393,15 @@
                     updateTablePagination('general');
                     updateTablePagination('workplace');
                     updateTablePagination('byt');
+                    updateTablePagination('political');
                   });
 
                   // Client-side pagination logic
                   const paginationState = {
                     general: { currentPage: 1, pageSize: 5 },
                     workplace: { currentPage: 1, pageSize: 5 },
-                    byt: { currentPage: 1, pageSize: 5 }
+                    byt: { currentPage: 1, pageSize: 5 },
+                    political: { currentPage: 1, pageSize: 5 }
                   };
 
                   function updateTablePagination(type) {
@@ -1286,6 +1458,34 @@
                       updateTablePagination(type);
                     }
                   }
+
+                  // Event delegation for edit buttons to avoid inline JS formatting errors
+                  document.addEventListener('click', (e) => {
+                    const workplaceBtn = e.target.closest('.edit-workplace-btn');
+                    if (workplaceBtn) {
+                      const id = workplaceBtn.getAttribute('data-id');
+                      const centerId = workplaceBtn.getAttribute('data-center');
+                      const workplace = workplaceBtn.getAttribute('data-workplace');
+                      const dateVal = workplaceBtn.getAttribute('data-date');
+                      const workers = parseInt(workplaceBtn.getAttribute('data-workers')) || 0;
+                      const children = parseInt(workplaceBtn.getAttribute('data-children')) || 0;
+                      const political = parseInt(workplaceBtn.getAttribute('data-political')) || 0;
+                      const others = parseInt(workplaceBtn.getAttribute('data-others')) || 0;
+                      editAdminWorkplaceReport(id, centerId, workplace, dateVal, workers, children, political, others);
+                      return;
+                    }
+
+                    const politicalBtn = e.target.closest('.edit-political-btn');
+                    if (politicalBtn) {
+                      const id = politicalBtn.getAttribute('data-id');
+                      const workplace = politicalBtn.getAttribute('data-workplace');
+                      const dateVal = politicalBtn.getAttribute('data-date');
+                      const workers = parseInt(politicalBtn.getAttribute('data-workers')) || 0;
+                      const political = parseInt(politicalBtn.getAttribute('data-political')) || 0;
+                      editAdminPoliticalReport(id, workplace, dateVal, workers, political);
+                      return;
+                    }
+                  });
                 </script>
 
                 <% if (user.role==='admin' ) { %>
@@ -1459,6 +1659,56 @@
                         <div style="display: flex; gap: 0.5rem;">
                           <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu số lượt</button>
                           <button type="button" class="btn btn-secondary" onclick="closeBytModal()">Hủy</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+
+                  <!-- Modal 4: Thống kê KSK các CQ trong hệ thống chính trị -->
+                  <div class="modal-overlay" id="modal-political">
+                    <div class="modal-content" style="border-top: 4px solid var(--primary-color);">
+                      <div class="modal-header">
+                        <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--primary-color);"
+                          id="modal-political-title">Thêm Số Liệu CQ Chính Trị</h3>
+                        <button class="modal-close-btn" onclick="closePoliticalModal()">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      <form action="/input" method="POST">
+                        <input type="hidden" name="reportId" id="politicalReportId" value="">
+                        <input type="hidden" name="adminInputMode" value="political">
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                          <label for="politicalDate">Ngày báo cáo</label>
+                          <input type="date" name="date" id="politicalDate" class="form-control" required
+                            style="background: var(--input-bg);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                          <label for="politicalName">Tên cơ quan, đơn vị</label>
+                          <input type="text" id="politicalName" name="adminWorkplace" class="form-control"
+                            placeholder="Ví dụ: Văn phòng Tỉnh ủy" required style="background: var(--input-bg);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                          <label for="politicalWorkers">Số CBCC, CV, NLĐ (Chỉ tiêu)</label>
+                          <input type="number" id="politicalWorkers" name="adminWorkers" class="form-control" min="0"
+                            value="0" style="background: var(--input-bg);">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                          <label for="politicalChecked">Số đã KSK</label>
+                          <input type="number" id="politicalChecked" name="adminPolitical" class="form-control" min="0"
+                            value="0" style="background: var(--input-bg);">
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem;">
+                          <button type="submit" class="btn btn-primary" style="flex: 1;">Lưu số liệu</button>
+                          <button type="button" class="btn btn-secondary" onclick="closePoliticalModal()">Hủy</button>
                         </div>
                       </form>
                     </div>

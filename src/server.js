@@ -798,7 +798,13 @@ app.get('/', async (req, res) => {
             $sum: {
               $cond: [
                 { $ne: ['$adminWorkplace', ''] },
-                { $add: ['$adminWorkers', '$adminChildren', '$adminPolitical', '$adminOthers'] },
+                {
+                  $cond: [
+                    { $eq: ['$adminIsPolitical', true] },
+                    '$adminPolitical',
+                    { $add: ['$adminWorkers', '$adminChildren', '$adminPolitical', '$adminOthers'] }
+                  ]
+                },
                 0
               ]
             }
@@ -862,10 +868,17 @@ app.get('/', async (req, res) => {
       dayProvinceMap[formatDateString(d._id)] = d;
     });
 
+    // Fetch political system reports for the selected date
+    const dashboardPoliticalReports = await DailyReport.find({
+      date: dailyMatchDate,
+      adminIsPolitical: true
+    }).sort({ createdAt: 1 });
+
     // Generate the SVG report for the dashboard
     const svgContent = await compileReportSvg(formatDateString(dailyMatchDate));
 
     res.render('dashboard', {
+      dashboardPoliticalReports,
       momoFontBase64,
       campaignDays,
       dailyGridMap,
@@ -1112,7 +1125,8 @@ app.post('/input', requireAuth, async (req, res) => {
     adminWorkers,
     adminChildren,
     adminPolitical,
-    adminOthers
+    adminOthers,
+    adminInputMode
   } = req.body;
   
   let targetUnitId = req.session.userId;
@@ -1158,13 +1172,25 @@ app.post('/input', requireAuth, async (req, res) => {
     let political = 0;
     let others = 0;
 
-    const isGeneralAdminInput = isAdmin && (!adminWorkplace || adminWorkplace.trim() === '');
+    const isGeneralAdminInput = isAdmin && (adminInputMode === 'general' || (!adminInputMode && (!adminWorkplace || adminWorkplace.trim() === '')));
+    const isPoliticalInput = isAdmin && adminInputMode === 'political';
 
     if (isAdmin) {
       if (isGeneralAdminInput) {
         valUnder6 = parseInt(under6) || 0;
         valFrom6To18 = parseInt(from6To18) || 0;
         valOver18 = parseInt(over18) || 0;
+      } else if (isPoliticalInput) {
+        workplace = adminWorkplace.trim();
+        workers = parseInt(adminWorkers) || 0; // SỐ CBCC CV NLĐ (target/chỉ tiêu)
+        political = parseInt(adminPolitical) || 0; // Số đã KSK
+        children = 0;
+        others = 0;
+        
+        // Mapped values for dashboard
+        valUnder6 = 0;
+        valFrom6To18 = 0;
+        valOver18 = political;
       } else {
         workplace = adminWorkplace.trim();
         workers = parseInt(adminWorkers) || 0;
@@ -1216,6 +1242,7 @@ app.post('/input', requireAuth, async (req, res) => {
         existing.adminChildren = children;
         existing.adminPolitical = political;
         existing.adminOthers = others;
+        existing.adminIsPolitical = isPoliticalInput;
         if (isGeneralAdminInput) {
           existing.unitId = uId;
           existing.centerId = cId;
@@ -1240,7 +1267,9 @@ app.post('/input', requireAuth, async (req, res) => {
         details: isAdmin 
           ? (isGeneralAdminInput 
               ? `Cập nhật số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
-              : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`)
+              : (isPoliticalInput
+                  ? `Cập nhật số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
+                  : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
           : `Cập nhật số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
       });
 
@@ -1263,6 +1292,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminChildren = 0;
           createData.adminPolitical = 0;
           createData.adminOthers = 0;
+          createData.adminIsPolitical = false;
         } else {
           createData.unitId = null;
           createData.centerId = null;
@@ -1274,6 +1304,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminChildren = children;
           createData.adminPolitical = political;
           createData.adminOthers = others;
+          createData.adminIsPolitical = isPoliticalInput;
         }
         
         createData.under6 = 0;
@@ -1294,6 +1325,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.adminChildren = 0;
         createData.adminPolitical = 0;
         createData.adminOthers = 0;
+        createData.adminIsPolitical = false;
       }
       
       await DailyReport.create(createData);
@@ -1307,7 +1339,9 @@ app.post('/input', requireAuth, async (req, res) => {
         details: isAdmin
           ? (isGeneralAdminInput
               ? `Nhập mới số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
-              : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`)
+              : (isPoliticalInput
+                  ? `Nhập mới số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
+                  : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
           : `Nhập mới số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
       });
     }

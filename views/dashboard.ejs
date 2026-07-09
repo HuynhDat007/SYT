@@ -136,7 +136,9 @@
               <polyline points="10 9 9 9 8 9" />
             </svg>
             Báo cáo ngày
-            <div style="position: relative; display: inline-block; vertical-align: middle; margin-left: 0.25rem; cursor: pointer;" onclick="try { document.getElementById('dashboard-date-picker').showPicker() } catch(e) {}">
+            <div
+              style="position: relative; display: inline-block; vertical-align: middle; margin-left: 0.25rem; cursor: pointer;"
+              onclick="try { document.getElementById('dashboard-date-picker').showPicker() } catch(e) {}">
               <span
                 style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem; font-size: 1.1rem; font-weight: 700; border: 1px solid var(--panel-border); border-radius: 6px; color: var(--primary-color); background: var(--bg-card); pointer-events: none;">
                 <%= dailyMatchDateStr.split('-').reverse().join('/') %>
@@ -187,702 +189,717 @@
         </div>
       </div>
 
-      <!-- Unit User Stats Box -->
-      <% if (user.role==='unit' && unitStats) { %>
-        <div class="glass-panel" style="margin-bottom: 2rem; border-left: 4px solid var(--primary-color);">
+      <!-- Table: Thống kê KSK các cơ quan trong hệ thống chính trị (Trong Ngày) -->
+      <% if (typeof dashboardPoliticalReports !=='undefined' && dashboardPoliticalReports.length> 0) { %>
+        <div class="glass-panel" style="margin-bottom: 2rem; overflow-x: auto;">
           <h3
-            style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
-            <!-- Clinic SVG -->
+            style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 21h18M3 7v14M21 7v14M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2zM10 12h4M12 10v4" />
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            Số liệu chi tiết đơn vị: <%= unitStats.unitName %>
+            THỐNG KÊ KSK CÁC CQ TRONG HỆ THỐNG CHÍNH TRỊ
           </h3>
 
-          <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: stretch;">
-            <div style="display: flex; flex-direction: column;">
-              <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tiến độ chỉ tiêu đơn
-                vị
-              </h4>
-              <div
-                style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                  <span>Tổng khám cả năm: <strong>
-                      <%= unitStats.yearCumulative %>
-                    </strong> / <%= unitStats.planTarget %></span>
-                  <span style="color: var(--primary-color); font-weight: 700;">
-                    <%= unitStats.completionRate.toFixed(2) %>%
-                  </span>
-                </div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill" style="width: <%= Math.min(unitStats.completionRate, 100) %>%;"></div>
-                </div>
-                <span style="font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 0.25rem;">
-                  (6T đầu năm: <%= unitStats.firstHalfChecked %> + Chiến dịch: <%= unitStats.cumulative.total %>)
-                </span>
-              </div>
-            </div>
-
-            <div style="display: flex; flex-direction: column;">
-              <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tỷ lệ bao phủ dân số
-              </h4>
-              <div
-                style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                  <% const coverageRate=unitStats.residentPopulation> 0 ? (unitStats.yearCumulative /
-                    unitStats.residentPopulation) * 100 : 0; %>
-                    <span>Khám / Nhân khẩu: <strong>
-                        <%= unitStats.yearCumulative %>
-                      </strong> / <%= unitStats.residentPopulation %></span>
-                    <span style="color: var(--accent-green); font-weight: 700;">
-                      <%= coverageRate.toFixed(2) %>%
-                    </span>
-                </div>
-                <div class="progress-bar-container">
-                  <div class="progress-bar-fill"
-                    style="width: <%= Math.min(coverageRate, 100) %>%; background: var(--accent-green-gradient);"></div>
-                </div>
-                <span style="font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 0.25rem;">
-                  Bao phủ tính theo tổng khám cả năm.
-                </span>
-              </div>
-            </div>
-
-            <div style="display: flex; flex-direction: column;">
-              <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Phân rã độ tuổi (Lũy
-                kế)
-              </h4>
-              <div
-                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; flex: 1; align-content: stretch;">
-                <div
-                  style="background: rgba(0, 242, 254, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                  <div style="font-size: 0.8rem; color: var(--text-secondary);">Dưới 6 tuổi</div>
-                  <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary-color);">
-                    <%= unitStats.cumulative.under6 %>
-                  </div>
-                </div>
-                <div
-                  style="background: rgba(16, 185, 129, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                  <div style="font-size: 0.8rem; color: var(--text-secondary);">Từ 6 - 18 tuổi</div>
-                  <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">
-                    <%= unitStats.cumulative.from6To18 %>
-                  </div>
-                </div>
-                <div
-                  style="background: rgba(251, 191, 36, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
-                  <div style="font-size: 0.8rem; color: var(--text-secondary);">Trên 18 tuổi</div>
-                  <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-yellow);">
-                    <%= unitStats.cumulative.over18 %>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <% if (unitCentersData && unitCentersData.length> 0) { %>
-            <div style="margin-top: 1.5rem;">
-              <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Số liệu phân bổ theo
-                các
-                Trạm/Trung tâm Y tế</h4>
-              <div class="table-responsive">
-                <table class="data-table" style="font-size: 0.85rem;">
-                  <thead>
-                    <tr>
-                      <th>Tên cơ sở khám</th>
-                      <th>Khám Hôm Nay (<%= dailyMatchDateStr.split('-').reverse().join('/') %>)</th>
-                      <th>Khám Lũy Kế (từ 01/07)</th>
-                      <th>Nhóm < 6 (Lũy kế)</th>
-                      <th>Nhóm 6 - 18 (Lũy kế)</th>
-                      <th>Nhóm > 18 (Lũy kế)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% unitCentersData.forEach(center=> { %>
-                      <tr>
-                        <td style="font-weight: 600; color: var(--text-primary);">
-                          <%= center.centerName %>
-                        </td>
-                        <td><span class="badge badge-info">
-                            <%= center.daily.total %> ca
-                          </span></td>
-                        <td><strong style="color: var(--primary-color);">
-                            <%= center.cumulative.total %> ca
-                          </strong></td>
-                        <td>
-                          <%= center.cumulative.under6 %>
-                        </td>
-                        <td>
-                          <%= center.cumulative.from6To18 %>
-                        </td>
-                        <td>
-                          <%= center.cumulative.over18 %>
-                        </td>
-                      </tr>
-                      <% }) %>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <% } %>
+          <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+              <tr
+                style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+                <th
+                  style="padding: 0.75rem 0.5rem; width: 50px; text-align: center; border-right: 1px solid var(--panel-border);">
+                  STT</th>
+                <th style="padding: 0.75rem 0.5rem; border-right: 1px solid var(--panel-border);">Tên cơ quan, đơn vị
+                </th>
+                <th style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                  CBCC CV NLĐ</th>
+                <th style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                  đã KSK</th>
+                <th style="padding: 0.75rem 0.5rem; text-align: center; width: 120px;">Ngày báo cáo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% dashboardPoliticalReports.forEach((r, idx)=> { %>
+                <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
+                  )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
+                  <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
+                    <td
+                      style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                      <%= idx + 1 %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
+                      <%= r.adminWorkplace %>
+                    </td>
+                    <td
+                      style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                      <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
+                    </td>
+                    <td
+                      style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
+                      <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
+                    </td>
+                    <td style="padding: 0.75rem 0.5rem; text-align: center; color: var(--text-secondary);">
+                      <%= rDateStr %>
+                    </td>
+                  </tr>
+                  <% }) %>
+            </tbody>
+          </table>
         </div>
         <% } %>
 
-          <!-- Charts Grid -->
-          <div class="charts-grid" style="display: none;">
-            <!-- Bar chart of top units -->
-            <div class="glass-panel chart-panel">
-              <h3 class="chart-title">
-                <!-- Award SVG -->
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
-                  stroke-width="2">
-                  <circle cx="12" cy="8" r="7" />
-                  <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                </svg>
-                Top 5 Đơn Vị Dẫn Đầu Tiến Độ
-              </h3>
-              <div style="position: relative; height: 260px; width: 100%;">
-                <canvas id="completionChart"></canvas>
-              </div>
-            </div>
-
-            <!-- Progress timeline chart -->
-            <div class="glass-panel chart-panel">
-              <h3 class="chart-title">
-                <!-- Line chart SVG -->
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
-                  stroke-width="2">
-                  <path d="M3 3v18h18" />
-                  <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-                </svg>
-                Biểu Đồ Lũy Kế Lượt Khám Toàn Tỉnh
-              </h3>
-              <div style="position: relative; height: 260px; width: 100%;">
-                <canvas id="timelineChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Detailed Table Board -->
-          <div class="glass-panel">
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-              <h3 style="font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                <!-- Table SVG -->
+          <!-- Unit User Stats Box -->
+          <% if (user.role==='unit' && unitStats) { %>
+            <div class="glass-panel" style="margin-bottom: 2rem; border-left: 4px solid var(--primary-color);">
+              <h3
+                style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+                <!-- Clinic SVG -->
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="3" y1="15" x2="21" y2="15" />
-                  <line x1="12" y1="3" x2="12" y2="21" />
+                  <path d="M3 21h18M3 7v14M21 7v14M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2zM10 12h4M12 10v4" />
                 </svg>
-                Bảng Thống Kê Chi Tiết 96 Xã / Phường
+                Số liệu chi tiết đơn vị: <%= unitStats.unitName %>
               </h3>
 
-              <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <!-- Toggle Mode Segment Controller -->
-                <div
-                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
-                  <button type="button" class="btn segment-btn" id="btn-mode-month"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
-                    onclick="switchTableMode('month')">
-                    Thống kê Tháng
-                  </button>
-                  <button type="button" class="btn segment-btn" id="btn-mode-day"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
-                    onclick="switchTableMode('day')">
-                    Số liệu trong Ngày
-                  </button>
+              <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; align-items: stretch;">
+                <div style="display: flex; flex-direction: column;">
+                  <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tiến độ chỉ tiêu
+                    đơn
+                    vị
+                  </h4>
+                  <div
+                    style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                      <span>Tổng khám cả năm: <strong>
+                          <%= unitStats.yearCumulative %>
+                        </strong> / <%= unitStats.planTarget %></span>
+                      <span style="color: var(--primary-color); font-weight: 700;">
+                        <%= unitStats.completionRate.toFixed(2) %>%
+                      </span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar-fill" style="width: <%= Math.min(unitStats.completionRate, 100) %>%;">
+                      </div>
+                    </div>
+                    <span
+                      style="font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                      (6T đầu năm: <%= unitStats.firstHalfChecked %> + Chiến dịch: <%= unitStats.cumulative.total %>)
+                    </span>
+                  </div>
                 </div>
 
-
-
-                <!-- Custom Multi-select Dropdown -->
-                <div class="multiselect-container" style="position: relative; width: 280px;">
-                  <div class="form-control multiselect-trigger" id="multiselect-trigger"
-                    style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-right: 1rem; user-select: none; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); min-height: 42px;">
-                    <span id="multiselect-value"
-                      style="color: var(--text-secondary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">Tất
-                      cả đơn vị (96)</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                      style="transition: transform 0.2s ease;" id="multiselect-arrow">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                <div style="display: flex; flex-direction: column;">
+                  <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Tỷ lệ bao phủ
+                    dân số
+                  </h4>
+                  <div
+                    style="background: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--panel-border); flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                      <% const coverageRate=unitStats.residentPopulation> 0 ? (unitStats.yearCumulative /
+                        unitStats.residentPopulation) * 100 : 0; %>
+                        <span>Khám / Nhân khẩu: <strong>
+                            <%= unitStats.yearCumulative %>
+                          </strong> / <%= unitStats.residentPopulation %></span>
+                        <span style="color: var(--accent-green); font-weight: 700;">
+                          <%= coverageRate.toFixed(2) %>%
+                        </span>
+                    </div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar-fill"
+                        style="width: <%= Math.min(coverageRate, 100) %>%; background: var(--accent-green-gradient);">
+                      </div>
+                    </div>
+                    <span
+                      style="font-size: 0.72rem; color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                      Bao phủ tính theo tổng khám cả năm.
+                    </span>
                   </div>
+                </div>
 
-                  <div class="multiselect-dropdown" id="multiselect-dropdown"
-                    style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; z-index: 500; padding: 1rem; border-radius: 12px; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--panel-border); box-shadow: var(--panel-shadow);">
-                    <!-- Dropdown search input -->
-                    <div class="input-wrapper" style="margin-bottom: 0.75rem;">
-                      <div class="input-icon">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          stroke-width="2">
-                          <circle cx="11" cy="11" r="8" />
-                          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <div style="display: flex; flex-direction: column;">
+                  <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Phân rã độ tuổi
+                    (Lũy
+                    kế)
+                  </h4>
+                  <div
+                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; text-align: center; flex: 1; align-content: stretch;">
+                    <div
+                      style="background: rgba(0, 242, 254, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                      <div style="font-size: 0.8rem; color: var(--text-secondary);">Dưới 6 tuổi</div>
+                      <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary-color);">
+                        <%= unitStats.cumulative.under6 %>
+                      </div>
+                    </div>
+                    <div
+                      style="background: rgba(16, 185, 129, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                      <div style="font-size: 0.8rem; color: var(--text-secondary);">Từ 6 - 18 tuổi</div>
+                      <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">
+                        <%= unitStats.cumulative.from6To18 %>
+                      </div>
+                    </div>
+                    <div
+                      style="background: rgba(251, 191, 36, 0.05); padding: 0.5rem; border-radius: 6px; border: 1px solid rgba(251, 191, 36, 0.1); display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                      <div style="font-size: 0.8rem; color: var(--text-secondary);">Trên 18 tuổi</div>
+                      <div style="font-size: 1.1rem; font-weight: 700; color: var(--accent-yellow);">
+                        <%= unitStats.cumulative.over18 %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <% if (unitCentersData && unitCentersData.length> 0) { %>
+                <div style="margin-top: 1.5rem;">
+                  <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Số liệu phân bổ
+                    theo
+                    các
+                    Trạm/Trung tâm Y tế</h4>
+                  <div class="table-responsive">
+                    <table class="data-table" style="font-size: 0.85rem;">
+                      <thead>
+                        <tr>
+                          <th>Tên cơ sở khám</th>
+                          <th>Khám Hôm Nay (<%= dailyMatchDateStr.split('-').reverse().join('/') %>)</th>
+                          <th>Khám Lũy Kế (từ 01/07)</th>
+                          <th>Nhóm < 6 (Lũy kế)</th>
+                          <th>Nhóm 6 - 18 (Lũy kế)</th>
+                          <th>Nhóm > 18 (Lũy kế)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% unitCentersData.forEach(center=> { %>
+                          <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">
+                              <%= center.centerName %>
+                            </td>
+                            <td><span class="badge badge-info">
+                                <%= center.daily.total %> ca
+                              </span></td>
+                            <td><strong style="color: var(--primary-color);">
+                                <%= center.cumulative.total %> ca
+                              </strong></td>
+                            <td>
+                              <%= center.cumulative.under6 %>
+                            </td>
+                            <td>
+                              <%= center.cumulative.from6To18 %>
+                            </td>
+                            <td>
+                              <%= center.cumulative.over18 %>
+                            </td>
+                          </tr>
+                          <% }) %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+
+              <!-- Charts Grid -->
+              <div class="charts-grid" style="display: none;">
+                <!-- Bar chart of top units -->
+                <div class="glass-panel chart-panel">
+                  <h3 class="chart-title">
+                    <!-- Award SVG -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                      stroke-width="2">
+                      <circle cx="12" cy="8" r="7" />
+                      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                    </svg>
+                    Top 5 Đơn Vị Dẫn Đầu Tiến Độ
+                  </h3>
+                  <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="completionChart"></canvas>
+                  </div>
+                </div>
+
+                <!-- Progress timeline chart -->
+                <div class="glass-panel chart-panel">
+                  <h3 class="chart-title">
+                    <!-- Line chart SVG -->
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                      stroke-width="2">
+                      <path d="M3 3v18h18" />
+                      <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                    </svg>
+                    Biểu Đồ Lũy Kế Lượt Khám Toàn Tỉnh
+                  </h3>
+                  <div style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="timelineChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detailed Table Board -->
+              <div class="glass-panel">
+                <div
+                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                  <h3 style="font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                    <!-- Table SVG -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <line x1="3" y1="9" x2="21" y2="9" />
+                      <line x1="3" y1="15" x2="21" y2="15" />
+                      <line x1="12" y1="3" x2="12" y2="21" />
+                    </svg>
+                    Bảng Thống Kê Chi Tiết 96 Xã / Phường
+                  </h3>
+
+                  <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <!-- Toggle Mode Segment Controller -->
+                    <div
+                      style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                      <button type="button" class="btn segment-btn" id="btn-mode-month"
+                        style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
+                        onclick="switchTableMode('month')">
+                        Thống kê Tháng
+                      </button>
+                      <button type="button" class="btn segment-btn" id="btn-mode-day"
+                        style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                        onclick="switchTableMode('day')">
+                        Số liệu trong Ngày
+                      </button>
+                    </div>
+
+
+
+                    <!-- Custom Multi-select Dropdown -->
+                    <div class="multiselect-container" style="position: relative; width: 280px;">
+                      <div class="form-control multiselect-trigger" id="multiselect-trigger"
+                        style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-right: 1rem; user-select: none; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); min-height: 42px;">
+                        <span id="multiselect-value"
+                          style="color: var(--text-secondary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">Tất
+                          cả đơn vị (96)</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="3" style="transition: transform 0.2s ease;" id="multiselect-arrow">
+                          <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </div>
-                      <input type="text" id="multiselect-search" class="form-control" placeholder="Tìm kiếm đơn vị..."
-                        style="font-size: 0.8rem; padding-top: 0.4rem; padding-bottom: 0.4rem; height: auto;">
-                    </div>
 
-                    <!-- Quick actions: Select All / Deselect All -->
-                    <div
-                      style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.75rem;">
-                      <button type="button" class="btn btn-secondary" id="multiselect-select-all"
-                        style="padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px; flex: 1;">Chọn tất
-                        cả</button>
-                      <button type="button" class="btn btn-secondary" id="multiselect-deselect-all"
-                        style="padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px; flex: 1;">Bỏ chọn tất
-                        cả</button>
-                    </div>
-
-                    <!-- Checkbox list options -->
-                    <div class="multiselect-options" id="multiselect-options"
-                      style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-right: 0.25rem;">
-                      <% reportsTable.forEach((row, index)=> { %>
-                        <div class="multiselect-option-item"
-                          style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.15rem 0;">
-                          <input type="checkbox" class="multiselect-checkbox" id="chk-unit-<%= row.unitId %>"
-                            value="<%= row.unitName %>" checked
-                            style="cursor: pointer; accent-color: var(--primary-color);">
-                          <label for="chk-unit-<%= row.unitId %>"
-                            style="cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--text-primary);">
-                            <%= row.unitName %>
-                          </label>
+                      <div class="multiselect-dropdown" id="multiselect-dropdown"
+                        style="display: none; position: absolute; top: 100%; left: 0; right: 0; margin-top: 0.5rem; z-index: 500; padding: 1rem; border-radius: 12px; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--panel-border); box-shadow: var(--panel-shadow);">
+                        <!-- Dropdown search input -->
+                        <div class="input-wrapper" style="margin-bottom: 0.75rem;">
+                          <div class="input-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <circle cx="11" cy="11" r="8" />
+                              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                          </div>
+                          <input type="text" id="multiselect-search" class="form-control"
+                            placeholder="Tìm kiếm đơn vị..."
+                            style="font-size: 0.8rem; padding-top: 0.4rem; padding-bottom: 0.4rem; height: auto;">
                         </div>
-                        <% }) %>
+
+                        <!-- Quick actions: Select All / Deselect All -->
+                        <div
+                          style="display: flex; gap: 0.5rem; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.75rem;">
+                          <button type="button" class="btn btn-secondary" id="multiselect-select-all"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px; flex: 1;">Chọn tất
+                            cả</button>
+                          <button type="button" class="btn btn-secondary" id="multiselect-deselect-all"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 4px; flex: 1;">Bỏ chọn tất
+                            cả</button>
+                        </div>
+
+                        <!-- Checkbox list options -->
+                        <div class="multiselect-options" id="multiselect-options"
+                          style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-right: 0.25rem;">
+                          <% reportsTable.forEach((row, index)=> { %>
+                            <div class="multiselect-option-item"
+                              style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.15rem 0;">
+                              <input type="checkbox" class="multiselect-checkbox" id="chk-unit-<%= row.unitId %>"
+                                value="<%= row.unitName %>" checked
+                                style="cursor: pointer; accent-color: var(--primary-color);">
+                              <label for="chk-unit-<%= row.unitId %>"
+                                style="cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--text-primary);">
+                                <%= row.unitName %>
+                              </label>
+                            </div>
+                            <% }) %>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="table-responsive">
-                <table class="data-table" id="units-table">
-                  <thead>
-                    <tr>
-                      <th rowspan="2" class="col-sticky-1"
-                        style="vertical-align: middle; text-align: center; min-width: 50px; max-width: 50px; width: 50px;">
-                        STT</th>
-                      <th rowspan="2" class="col-sticky-2"
-                        style="vertical-align: middle; text-align: left; min-width: 170px; max-width: 170px; width: 170px;">
-                        Tên xã phường</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 90px; max-width: 90px; line-height: 1.2;">
-                        Tổng nhân<br>khẩu</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 130px; max-width: 130px; line-height: 1.2;">
-                        Nhân khẩu địa<br>phương quản lý</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 130px; max-width: 130px; line-height: 1.2;">
-                        Số người khám<br>6 tháng đầu năm</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2;">
-                        Số người cần<br>khám 90 ngày</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2;">
-                        Tỷ lệ hoàn thành<br>90 ngày</th>
-                      <th rowspan="2"
-                        style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2;">
-                        Tổng tỷ lệ<br>hoàn thành</th>
-                      <th colspan="3" class="col-month"
-                        style="text-align: center; background: var(--month-7-bg); border-bottom: 2px solid var(--primary-color);">
-                        Tháng 7</th>
-                      <th colspan="3" class="col-month"
-                        style="text-align: center; background: var(--month-8-bg); border-bottom: 2px solid var(--accent-green);">
-                        Tháng 8</th>
-                      <th colspan="3" class="col-month"
-                        style="text-align: center; background: var(--month-9-bg); border-bottom: 2px solid var(--accent-yellow);">
-                        Tháng 9</th>
-                      <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
-                      <% campaignDays.forEach(day=> { %>
-                        <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                          <th rowspan="2" class="col-day" id="col-day-<%= day.dateStr %>"
-                            style="vertical-align: middle; text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.3)' : 'rgba(2, 132, 199, 0.08)' %>; border-bottom: 2px solid <%= isCurrentDay ? '#eab308' : 'var(--primary-color)' %>; display: none; min-width: 65px; font-size: 0.75rem; padding: 0.5rem 0.25rem; font-weight: <%= isCurrentDay ? '800' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                            <%= day.dateDisplay %>
-                          </th>
-                          <% }) %>
-                    </tr>
-                    <tr>
-                      <!-- Tháng 7 -->
-                      <th class="col-month"
-                        style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &lt; 6</th>
-                      <th class="col-month"
-                        style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        [6, 18]</th>
-                      <th class="col-month"
-                        style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &gt; 18</th>
-                      <!-- Tháng 8 -->
-                      <th class="col-month"
-                        style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &lt; 6</th>
-                      <th class="col-month"
-                        style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        [6, 18]</th>
-                      <th class="col-month"
-                        style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &gt; 18</th>
-                      <!-- Tháng 9 -->
-                      <th class="col-month"
-                        style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &lt; 6</th>
-                      <th class="col-month"
-                        style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        [6, 18]</th>
-                      <th class="col-month"
-                        style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
-                        &gt; 18</th>
-
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Summary Totals Row at the Top of Records -->
-                    <tr
-                      style="font-weight: 700; background: rgba(2, 132, 199, 0.15); color: var(--text-primary); border-bottom: 2px solid var(--panel-border);">
-                      <td colspan="2" class="col-sticky-1"
-                        style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
-                        TỔNG CỘNG</td>
-                      <td style="text-align: center;">
-                        <%= grandResidentPopulation.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandTarget.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <% const topChecked90=grandCumulative.total; %>
-                          <% const topRate90=grandTarget> 0 ? (topChecked90 / grandTarget) * 100 : 0; %>
-                            <div style="font-size: 0.85rem; font-weight: 700;">
-                              <%= topRate90.toFixed(1) %>%
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                topChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)
-                            </div>
-                      </td>
-                      <td style="text-align: center;">
-                        <% const topTotalChecked=grandFirstHalfCheckedSum + topChecked90; %>
-                          <% const topOverallRate=grandResidentPopulation> 0 ? (topTotalChecked /
-                            grandResidentPopulation) *
-                            100 : 0; %>
-                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
-                              <%= topOverallRate.toFixed(1) %>%
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                topTotalChecked.toLocaleString('vi-VN') %>/<%=
-                                  grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
-                      </td>
-                      <!-- Tháng 7 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].over18 %>
-                      </td>
-                      <!-- Tháng 8 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].over18 %>
-                      </td>
-                      <!-- Tháng 9 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].over18 %>
-                      </td>
-                      <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
-                      <% campaignDays.forEach(day=> { %>
-                        <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
-                          <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                            <td class="col-day"
-                              style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                              <%= dayTotal || '-' %>
-                            </td>
-                            <% }) %>
-                    </tr>
-
-                    <% reportsTable.forEach((row, index)=> { %>
-                      <% const checked90Days=row.cumulative.total; %>
-                        <% const completionRate90=row.planTarget> 0 ? (checked90Days / row.planTarget) * 100 : 0; %>
-                          <% const totalChecked=row.firstHalfChecked + checked90Days; %>
-                            <% const overallCompletion=row.residentPopulation> 0 ? (totalChecked /
-                              row.residentPopulation) *
-                              100 : 0; %>
-
-                              <tr class="<%= row.username === user.username ? 'highlight' : '' %>">
-                                <td class="col-sticky-1"
-                                  style="text-align: center; min-width: 50px; max-width: 50px; width: 50px;">
-                                  <%= index + 1 %>
-                                </td>
-                                <td class="col-sticky-2"
-                                  style="font-weight: 600; text-align: left; min-width: 170px; max-width: 170px; width: 170px; border-right: 2px solid var(--panel-border) !important;">
-                                  <%= row.unitName %>
-                                    <% if (row.username===user.username) { %>
-                                      <span class="badge badge-info"
-                                        style="font-size: 0.65rem; margin-left: 0.25rem; padding: 0.1rem 0.3rem;">Đơn vị
-                                        của
-                                        bạn</span>
-                                      <% } %>
-                                </td>
-                                <td style="text-align: center;">
-                                  <%= row.residentPopulation.toLocaleString('vi-VN') %>
-                                </td>
-                                <td style="text-align: center;">
-                                  <%= (row.localManagedPopulation || 0).toLocaleString('vi-VN') %>
-                                </td>
-                                <td style="text-align: center;">
-                                  <%= row.firstHalfChecked.toLocaleString('vi-VN') %>
-                                </td>
-                                <td style="text-align: center;"><strong>
-                                    <%= row.planTarget.toLocaleString('vi-VN') %>
-                                  </strong></td>
-
-                                <!-- Tỷ lệ hoàn thành 90 ngày -->
-                                <td style="text-align: center;">
-                                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
-                                    <%= completionRate90.toFixed(1) %>%
-                                  </div>
-                                  <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                      checked90Days.toLocaleString('vi-VN') %>/<%=
-                                        row.planTarget.toLocaleString('vi-VN') %>
-                                        )</div>
-                                  <div class="progress-bar-container" style="height: 4px; margin-top: 2px;">
-                                    <div class="progress-bar-fill"
-                                      style="width: <%= Math.min(completionRate90, 100) %>%; background: var(--primary-gradient);">
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <!-- Tỷ lệ hoàn thành tổng -->
-                                <td style="text-align: center;">
-                                  <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-green);">
-                                    <%= overallCompletion.toFixed(1) %>%
-                                  </div>
-                                  <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                      totalChecked.toLocaleString('vi-VN') %>/<%=
-                                        row.residentPopulation.toLocaleString('vi-VN') %>)</div>
-                                  <div class="progress-bar-container" style="height: 4px; margin-top: 2px;">
-                                    <div class="progress-bar-fill"
-                                      style="width: <%= Math.min(overallCompletion, 100) %>%; background: var(--accent-green-gradient);">
-                                    </div>
-                                  </div>
-                                </td>
-
-                                <!-- Tháng 7 -->
-                                <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].under6 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].from6To18 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].over18 %>
-                                </td>
-
-                                <!-- Tháng 8 -->
-                                <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].under6 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].from6To18 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].over18 %>
-                                </td>
-
-                                <!-- Tháng 9 -->
-                                <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].under6 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].from6To18 %>
-                                </td>
-                                <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].over18 %>
-                                </td>
-
-                                <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
-                                <% campaignDays.forEach(day=> { %>
-                                  <% const cellData=dailyGridMap[row.unitId] ? dailyGridMap[row.unitId][day.dateStr] :
-                                    null; const cellTotal=cellData ? cellData.total : 0; %>
-                                    <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                                      <td class="col-day"
-                                        style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                                        <%= cellTotal || '-' %>
-                                      </td>
-                                      <% }) %>
-                              </tr>
+                  <div class="table-responsive">
+                    <table class="data-table" id="units-table">
+                      <thead>
+                        <tr>
+                          <th rowspan="2" class="col-sticky-1"
+                            style="vertical-align: middle; text-align: center; min-width: 50px; max-width: 50px; width: 50px;">
+                            STT</th>
+                          <th rowspan="2" class="col-sticky-2"
+                            style="vertical-align: middle; text-align: left; min-width: 170px; max-width: 170px; width: 170px;">
+                            Tên xã phường</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 90px; max-width: 90px; line-height: 1.2;">
+                            Tổng nhân<br>khẩu</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 130px; max-width: 130px; line-height: 1.2;">
+                            Nhân khẩu địa<br>phương quản lý</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 130px; max-width: 130px; line-height: 1.2;">
+                            Số người khám<br>6 tháng đầu năm</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2;">
+                            Số người cần<br>khám 90 ngày</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2;">
+                            Tỷ lệ hoàn thành<br>90 ngày</th>
+                          <th rowspan="2"
+                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2;">
+                            Tổng tỷ lệ<br>hoàn thành</th>
+                          <th colspan="3" class="col-month"
+                            style="text-align: center; background: var(--month-7-bg); border-bottom: 2px solid var(--primary-color);">
+                            Tháng 7</th>
+                          <th colspan="3" class="col-month"
+                            style="text-align: center; background: var(--month-8-bg); border-bottom: 2px solid var(--accent-green);">
+                            Tháng 8</th>
+                          <th colspan="3" class="col-month"
+                            style="text-align: center; background: var(--month-9-bg); border-bottom: 2px solid var(--accent-yellow);">
+                            Tháng 9</th>
+                          <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
+                          <% campaignDays.forEach(day=> { %>
+                            <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                              <th rowspan="2" class="col-day" id="col-day-<%= day.dateStr %>"
+                                style="vertical-align: middle; text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.3)' : 'rgba(2, 132, 199, 0.08)' %>; border-bottom: 2px solid <%= isCurrentDay ? '#eab308' : 'var(--primary-color)' %>; display: none; min-width: 65px; font-size: 0.75rem; padding: 0.5rem 0.25rem; font-weight: <%= isCurrentDay ? '800' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                                <%= day.dateDisplay %>
+                              </th>
                               <% }) %>
-                  </tbody>
-                  <tfoot>
-                    <tr style="font-weight: 700; background: rgba(0, 0, 0, 0.05); color: var(--text-primary);">
-                      <td colspan="2" class="col-sticky-1"
-                        style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
-                        TỔNG CỘNG</td>
-                      <td style="text-align: center;">
-                        <%= grandResidentPopulation.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <%= grandTarget.toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="text-align: center;">
-                        <% const grandChecked90=grandCumulative.total; %>
-                          <% const grandRate90=grandTarget> 0 ? (grandChecked90 / grandTarget) * 100 : 0; %>
-                            <div style="font-size: 0.85rem; font-weight: 700;">
-                              <%= grandRate90.toFixed(1) %>%
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                grandChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)
-                            </div>
-                      </td>
-                      <td style="text-align: center;">
-                        <% const grandTotalChecked=grandFirstHalfCheckedSum + grandChecked90; %>
-                          <% const grandOverallRate=grandResidentPopulation> 0 ? (grandTotalChecked /
-                            grandResidentPopulation) * 100 : 0; %>
-                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
-                              <%= grandOverallRate.toFixed(1) %>%
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                grandTotalChecked.toLocaleString('vi-VN') %>/<%=
-                                  grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
-                      </td>
-                      <!-- Tháng 7 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].over18 %>
-                      </td>
-                      <!-- Tháng 8 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].over18 %>
-                      </td>
-                      <!-- Tháng 9 -->
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].under6 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].from6To18 %>
-                      </td>
-                      <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].over18 %>
-                      </td>
-                      <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
-                      <% campaignDays.forEach(day=> { %>
-                        <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
-                          <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
-                            <td class="col-day"
-                              style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                              <%= dayTotal || '-' %>
-                            </td>
-                            <% }) %>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
+                        </tr>
+                        <tr>
+                          <!-- Tháng 7 -->
+                          <th class="col-month"
+                            style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &lt; 6</th>
+                          <th class="col-month"
+                            style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            [6, 18]</th>
+                          <th class="col-month"
+                            style="background: var(--month-7-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &gt; 18</th>
+                          <!-- Tháng 8 -->
+                          <th class="col-month"
+                            style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &lt; 6</th>
+                          <th class="col-month"
+                            style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            [6, 18]</th>
+                          <th class="col-month"
+                            style="background: var(--month-8-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &gt; 18</th>
+                          <!-- Tháng 9 -->
+                          <th class="col-month"
+                            style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &lt; 6</th>
+                          <th class="col-month"
+                            style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            [6, 18]</th>
+                          <th class="col-month"
+                            style="background: var(--month-9-bg); text-align: center; font-size: 0.75rem; min-width: 60px; max-width: 60px;">
+                            &gt; 18</th>
 
-            <% if (user.role==='admin' && typeof adminCentersData !=='undefined' && adminCentersData.length> 0) { %>
-              <div class="glass-panel" style="margin-top: 2rem; overflow-x: auto;">
-                <h3
-                  style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                  </svg>
-                  Báo Cáo Chi Tiết Số Liệu Khám Tại Các Trạm Y Tế (Do Admin Nhập)
-                </h3>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Summary Totals Row at the Top of Records -->
+                        <tr
+                          style="font-weight: 700; background: rgba(2, 132, 199, 0.15); color: var(--text-primary); border-bottom: 2px solid var(--panel-border);">
+                          <td colspan="2" class="col-sticky-1"
+                            style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
+                            TỔNG CỘNG</td>
+                          <td style="text-align: center;">
+                            <%= grandResidentPopulation.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandTarget.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <% const topChecked90=grandCumulative.total; %>
+                              <% const topRate90=grandTarget> 0 ? (topChecked90 / grandTarget) * 100 : 0; %>
+                                <div style="font-size: 0.85rem; font-weight: 700;">
+                                  <%= topRate90.toFixed(1) %>%
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                    topChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)
+                                </div>
+                          </td>
+                          <td style="text-align: center;">
+                            <% const topTotalChecked=grandFirstHalfCheckedSum + topChecked90; %>
+                              <% const topOverallRate=grandResidentPopulation> 0 ? (topTotalChecked /
+                                grandResidentPopulation) *
+                                100 : 0; %>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
+                                  <%= topOverallRate.toFixed(1) %>%
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                    topTotalChecked.toLocaleString('vi-VN') %>/<%=
+                                      grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
+                          </td>
+                          <!-- Tháng 7 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].over18 %>
+                          </td>
+                          <!-- Tháng 8 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].over18 %>
+                          </td>
+                          <!-- Tháng 9 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].over18 %>
+                          </td>
+                          <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
+                          <% campaignDays.forEach(day=> { %>
+                            <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
+                              <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                                <td class="col-day"
+                                  style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                                  <%= dayTotal || '-' %>
+                                </td>
+                                <% }) %>
+                        </tr>
 
-                <table class="table" style="width: 100%; border-collapse: collapse; min-width: 800px;">
-                  <thead>
-                    <tr
-                      style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
-                      <th style="padding: 0.75rem 0.5rem; width: 50px; text-align: center;">STT</th>
-                      <th style="padding: 0.75rem 0.5rem;">Cơ sở khám (Trạm y tế)</th>
-                      <th style="padding: 0.75rem 0.5rem;">Địa bàn (Xã/Phường)</th>
-                      <th style="padding: 0.75rem 0.5rem;">Các đơn vị KSK đã khám</th>
-                      <th style="padding: 0.75rem 0.5rem; text-align: center;">CN, VC, NLĐ</th>
-                      <th style="padding: 0.75rem 0.5rem; text-align: center;">Trẻ em</th>
-                      <th style="padding: 0.75rem 0.5rem; text-align: center;">Hệ thống chính trị</th>
-                      <th style="padding: 0.75rem 0.5rem; text-align: center;">Đối tượng khác</th>
-                      <th style="padding: 0.75rem 0.5rem; text-align: center;">Tổng cộng</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <% adminCentersData.forEach((row, idx)=> { %>
-                      <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
-                        <td style="padding: 0.75rem 0.5rem; text-align: center;">
-                          <%= idx + 1 %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem; font-weight: 600;">
-                          <%= row.centerName %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem;">
-                          <%= row.unitName %>
-                        </td>
-                        <td
-                          style="padding: 0.75rem 0.5rem; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-                          title="<%= row.workplaces.join(', ') %>">
-                          <%= row.workplaces.join(', ') || ' -' %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem; text-align: center;">
-                          <%= row.workers %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem; text-align: center;">
-                          <%= row.children %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem; text-align: center;">
-                          <%= row.political %>
-                        </td>
-                        <td style="padding: 0.75rem 0.5rem; text-align: center;">
-                          <%= row.others %>
-                        </td>
-                        <td
-                          style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color);">
-                          <%= row.total %>
-                        </td>
-                      </tr>
-                      <% }) %>
-                  </tbody>
-                </table>
-              </div>
-              <% } %>
+                        <% reportsTable.forEach((row, index)=> { %>
+                          <% const checked90Days=row.cumulative.total; %>
+                            <% const completionRate90=row.planTarget> 0 ? (checked90Days / row.planTarget) * 100 : 0; %>
+                              <% const totalChecked=row.firstHalfChecked + checked90Days; %>
+                                <% const overallCompletion=row.residentPopulation> 0 ? (totalChecked /
+                                  row.residentPopulation) *
+                                  100 : 0; %>
+
+                                  <tr class="<%= row.username === user.username ? 'highlight' : '' %>">
+                                    <td class="col-sticky-1"
+                                      style="text-align: center; min-width: 50px; max-width: 50px; width: 50px;">
+                                      <%= index + 1 %>
+                                    </td>
+                                    <td class="col-sticky-2"
+                                      style="font-weight: 600; text-align: left; min-width: 170px; max-width: 170px; width: 170px; border-right: 2px solid var(--panel-border) !important;">
+                                      <%= row.unitName %>
+                                        <% if (row.username===user.username) { %>
+                                          <span class="badge badge-info"
+                                            style="font-size: 0.65rem; margin-left: 0.25rem; padding: 0.1rem 0.3rem;">Đơn
+                                            vị
+                                            của
+                                            bạn</span>
+                                          <% } %>
+                                    </td>
+                                    <td style="text-align: center;">
+                                      <%= row.residentPopulation.toLocaleString('vi-VN') %>
+                                    </td>
+                                    <td style="text-align: center;">
+                                      <%= (row.localManagedPopulation || 0).toLocaleString('vi-VN') %>
+                                    </td>
+                                    <td style="text-align: center;">
+                                      <%= row.firstHalfChecked.toLocaleString('vi-VN') %>
+                                    </td>
+                                    <td style="text-align: center;"><strong>
+                                        <%= row.planTarget.toLocaleString('vi-VN') %>
+                                      </strong></td>
+
+                                    <!-- Tỷ lệ hoàn thành 90 ngày -->
+                                    <td style="text-align: center;">
+                                      <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">
+                                        <%= completionRate90.toFixed(1) %>%
+                                      </div>
+                                      <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                          checked90Days.toLocaleString('vi-VN') %>/<%=
+                                            row.planTarget.toLocaleString('vi-VN') %>
+                                            )</div>
+                                      <div class="progress-bar-container" style="height: 4px; margin-top: 2px;">
+                                        <div class="progress-bar-fill"
+                                          style="width: <%= Math.min(completionRate90, 100) %>%; background: var(--primary-gradient);">
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    <!-- Tỷ lệ hoàn thành tổng -->
+                                    <td style="text-align: center;">
+                                      <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-green);">
+                                        <%= overallCompletion.toFixed(1) %>%
+                                      </div>
+                                      <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                          totalChecked.toLocaleString('vi-VN') %>/<%=
+                                            row.residentPopulation.toLocaleString('vi-VN') %>)</div>
+                                      <div class="progress-bar-container" style="height: 4px; margin-top: 2px;">
+                                        <div class="progress-bar-fill"
+                                          style="width: <%= Math.min(overallCompletion, 100) %>%; background: var(--accent-green-gradient);">
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    <!-- Tháng 7 -->
+                                    <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                                      <%= row.monthly[7].under6 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                                      <%= row.monthly[7].from6To18 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                                      <%= row.monthly[7].over18 %>
+                                    </td>
+
+                                    <!-- Tháng 8 -->
+                                    <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                                      <%= row.monthly[8].under6 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                                      <%= row.monthly[8].from6To18 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                                      <%= row.monthly[8].over18 %>
+                                    </td>
+
+                                    <!-- Tháng 9 -->
+                                    <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                                      <%= row.monthly[9].under6 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                                      <%= row.monthly[9].from6To18 %>
+                                    </td>
+                                    <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                                      <%= row.monthly[9].over18 %>
+                                    </td>
+
+                                    <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
+                                    <% campaignDays.forEach(day=> { %>
+                                      <% const cellData=dailyGridMap[row.unitId] ? dailyGridMap[row.unitId][day.dateStr]
+                                        : null; const cellTotal=cellData ? cellData.total : 0; %>
+                                        <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                                          <td class="col-day"
+                                            style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                                            <%= cellTotal || '-' %>
+                                          </td>
+                                          <% }) %>
+                                  </tr>
+                                  <% }) %>
+                      </tbody>
+                      <tfoot>
+                        <tr style="font-weight: 700; background: rgba(0, 0, 0, 0.05); color: var(--text-primary);">
+                          <td colspan="2" class="col-sticky-1"
+                            style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
+                            TỔNG CỘNG</td>
+                          <td style="text-align: center;">
+                            <%= grandResidentPopulation.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandLocalManagedPopulation.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandFirstHalfCheckedSum.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <%= grandTarget.toLocaleString('vi-VN') %>
+                          </td>
+                          <td style="text-align: center;">
+                            <% const grandChecked90=grandCumulative.total; %>
+                              <% const grandRate90=grandTarget> 0 ? (grandChecked90 / grandTarget) * 100 : 0; %>
+                                <div style="font-size: 0.85rem; font-weight: 700;">
+                                  <%= grandRate90.toFixed(1) %>%
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                    grandChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>
+                                      )
+                                </div>
+                          </td>
+                          <td style="text-align: center;">
+                            <% const grandTotalChecked=grandFirstHalfCheckedSum + grandChecked90; %>
+                              <% const grandOverallRate=grandResidentPopulation> 0 ? (grandTotalChecked /
+                                grandResidentPopulation) * 100 : 0; %>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
+                                  <%= grandOverallRate.toFixed(1) %>%
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
+                                    grandTotalChecked.toLocaleString('vi-VN') %>/<%=
+                                      grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
+                          </td>
+                          <!-- Tháng 7 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
+                            <%= grandMonthly[7].over18 %>
+                          </td>
+                          <!-- Tháng 8 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
+                            <%= grandMonthly[8].over18 %>
+                          </td>
+                          <!-- Tháng 9 -->
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].under6 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].from6To18 %>
+                          </td>
+                          <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
+                            <%= grandMonthly[9].over18 %>
+                          </td>
+                          <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
+                          <% campaignDays.forEach(day=> { %>
+                            <% const dayData=dayProvinceMap[day.dateStr]; const dayTotal=dayData ? dayData.total : 0; %>
+                              <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
+                                <td class="col-day"
+                                  style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
+                                  <%= dayTotal || '-' %>
+                                </td>
+                                <% }) %>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+
+                <script id="top-units-data" type="application/json">
+                  <%- JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>
+                </script>
+
+                <script id="timeline-labels-data" type="application/json">
+                  <%- progressTimelineLabels %>
+                </script>
+
+                <script id="timeline-data-data" type="application/json">
+                  <%- progressTimelineData %>
+                </script>
 
                 <script>
                   const MOMO_FONT_BASE64 = "<%= momoFontBase64 %>";
                   // Draw Top 5 Completion Rate Chart
-                  const topUnitsData = <%- JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
+                  const topUnitsData = JSON.parse(document.getElementById('top-units-data').textContent);
                   const ctxCompletion = document.getElementById('completionChart').getContext('2d');
 
                   const chartGridColor = document.documentElement.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
@@ -961,8 +978,8 @@
                   });
 
                   // Draw Cumulative Timeline Chart
-                  const timelineLabels = <%- progressTimelineLabels %>;
-                  const timelineData = <%- progressTimelineData %>;
+                  const timelineLabels = JSON.parse(document.getElementById('timeline-labels-data').textContent);
+                  const timelineData = JSON.parse(document.getElementById('timeline-data-data').textContent);
                   const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
 
                   window.timelineChart = new Chart(ctxTimeline, {

@@ -1196,3 +1196,26 @@ html.light-theme .data-table tbody tr:hover td.col-sticky-1,
 html.light-theme .data-table tbody tr:hover td.col-sticky-2 {
   background: #f1f5f9 !important;
 }
+
+/* Make detailed table #units-table transparent to match other dashboard tables */
+#units-table th:not(.col-sticky-1):not(.col-sticky-2) {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+}
+
+#units-table td:not(.col-sticky-1):not(.col-sticky-2) {
+  background: transparent !important;
+}
+
+#units-table tbody tr {
+  background: transparent !important;
+}
+
+#units-table tbody tr:hover {
+  background: rgba(0, 242, 254, 0.04) !important;
+}
+
+/* Light mode specific override for #units-table hover */
+html.light-theme #units-table tbody tr:hover {
+  background: rgba(2, 132, 199, 0.04) !important;
+}
