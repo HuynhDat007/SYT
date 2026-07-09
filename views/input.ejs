@@ -360,10 +360,7 @@
                                   <div style="display: flex; gap: 0.35rem; justify-content: center;">
                                     <button type="button" class="btn btn-secondary"
                                       style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
-                                      onclick="editAdminWorkplaceReport('<%= r._id %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= r.adminWorkplace ? r.adminWorkplace.replace(/'/g, '\\\'').replace(/\"
-                                      /g, '\\\"' ) : '' %>', '<%= rDateVal %>', <%= r.adminWorkers || 0 %>, <%=
-                                            r.adminChildren || 0 %>, <%= r.adminPolitical || 0 %>, <%= r.adminOthers ||
-                                                0 %>)">
+                                      onclick="editAdminWorkplaceReport('<%= r._id %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= r.adminWorkplace ? r.adminWorkplace.replace(/'/g, '\\\'').replace(/\"/g, '\\\"') : '' %>', '<%= rDateVal %>', <%= r.adminWorkers || 0 %>, <%= r.adminChildren || 0 %>, <%= r.adminPolitical || 0 %>, <%= r.adminOthers || 0 %>)">
                                                 Sửa
                                     </button>
                                     <form action="/input/delete" method="POST"
@@ -931,7 +928,7 @@
 
                 <script>
                   // Parse existing reports on this date to auto-populate form values
-                  const existingReports = <% - JSON.stringify(reports.map(r => ({
+                  const existingReports = <%- JSON.stringify(reports.map(r => ({
                     centerId: r.centerId ? r.centerId._id.toString() : r.centerId,
                     under6: user.role === 'admin' ? r.adminUnder6 : r.under6,
                     from6To18: user.role === 'admin' ? r.adminFrom6To18 : r.from6To18,
@@ -1061,7 +1058,7 @@
                   let currentYear = selectedDate.getUTCFullYear();
                   let currentMonth = selectedDate.getUTCMonth(); // 0-indexed
 
-                  const allDaysData = <% - JSON.stringify(allDays) %>;
+                  const allDaysData = <%- JSON.stringify(allDays) %>;
                   const unitIdParam = '<%= user.role === "admin" ? "&unitId=" + selectedUnitId : "" %>';
 
                   const allDaysMap = {};
