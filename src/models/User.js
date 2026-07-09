@@ -44,6 +44,10 @@ const UserSchema = new mongoose.Schema({
   firstHalfChecked: {
     type: Number,
     default: 0
+  },
+  order: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

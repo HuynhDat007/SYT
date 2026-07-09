@@ -77,8 +77,26 @@ async function compileReportSvg(dateStr) {
   const startDate = parseDateUTC('2026-07-01');
   const cumulativeMatchLimit = selectedDate;
 
-  // Fetch all unit users sorted by name
-  const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+  // Fetch all unit users sorted by order, type, and name (A-Z)
+  const units = await User.find({ role: 'unit' });
+  units.sort((a, b) => {
+    const orderA = a.order || 0;
+    const orderB = b.order || 0;
+    if (orderA !== orderB) return orderA - orderB;
+
+    const getUnitType = (name) => {
+      if (name.startsWith('Phường')) return 1;
+      if (name.startsWith('Xã')) return 2;
+      return 3;
+    };
+    const typeA = getUnitType(a.unitName || '');
+    const typeB = getUnitType(b.unitName || '');
+    if (typeA !== typeB) return typeA - typeB;
+
+    const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+    const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+    return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+  });
 
   // Aggregate statistics for selected date (daily)
   const dailyAgg = await DailyReport.aggregate([
@@ -507,8 +525,26 @@ app.get('/', async (req, res) => {
       }
     });
 
-    // Fetch all units
-    const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+    // Fetch all units sorted by order, type, and name (A-Z)
+    const units = await User.find({ role: 'unit' });
+    units.sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const getUnitType = (name) => {
+        if (name.startsWith('Phường')) return 1;
+        if (name.startsWith('Xã')) return 2;
+        return 3;
+      };
+      const typeA = getUnitType(a.unitName || '');
+      const typeB = getUnitType(b.unitName || '');
+      if (typeA !== typeB) return typeA - typeB;
+
+      const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+    });
 
     // Build the reporting table
     const reportsTable = [];
@@ -867,8 +903,29 @@ app.get('/input', requireAuth, async (req, res) => {
     const queryDateStr = req.query.date || defaultDate;
     const selectedDate = parseDateUTC(queryDateStr);
 
-    // List of units for Admin dropdown selector
-    const units = req.session.userRole === 'admin' ? await User.find({ role: 'unit' }).sort({ unitName: 1 }) : [];
+    // List of units for Admin dropdown selector (sorted by order, type, name)
+    let units = [];
+    if (req.session.userRole === 'admin') {
+      units = await User.find({ role: 'unit' });
+      units.sort((a, b) => {
+        const orderA = a.order || 0;
+        const orderB = b.order || 0;
+        if (orderA !== orderB) return orderA - orderB;
+
+        const getUnitType = (name) => {
+          if (name.startsWith('Phường')) return 1;
+          if (name.startsWith('Xã')) return 2;
+          return 3;
+        };
+        const typeA = getUnitType(a.unitName || '');
+        const typeB = getUnitType(b.unitName || '');
+        if (typeA !== typeB) return typeA - typeB;
+
+        const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+        const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+        return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+      });
+    }
 
     let selectedUnitId = req.session.userId;
     if (req.session.userRole === 'admin') {
@@ -1457,7 +1514,25 @@ app.post('/input/plan-target', requireAuth, async (req, res) => {
 
 app.get('/admin/centers', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+    const units = await User.find({ role: 'unit' });
+    units.sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const getUnitType = (name) => {
+        if (name.startsWith('Phường')) return 1;
+        if (name.startsWith('Xã')) return 2;
+        return 3;
+      };
+      const typeA = getUnitType(a.unitName || '');
+      const typeB = getUnitType(b.unitName || '');
+      if (typeA !== typeB) return typeA - typeB;
+
+      const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+    });
     const centers = await HealthCenter.find().populate('unitId').sort({ name: 1 });
     
     // Sort in memory by unit name alphabetically
@@ -1574,7 +1649,25 @@ app.post('/admin/centers/delete/:id', requireAuth, requireRole('admin'), async (
 
 app.get('/admin/targets', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+    const units = await User.find({ role: 'unit' });
+    units.sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const getUnitType = (name) => {
+        if (name.startsWith('Phường')) return 1;
+        if (name.startsWith('Xã')) return 2;
+        return 3;
+      };
+      const typeA = getUnitType(a.unitName || '');
+      const typeB = getUnitType(b.unitName || '');
+      if (typeA !== typeB) return typeA - typeB;
+
+      const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+    });
     res.render('admin/targets', {
       user: {
         id: req.session.userId,
@@ -1746,7 +1839,25 @@ app.get('/admin/logs', requireAuth, requireRole('admin'), async (req, res) => {
 
 app.get('/admin/units', requireAuth, requireRole('admin'), async (req, res) => {
   try {
-    const units = await User.find({ role: 'unit' }).sort({ unitName: 1 });
+    const units = await User.find({ role: 'unit' });
+    units.sort((a, b) => {
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const getUnitType = (name) => {
+        if (name.startsWith('Phường')) return 1;
+        if (name.startsWith('Xã')) return 2;
+        return 3;
+      };
+      const typeA = getUnitType(a.unitName || '');
+      const typeB = getUnitType(b.unitName || '');
+      if (typeA !== typeB) return typeA - typeB;
+
+      const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+    });
     res.render('admin/units', {
       user: {
         id: req.session.userId,
@@ -1765,7 +1876,7 @@ app.get('/admin/units', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitName, username, password, contactName, contactPhone, contactEmail } = req.body;
+  const { unitName, username, password, contactName, contactPhone, contactEmail, order } = req.body;
   try {
     if (!unitName || !username || !password) {
       return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
@@ -1785,6 +1896,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
       contactName: contactName ? contactName.trim() : '',
       contactPhone: contactPhone ? contactPhone.trim() : '',
       contactEmail: contactEmail ? contactEmail.trim() : '',
+      order: Number(order) || 0,
       role: 'unit'
     });
 
@@ -1805,7 +1917,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
 });
 
 app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitId, unitName, username, contactName, contactPhone, contactEmail } = req.body;
+  const { unitId, unitName, username, contactName, contactPhone, contactEmail, order } = req.body;
   try {
     if (!unitId || !unitName || !username) {
       return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
@@ -1832,6 +1944,7 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
     unit.contactName = contactName ? contactName.trim() : '';
     unit.contactPhone = contactPhone ? contactPhone.trim() : '';
     unit.contactEmail = contactEmail ? contactEmail.trim() : '';
+    unit.order = Number(order) || 0;
 
     await unit.save();
 

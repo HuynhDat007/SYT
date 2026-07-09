@@ -64,6 +64,7 @@
           <tr>
             <th style="width: 50px;">STT</th>
             <th>Tên Đơn Vị</th>
+            <th style="width: 80px; text-align: center;">Thứ Tự</th>
             <th>Tên Đăng Nhập</th>
             <th>Người Liên Hệ / SĐT</th>
             <th style="width: 140px; text-align: center;">Thao Tác</th>
@@ -74,6 +75,7 @@
             <tr>
               <td><%= index + 1 %></td>
               <td style="font-weight: 600; color: var(--text-primary);"><%= unit.unitName %></td>
+              <td style="text-align: center; font-weight: bold; color: var(--accent-yellow);"><%= unit.order || 0 %></td>
               <td style="font-family: monospace; font-size: 0.95rem; color: var(--primary-color);"><%= unit.username %></td>
               <td>
                 <% if (unit.contactName) { %>
@@ -86,7 +88,7 @@
               <td>
                 <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                   <button type="button" class="btn btn-secondary btn-icon" title="Chỉnh sửa thông tin đơn vị" 
-                    onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
+                    onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>', <%= unit.order || 0 %>)">
                     <!-- Edit Pencil Icon SVG -->
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -149,6 +151,11 @@
         <input type="password" name="password" id="add-password" class="form-control" placeholder="Nhập mật khẩu đăng nhập" required>
       </div>
 
+      <div class="form-group">
+        <label for="add-order">Thứ Tự Hiển Thị</label>
+        <input type="number" name="order" id="add-order" class="form-control" value="0" min="0" placeholder="Ví dụ: 1">
+      </div>
+
       <h4 style="font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.75rem 0; color: var(--text-secondary);">Thông Tin Liên Hệ (Không bắt buộc)</h4>
 
       <div class="form-group">
@@ -202,6 +209,11 @@
       <div class="form-group">
         <label for="modal-username">Tên Đăng Nhập</label>
         <input type="text" name="username" id="modal-username" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="modal-order">Thứ Tự Hiển Thị</label>
+        <input type="number" name="order" id="modal-order" class="form-control" min="0">
       </div>
 
       <div class="form-group">
@@ -286,10 +298,11 @@
   }
 
   // Edit Modal Controls
-  function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail) {
+  function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail, order) {
     document.getElementById('modal-unitId').value = id;
     document.getElementById('modal-unitName').value = unitName;
     document.getElementById('modal-username').value = username;
+    document.getElementById('modal-order').value = order || 0;
     document.getElementById('modal-contactName').value = contactName;
     document.getElementById('modal-contactPhone').value = contactPhone;
     document.getElementById('modal-contactEmail').value = contactEmail;
