@@ -190,7 +190,7 @@
       </div>
 
       <!-- Table: Thống kê KSK các cơ quan trong hệ thống chính trị (Trong Ngày) -->
-      <% if (typeof dashboardPoliticalReports !=='undefined' && dashboardPoliticalReports.length> 0) { %>
+      <% if (typeof dashboardPoliticalReports !== 'undefined') { %>
         <div class="glass-panel" style="margin-bottom: 2rem; overflow-x: auto;">
           <h3
             style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
@@ -217,34 +217,42 @@
               </tr>
             </thead>
             <tbody>
-              <% dashboardPoliticalReports.forEach((r, idx)=> { %>
-                <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
-                  )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
-                  <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
-                    <td
-                      style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
-                      <%= idx + 1 %>
-                    </td>
-                    <td style="padding: 0.75rem 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
-                      <%= r.adminWorkplace %>
-                    </td>
-                    <td
-                      style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
-                      <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
-                    </td>
-                    <td
-                      style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
-                      <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
-                    </td>
-                    <td style="padding: 0.75rem 0.5rem; text-align: center; color: var(--text-secondary);">
-                      <%= rDateStr %>
-                    </td>
-                  </tr>
-                  <% }) %>
+              <% if (dashboardPoliticalReports.length > 0) { %>
+                <% dashboardPoliticalReports.forEach((r, idx)=> { %>
+                  <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
+                    )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
+                    <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
+                      <td
+                        style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                        <%= idx + 1 %>
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
+                        <%= r.adminWorkplace %>
+                      </td>
+                      <td
+                        style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                        <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
+                      </td>
+                      <td
+                        style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
+                        <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
+                      </td>
+                      <td style="padding: 0.75rem 0.5rem; text-align: center; color: var(--text-secondary);">
+                        <%= rDateStr %>
+                      </td>
+                    </tr>
+                    <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem; font-size: 0.9rem;">
+                    Không có dữ liệu báo cáo cơ quan chính trị trong ngày này.
+                  </td>
+                </tr>
+              <% } %>
             </tbody>
           </table>
         </div>
-        <% } %>
+      <% } %>
 
           <!-- Unit User Stats Box -->
           <% if (user.role==='unit' && unitStats) { %>
