@@ -556,9 +556,7 @@
                           <th rowspan="2"
                             style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2;">
                             Tỷ lệ hoàn thành<br>90 ngày</th>
-                          <th rowspan="2"
-                            style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2;">
-                            Tổng tỷ lệ<br>hoàn thành</th>
+
                           <th colspan="3" class="col-month"
                             style="text-align: center; background: var(--month-7-bg); border-bottom: 2px solid var(--primary-color);">
                             Tháng 7</th>
@@ -640,18 +638,7 @@
                                     topChecked90.toLocaleString('vi-VN') %>/<%= grandTarget.toLocaleString('vi-VN') %>)
                                 </div>
                           </td>
-                          <td style="text-align: center;">
-                            <% const topTotalChecked=grandFirstHalfCheckedSum + topChecked90; %>
-                              <% const topOverallRate=grandResidentPopulation> 0 ? (topTotalChecked /
-                                grandResidentPopulation) *
-                                100 : 0; %>
-                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
-                                  <%= topOverallRate.toFixed(1) %>%
-                                </div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                    topTotalChecked.toLocaleString('vi-VN') %>/<%=
-                                      grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
-                          </td>
+
                           <!-- Tháng 7 -->
                           <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
                             <%= grandMonthly[7].under6 %>
@@ -746,20 +733,7 @@
                                       </div>
                                     </td>
 
-                                    <!-- Tỷ lệ hoàn thành tổng -->
-                                    <td style="text-align: center;">
-                                      <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-green);">
-                                        <%= overallCompletion.toFixed(1) %>%
-                                      </div>
-                                      <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                          totalChecked.toLocaleString('vi-VN') %>/<%=
-                                            row.residentPopulation.toLocaleString('vi-VN') %>)</div>
-                                      <div class="progress-bar-container" style="height: 4px; margin-top: 2px;">
-                                        <div class="progress-bar-fill"
-                                          style="width: <%= Math.min(overallCompletion, 100) %>%; background: var(--accent-green-gradient);">
-                                        </div>
-                                      </div>
-                                    </td>
+
 
                                     <!-- Tháng 7 -->
                                     <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
@@ -835,17 +809,7 @@
                                       )
                                 </div>
                           </td>
-                          <td style="text-align: center;">
-                            <% const grandTotalChecked=grandFirstHalfCheckedSum + grandChecked90; %>
-                              <% const grandOverallRate=grandResidentPopulation> 0 ? (grandTotalChecked /
-                                grandResidentPopulation) * 100 : 0; %>
-                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-green);">
-                                  <%= grandOverallRate.toFixed(1) %>%
-                                </div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%=
-                                    grandTotalChecked.toLocaleString('vi-VN') %>/<%=
-                                      grandResidentPopulation.toLocaleString('vi-VN') %>)</div>
-                          </td>
+
                           <!-- Tháng 7 -->
                           <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
                             <%= grandMonthly[7].under6 %>
