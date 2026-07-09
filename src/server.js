@@ -13,12 +13,28 @@ const HealthCenter = require('./models/HealthCenter');
 const DailyReport = require('./models/DailyReport');
 const AuditLog = require('./models/AuditLog');
 const BytLinkage = require('./models/BytLinkage');
+const SystemConfig = require('./models/SystemConfig');
 
 // Middleware
 const { requireAuth, requireRole } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Helper to get system config value
+async function getConfigValue(key, defaultValue) {
+  try {
+    const config = await SystemConfig.findOne({ key });
+    if (config && config.value !== undefined) {
+      return config.value;
+    }
+    return defaultValue;
+  } catch (error) {
+    console.error(`Error getting config for ${key}:`, error);
+    return defaultValue;
+  }
+}
+
 
 // Database connection will be initiated before starting the server
 
@@ -879,7 +895,9 @@ app.get('/', async (req, res) => {
       adminCentersData,
       topUnits,
       progressTimelineLabels: JSON.stringify(progressTimelineLabels),
-      progressTimelineData: JSON.stringify(progressTimelineData)
+      progressTimelineData: JSON.stringify(progressTimelineData),
+      dashboardNoteText: await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)'),
+      dashboardNoteVisible: await getConfigValue('dashboard_note_visible', true)
     });
   } catch (error) {
     console.error('Dashboard Error:', error);
@@ -1028,6 +1046,9 @@ app.get('/input', requireAuth, async (req, res) => {
       }
     }
 
+    const dashboardNoteText = await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)');
+    const dashboardNoteVisible = await getConfigValue('dashboard_note_visible', true);
+
     res.render('input', {
       user: {
         id: req.session.userId,
@@ -1047,6 +1068,8 @@ app.get('/input', requireAuth, async (req, res) => {
       firstHalfChecked,
       planTarget,
       allDays,
+      dashboardNoteText,
+      dashboardNoteVisible,
       success: req.session.success || req.query.success || null,
       error: req.session.error || req.query.error || null
     });
@@ -1505,6 +1528,43 @@ app.post('/input/plan-target', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Update plan target error:', error);
     return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật chỉ tiêu')}`);
+  }
+});
+
+app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
+  if (req.session.userRole !== 'admin') {
+    return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
+  }
+
+  const { noteText, noteVisible, date, unitId } = req.body;
+  const isVisible = noteVisible === 'true' || noteVisible === true;
+
+  try {
+    await SystemConfig.findOneAndUpdate(
+      { key: 'dashboard_note_text' },
+      { value: noteText || '' },
+      { upsert: true, new: true }
+    );
+
+    await SystemConfig.findOneAndUpdate(
+      { key: 'dashboard_note_visible' },
+      { value: isVisible },
+      { upsert: true, new: true }
+    );
+
+    // Log update
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'TARGET',
+      details: `Cập nhật cấu hình ghi chú KSK: hiển thị=${isVisible}, nội dung="${noteText}"`
+    });
+
+    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình ghi chú thành công!')}`);
+  } catch (error) {
+    console.error('Update dashboard note config error:', error);
+    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật cấu hình ghi chú')}`);
   }
 });
 

@@ -117,11 +117,12 @@
       </div>
     </div>
   </div>
-  <div
-    style="font-size: 0.88rem; color: var(--text-secondary); margin: 0.5rem 0.25rem 1.5rem 0.25rem; font-style: italic;">
-    * Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao
-    tuổi đã khám 6 tháng đầu năm)
-  </div>
+  <% if (dashboardNoteVisible) { %>
+    <div
+      style="font-size: 0.88rem; color: var(--text-secondary); margin: 0.5rem 0.25rem 1.5rem 0.25rem; font-style: italic; white-space: pre-line;">
+      <%= dashboardNoteText %>
+    </div>
+  <% } %>
   <!-- Figma A4 Report Section -->
   <div class="glass-panel" id="figma-report-panel" style="margin-bottom: 2rem; scroll-margin-top: 5rem;">
     <div
