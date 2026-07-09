@@ -266,7 +266,7 @@
     <text fill="#003136" style="white-space: pre" xml:space="preserve"
       font-family="Momo Trust Display" font-size="40" letter-spacing="0em"><tspan x="236.336" y="3082">CNL&#x110;&#x2028;</tspan><tspan x="217.781" y="3134">&#x110;&#xc3; KSK</tspan></text>
     <text fill="#B70000" style="white-space: pre" xml:space="preserve"
-      font-family="Momo Trust Display" font-size="50" letter-spacing="0em"><tspan x="247.044" y="3198.25">{CNLD_KSK}</tspan></text>
+      font-family="Momo Trust Display" font-size="50" letter-spacing="0em"><tspan x="277.044" y="3198.25">{CNLD_KSK}</tspan></text>
     <ellipse cx="264.217" cy="2915.57" rx="10.3833" ry="10.09" fill="#003136" />
     <path
       d="M287.666 2964.19C287.666 2959.93 287.063 2955.71 285.89 2951.77C284.718 2947.83 282.999 2944.25 280.832 2941.23C278.666 2938.21 276.093 2935.82 273.262 2934.19C270.431 2932.56 267.397 2931.72 264.333 2931.72C261.269 2931.72 258.235 2932.56 255.404 2934.19C252.573 2935.82 250.001 2938.21 247.834 2941.23C245.667 2944.25 243.949 2947.83 242.776 2951.77C241.604 2955.71 241 2959.93 241 2964.19L264.333 2964.19H287.666Z"
