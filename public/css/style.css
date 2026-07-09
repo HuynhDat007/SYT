@@ -7,22 +7,22 @@
   --panel-bg: rgba(21, 28, 46, 0.65);
   --panel-border: rgba(255, 255, 255, 0.08);
   --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  
+
   --primary-color: #00f2fe;
   --primary-hover: #05d0e8;
   --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-  
+
   --secondary-color: #06b6d4;
   --accent-green: #10b981;
   --accent-green-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --accent-red: #f43f5e;
   --accent-red-gradient: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
   --accent-yellow: #fbbf24;
-  
+
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  
+
   --input-bg: rgba(15, 23, 42, 0.6);
   --input-border: rgba(255, 255, 255, 0.1);
   --input-focus-border: #00f2fe;
@@ -137,7 +137,8 @@ header {
   border-radius: 8px;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.05);
 }
@@ -240,7 +241,6 @@ h1.page-title::after {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .stat-card {
@@ -472,7 +472,8 @@ label {
 .form-control {
   width: 100%;
   padding: 0.65rem 0.75rem;
-  padding-left: 2.5rem; /* Space for icon */
+  padding-left: 2.5rem;
+  /* Space for icon */
   background: var(--input-bg);
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -564,7 +565,7 @@ select.form-control {
 .login-body {
   justify-content: center;
   align-items: center;
-  background-image: radial-gradient(circle at 10% 20%, rgba(90, 120, 250, 0.15) 0%, rgba(0,0,0,0) 40%), var(--bg-gradient);
+  background-image: radial-gradient(circle at 10% 20%, rgba(90, 120, 250, 0.15) 0%, rgba(0, 0, 0, 0) 40%), var(--bg-gradient);
 }
 
 .login-card {
@@ -727,9 +728,11 @@ html.light-theme .menu-toggle:hover {
 .menu-toggle.active .line-mid {
   opacity: 0;
 }
+
 .menu-toggle.active .line-top {
   transform: translateY(6px) rotate(45deg);
 }
+
 .menu-toggle.active .line-bot {
   transform: translateY(-6px) rotate(-45deg);
 }
@@ -813,7 +816,8 @@ body.no-scroll {
 
   .nav-theme-toggle {
     margin-right: 0 !important;
-    margin-top: auto; /* Push to bottom */
+    margin-top: auto;
+    /* Push to bottom */
     padding: 1rem 0;
     border-top: 1px solid var(--panel-border);
     justify-content: space-between;
@@ -928,7 +932,8 @@ body.no-scroll {
 @media (max-width: 768px) {
   .dropdown-menu {
     position: static;
-    display: none; /* Controlled by JS via .dropdown.open */
+    display: none;
+    /* Controlled by JS via .dropdown.open */
     background: rgba(0, 0, 0, 0.15) !important;
     border: none !important;
     box-shadow: none !important;
@@ -976,12 +981,21 @@ body.no-scroll {
   align-items: center;
   z-index: 1000;
 }
+
 .modal-content {
   animation: zoomIn 0.3s ease-out;
 }
+
 @keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Light Theme Variables and Element Styling Overrides */
@@ -991,22 +1005,22 @@ html.light-theme {
   --panel-bg: rgba(255, 255, 255, 0.85);
   --panel-border: rgba(0, 0, 0, 0.08);
   --panel-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.06);
-  
+
   --primary-color: #0284c7;
   --primary-hover: #0369a1;
   --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  
+
   --secondary-color: #0891b2;
   --accent-green: #10b981;
   --accent-green-gradient: linear-gradient(135deg, #10b981 0%, #047857 100%);
   --accent-red: #e11d48;
   --accent-red-gradient: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
   --accent-yellow: #d97706;
-  
+
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
-  
+
   --input-bg: rgba(255, 255, 255, 0.95);
   --input-border: rgba(0, 0, 0, 0.15);
   --input-focus-border: #0284c7;
@@ -1119,7 +1133,8 @@ html.light-theme .calendar-grid div.no-data-day {
 
 .col-sticky-2 {
   position: sticky;
-  left: 50px; /* Width of the first column */
+  left: 50px;
+  /* Width of the first column */
   z-index: 20;
 }
 
@@ -1127,12 +1142,16 @@ html.light-theme .calendar-grid div.no-data-day {
 /* Dark Mode */
 .data-table th.col-sticky-1,
 .data-table th.col-sticky-2 {
-  background: #0f172a !important; /* Solid Slate-900 */
+  background: #0f172a !important;
+  /* Solid Slate-900 */
 }
+
 .data-table tbody tr td.col-sticky-1,
 .data-table tfoot tr td.col-sticky-1 {
-  background: #0b0f19 !important; /* Solid row dark-blue */
+  background: #0b0f19 !important;
+  /* Solid row dark-blue */
 }
+
 .data-table tbody tr td.col-sticky-2,
 .data-table tfoot tr td.col-sticky-2 {
   background: #0b0f19 !important;
@@ -1143,6 +1162,7 @@ html.light-theme .calendar-grid div.no-data-day {
 .data-table tbody tr.highlight td.col-sticky-2 {
   background: #0d1e2d !important;
 }
+
 .data-table tbody tr:hover td.col-sticky-1,
 .data-table tbody tr:hover td.col-sticky-2 {
   background: #141c2f !important;
@@ -1151,12 +1171,16 @@ html.light-theme .calendar-grid div.no-data-day {
 /* Light Mode overrides */
 html.light-theme .data-table th.col-sticky-1,
 html.light-theme .data-table th.col-sticky-2 {
-  background: #f8fafc !important; /* Solid Light gray header */
+  background: #f8fafc !important;
+  /* Solid Light gray header */
 }
+
 html.light-theme .data-table tbody tr td.col-sticky-1,
 html.light-theme .data-table tfoot tr td.col-sticky-1 {
-  background: #ffffff !important; /* Solid White */
+  background: #ffffff !important;
+  /* Solid White */
 }
+
 html.light-theme .data-table tbody tr td.col-sticky-2,
 html.light-theme .data-table tfoot tr td.col-sticky-2 {
   background: #ffffff !important;
@@ -1167,6 +1191,7 @@ html.light-theme .data-table tbody tr.highlight td.col-sticky-1,
 html.light-theme .data-table tbody tr.highlight td.col-sticky-2 {
   background: #f0fdf4 !important;
 }
+
 html.light-theme .data-table tbody tr:hover td.col-sticky-1,
 html.light-theme .data-table tbody tr:hover td.col-sticky-2 {
   background: #f1f5f9 !important;
