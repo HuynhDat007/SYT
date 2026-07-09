@@ -119,7 +119,8 @@
   </div>
   <div
     style="font-size: 0.88rem; color: var(--text-secondary); margin: 0.5rem 0.25rem 1.5rem 0.25rem; font-style: italic;">
-    * Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ
+    * Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao
+    tuổi đã khám 6 tháng đầu năm)
   </div>
   <!-- Figma A4 Report Section -->
   <div class="glass-panel" id="figma-report-panel" style="margin-bottom: 2rem; scroll-margin-top: 5rem;">
@@ -869,7 +870,7 @@
             <script>
               const MOMO_FONT_BASE64 = "<%= momoFontBase64 %>";
               // Draw Top 5 Completion Rate Chart
-              const topUnitsData = <%- JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
+              const topUnitsData = <% - JSON.stringify(topUnits.map(u => ({ name: u.unitName, rate: u.completionRate }))) %>;
               const ctxCompletion = document.getElementById('completionChart').getContext('2d');
 
               const chartGridColor = document.documentElement.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
@@ -948,8 +949,8 @@
               });
 
               // Draw Cumulative Timeline Chart
-              const timelineLabels = <%- progressTimelineLabels %>;
-              const timelineData = <%- progressTimelineData %>;
+              const timelineLabels = <% - progressTimelineLabels %>;
+              const timelineData = <% - progressTimelineData %>;
               const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
 
               window.timelineChart = new Chart(ctxTimeline, {
