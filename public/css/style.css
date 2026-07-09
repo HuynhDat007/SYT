@@ -763,6 +763,16 @@ body.no-scroll {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #0f172a !important;
+  }
+
+  html.light-theme header {
+    background: #ffffff !important;
+  }
+
   .navbar {
     flex-direction: row;
     height: 70px;
@@ -1218,4 +1228,52 @@ html.light-theme .data-table tbody tr:hover td.col-sticky-2 {
 /* Light mode specific override for #units-table hover */
 html.light-theme #units-table tbody tr:hover {
   background: rgba(2, 132, 199, 0.04) !important;
+}
+
+/* Responsive split layouts */
+.split-2-1 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.split-1-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .split-2-1,
+  .split-1-1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Grid child min-width fix to allow tables to shrink and scroll horizontally on mobile */
+.split-layout > *,
+.split-2-1 > *,
+.split-1-1 > * {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  main {
+    padding: 1.5rem 1rem !important;
+  }
+}
+
+/* Sticky table header with theme-aware solid background */
+.sticky-thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 0 var(--panel-border);
+  background: #0f172a !important;
+}
+
+html.light-theme .sticky-thead {
+  background: #f8fafc !important;
 }
