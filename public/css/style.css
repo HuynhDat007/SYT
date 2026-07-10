@@ -123,7 +123,7 @@ header {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.0rem;
   list-style: none;
 }
 
@@ -769,25 +769,30 @@ body.no-scroll {
   .nav-menu {
     gap: 0.8rem;
   }
+
   .nav-link {
     padding: 0.4rem 0.6rem;
     font-size: 0.9rem;
     gap: 0.35rem;
   }
+
   .user-info-badge {
     padding: 0.35rem 0.6rem;
     font-size: 0.8rem;
     gap: 0.35rem;
   }
+
   .logout-btn {
     padding: 0.35rem 0.6rem;
     font-size: 0.85rem;
     gap: 0.2rem;
   }
+
   .nav-brand {
     font-size: 1.25rem;
     gap: 0.5rem;
   }
+
   .nav-brand svg {
     width: 28px;
     height: 28px;
@@ -1280,6 +1285,7 @@ html.light-theme #units-table tbody tr:hover {
 }
 
 @media (max-width: 1024px) {
+
   .split-2-1,
   .split-1-1 {
     grid-template-columns: 1fr;
@@ -1287,9 +1293,9 @@ html.light-theme #units-table tbody tr:hover {
 }
 
 /* Grid child min-width fix to allow tables to shrink and scroll horizontally on mobile */
-.split-layout > *,
-.split-2-1 > *,
-.split-1-1 > * {
+.split-layout>*,
+.split-2-1>*,
+.split-1-1>* {
   min-width: 0;
 }
 
@@ -1316,14 +1322,16 @@ html.light-theme .sticky-thead {
 #units-table th.col-current-day,
 #units-table td.col-current-day {
   background: rgba(253, 224, 71, 0.22) !important;
-  color: #fbbf24 !important; /* amber/yellow text in dark theme */
+  color: #fbbf24 !important;
+  /* amber/yellow text in dark theme */
   font-weight: 700 !important;
 }
 
 html.light-theme #units-table th.col-current-day,
 html.light-theme #units-table td.col-current-day {
   background: rgba(253, 224, 71, 0.35) !important;
-  color: #a16207 !important; /* dark yellow/brown text in light theme */
+  color: #a16207 !important;
+  /* dark yellow/brown text in light theme */
 }
 
 /* Custom Sticky Header Rules for Commune/Ward Detailed Table (#units-table) */
@@ -1344,7 +1352,8 @@ html.light-theme #units-table thead th {
 
 /* Row 2 sticky header cells offset (Month 7, 8, 9 subheadings) */
 #units-table thead tr:nth-child(2) th {
-  top: 52px; /* Height of the first row */
+  top: 52px;
+  /* Height of the first row */
 }
 
 /* Dual sticky columns inside header */
@@ -1360,6 +1369,7 @@ html.light-theme #units-table thead th {
 
 /* Mobile adjustments for units-table sticky column */
 @media (max-width: 768px) {
+
   #units-table th.col-sticky-2,
   #units-table td.col-sticky-2 {
     width: 150px !important;
