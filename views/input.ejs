@@ -1088,9 +1088,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <% const todayObj=new Date(); const todayStr=todayObj.getFullYear() + '-' +
-                              String(todayObj.getMonth() + 1).padStart(2, '0' ) + '-' +
-                              String(todayObj.getDate()).padStart(2, '0' ); %>
+                            <% const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()); %>
                               <% allDays.forEach(item=> { %>
                                 <% const isEmpty = (item.total === 0) && (item.dateStr !== selectedDateStr) && (item.dateStr !== todayStr); %>
                                 <tr
@@ -1318,7 +1316,8 @@
                           unitSelect.dispatchEvent(event);
                         }
 
-                        const todayStr = new Date().toISOString().substring(0, 10);
+                        const todayObj = new Date();
+                        const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
                         document.getElementById('generalDate').value = todayStr;
                         document.getElementById('generalCenterId').value = '';
                         document.getElementById('generalUnder6').value = '0';
@@ -1337,7 +1336,8 @@
                         document.getElementById('workplaceReportId').value = '';
                         const cSelect = document.getElementById('workplaceCenterId');
                         if (cSelect) cSelect.value = '';
-                        const todayStr = new Date().toISOString().substring(0, 10);
+                        const todayObj = new Date();
+                        const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
                         document.getElementById('workplaceDate').value = todayStr;
                         document.getElementById('workplaceName').value = '';
                         document.getElementById('workplaceWorkers').value = '0';
@@ -1354,7 +1354,8 @@
                       }
 
                       function openBytModal() {
-                        const todayStr = new Date().toISOString().substring(0, 10);
+                        const todayObj = new Date();
+                        const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
                         document.getElementById('bytLinkageDate').value = todayStr;
                         document.getElementById('bytLinkageCount').value = '0';
 
@@ -1379,7 +1380,8 @@
 
                       function openPoliticalModal() {
                         document.getElementById('politicalReportId').value = '';
-                        const todayStr = new Date().toISOString().substring(0, 10);
+                        const todayObj = new Date();
+                        const todayStr = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
                         document.getElementById('politicalDate').value = todayStr;
                         document.getElementById('politicalName').value = '';
                         document.getElementById('politicalWorkers').value = '0';

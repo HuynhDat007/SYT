@@ -70,7 +70,7 @@
         <tbody>
           <% logs.forEach(log => { %>
             <tr>
-              <td style="white-space: nowrap;"><%= new Date(log.timestamp).toLocaleString('vi-VN') %></td>
+              <td style="white-space: nowrap;"><%= new Date(log.timestamp).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) %></td>
               <td><code><%= log.username %></code></td>
               <td>
                 <% if (log.action === 'CREATE') { %>

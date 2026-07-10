@@ -83,6 +83,16 @@ function formatDateString(dateObj) {
   return `${year}-${month}-${day}`;
 }
 
+// Get current date string in Vietnam timezone (YYYY-MM-DD)
+function getTodayStringVN() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+}
+
 // -------------------------------------------------------------
 // SVG COMPILATION HELPER
 // -------------------------------------------------------------
@@ -437,13 +447,10 @@ app.get('/', async (req, res) => {
   try {
     // Current date default to 2026-07-06 if in range, otherwise 2026-07-01
     let defaultDate = '2026-07-06';
-    const now = new Date();
-    // Check if current system date is between July 1st and Sept 30th (of 2026)
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
+    const todayStrVN = getTodayStringVN();
+    const [year, month, day] = todayStrVN.split('-').map(Number);
     if (year === 2026 && month >= 7 && month <= 9) {
-      defaultDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      defaultDate = todayStrVN;
     }
 
     let queryDateStr;
@@ -1019,15 +1026,14 @@ app.get('/input', requireAuth, async (req, res) => {
   try {
     // Current date default to 2026-07-06 if in range, otherwise 2026-07-01
     let defaultDate = '2026-07-06';
-    const now = new Date();
-    if (now.getFullYear() === 2026 && (now.getMonth() + 1) >= 7 && (now.getMonth() + 1) <= 9) {
-      defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const todayStr = getTodayStringVN();
+    const [year, month, day] = todayStr.split('-').map(Number);
+    if (year === 2026 && (month) >= 7 && (month) <= 9) {
+      defaultDate = todayStr;
     }
 
     const queryDateStr = req.query.date || defaultDate;
     const selectedDate = parseDateUTC(queryDateStr);
-
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     // Future date check
     if (queryDateStr > todayStr) {
@@ -1235,8 +1241,7 @@ app.post('/input', requireAuth, async (req, res) => {
   }
 
   try {
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayStr = getTodayStringVN();
 
     if (date > todayStr) {
       return res.redirect(`/input?date=${todayStr}&error=${encodeURIComponent('Không được phép nhập số liệu ngày tương lai')}`);
