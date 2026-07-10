@@ -1335,3 +1335,10 @@ html.light-theme #units-table thead th {
     padding: 5px !important;
   }
 }
+
+/* Compact row padding for detailed units table */
+#units-table tbody td,
+#units-table tfoot td {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+}
