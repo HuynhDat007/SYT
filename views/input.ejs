@@ -872,6 +872,15 @@
                       </div>
 
                       <div class="form-group"
+                        style="display: flex; flex-direction: row; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.75rem;">
+                        <input type="checkbox" id="includeCnldCbccvc" name="includeCnldCbccvc" value="true"
+                          <%= includeCnldCbccvc ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer;
+                        margin: 0;">
+                        <label for="includeCnldCbccvc"
+                          style="cursor: pointer; margin: 0; user-select: none; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Tổng CNLĐ và CBCCVC vào tổng khám</label>
+                      </div>
+
+                      <div class="form-group"
                         style="display: flex; flex-direction: row; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 1.25rem;">
                         <input type="checkbox" id="noteVisible" name="noteVisible" value="true" <%=dashboardNoteVisible
                           ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer; margin: 0;">

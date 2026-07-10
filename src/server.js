@@ -211,12 +211,12 @@ async function compileReportSvg(dateStr) {
   // Fetch BytLinkage cumulative for the selected date
   const linkageLuyKeAgg = await BytLinkage.aggregate([
     { $match: { date: { $lte: selectedDate } } },
-    { 
-      $group: { 
-        _id: null, 
+    {
+      $group: {
+        _id: null,
         totalCnld: { $sum: '$cnldCount' },
         totalTehs: { $sum: '$tehsCount' }
-      } 
+      }
     }
   ]);
   const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
@@ -224,11 +224,11 @@ async function compileReportSvg(dateStr) {
 
   // Aggregate cumulative CBCCVC (political reports)
   const politicalAgg = await DailyReport.aggregate([
-    { 
-      $match: { 
+    {
+      $match: {
         date: { $gte: startDate, $lte: selectedDate },
         adminIsPolitical: true
-      } 
+      }
     },
     {
       $group: {
@@ -239,7 +239,8 @@ async function compileReportSvg(dateStr) {
   ]);
   const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
 
-  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + cnldLuyKe + tehsLuyKe + cbccvcLuyKe;
+  const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
+  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + tehsLuyKe + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = 2128099 > 0 ? (grandOverallTotal / 2128099) * 100 : 0;
 
@@ -276,7 +277,7 @@ async function compileReportSvg(dateStr) {
     const name = escapeXml(unit.unitName);
     const daily = unit.daily.toLocaleString('vi-VN');
     const cumulative = unit.cumulative.toLocaleString('vi-VN');
-    
+
     const rateVal = unit.residentPopulation > 0 ? (unit.cumulative / unit.residentPopulation) * 100 : 0;
     const rate = rateVal.toFixed(1) + '%';
 
@@ -313,9 +314,22 @@ async function compileReportSvg(dateStr) {
   template = template.replace(/\{8\}/g, grandBytToday.toLocaleString('vi-VN'));
   template = template.replace(/\{9\}/g, progressRateCampaign.toFixed(1) + '%');
   template = template.replace(/\{10\}/g, grandBytLuyKe.toLocaleString('vi-VN'));
-  template = template.replace(/\{CNLD_KSK\}/g, cnldLuyKe.toLocaleString('vi-VN'));
-  template = template.replace(/\{TEHS_KSK\}/g, tehsLuyKe.toLocaleString('vi-VN'));
-  template = template.replace(/\{CBCCVC_KSK\}/g, cbccvcLuyKe.toLocaleString('vi-VN'));
+  const cnldStr = cnldLuyKe.toLocaleString('vi-VN');
+  const cnldLength = cnldStr.length;
+  const cnldXOffset = cnldLength > 1 ? -15 * (cnldLength - 1) : 0;
+  const cnldX = (277.044 + cnldXOffset).toFixed(3);
+  template = template.replace(/x="277\.044"([^>]*>)\{CNLD_KSK\}/g, `x="${cnldX}"$1${cnldStr}`);
+
+  const tehsStr = tehsLuyKe.toLocaleString('vi-VN');
+  const tehsLength = tehsStr.length;
+  const tehsXOffset = tehsLength > 1 ? -13 * (tehsLength - 1) : 0;
+  const tehsX = (1209.04 + tehsXOffset).toFixed(3);
+  template = template.replace(/x="1209\.04"([^>]*>)\{TEHS_KSK\}/g, `x="${tehsX}"$1${tehsStr}`);
+  const cbccvcStr = cbccvcLuyKe.toLocaleString('vi-VN');
+  const cbccvcLength = cbccvcStr.length;
+  const cbccvcXOffset = cbccvcLength > 1 ? -13 * (cbccvcLength - 1) : 0;
+  const cbccvcX = (751.544 + cbccvcXOffset).toFixed(3);
+  template = template.replace(/x="751\.544"([^>]*>)\{CBCCVC_KSK\}/g, `x="${cbccvcX}"$1${cbccvcStr}`);
 
   // Replace report date globally
   template = template.replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, dateString);
@@ -723,12 +737,12 @@ app.get('/', async (req, res) => {
     // Fetch BytLinkage cumulative for the selected date
     const linkageLuyKeAgg = await BytLinkage.aggregate([
       { $match: { date: { $lte: dailyMatchDate } } },
-      { 
-        $group: { 
-          _id: null, 
+      {
+        $group: {
+          _id: null,
           totalCnld: { $sum: '$cnldCount' },
           totalTehs: { $sum: '$tehsCount' }
-        } 
+        }
       }
     ]);
     const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
@@ -736,11 +750,11 @@ app.get('/', async (req, res) => {
 
     // Fetch cumulative CBCCVC (political reports)
     const politicalAgg = await DailyReport.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           date: { $gte: startDate, $lte: dailyMatchDate },
           adminIsPolitical: true
-        } 
+        }
       },
       {
         $group: {
@@ -751,10 +765,11 @@ app.get('/', async (req, res) => {
     ]);
     const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
 
+    const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + cnldLuyKe + tehsLuyKe + cbccvcLuyKe;
+    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + tehsLuyKe + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -1159,6 +1174,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const dashboardNoteText = await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)');
     const dashboardNoteVisible = await getConfigValue('dashboard_note_visible', true);
     const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
+    const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
 
     res.render('input', {
       user: {
@@ -1185,6 +1201,7 @@ app.get('/input', requireAuth, async (req, res) => {
       dashboardNoteText,
       dashboardNoteVisible,
       allowPastDateInput,
+      includeCnldCbccvc,
       success: req.session.success || req.query.success || null,
       error: req.session.error || req.query.error || null
     });
@@ -1701,9 +1718,10 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
   }
 
-  const { noteText, noteVisible, allowPastDateInput, date, unitId } = req.body;
+  const { noteText, noteVisible, allowPastDateInput, includeCnldCbccvc, date, unitId } = req.body;
   const isVisible = noteVisible === 'true' || noteVisible === true;
   const isAllowPast = allowPastDateInput === 'true' || allowPastDateInput === true;
+  const isIncludeCnldCbccvc = includeCnldCbccvc === 'true' || includeCnldCbccvc === true;
 
   try {
     await SystemConfig.findOneAndUpdate(
@@ -1724,13 +1742,19 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       { upsert: true, new: true }
     );
 
+    await SystemConfig.findOneAndUpdate(
+      { key: 'include_cnld_cbccvc_in_total' },
+      { value: isIncludeCnldCbccvc },
+      { upsert: true, new: true }
+    );
+
     // Log update
     await AuditLog.create({
       userId: req.session.userId,
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}`
+      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}`
     });
 
     return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);

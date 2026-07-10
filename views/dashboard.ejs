@@ -503,33 +503,33 @@
 
                       <!-- Tháng 7 -->
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].under6 %>
+                        <%= grandMonthly[7].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].from6To18 %>
+                        <%= grandMonthly[7].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].over18 %>
+                        <%= grandMonthly[7].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Tháng 8 -->
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].under6 %>
+                        <%= grandMonthly[8].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].from6To18 %>
+                        <%= grandMonthly[8].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].over18 %>
+                        <%= grandMonthly[8].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Tháng 9 -->
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].under6 %>
+                        <%= grandMonthly[9].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].from6To18 %>
+                        <%= grandMonthly[9].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].over18 %>
+                        <%= grandMonthly[9].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                       <% campaignDays.forEach(day=> { %>
@@ -537,7 +537,7 @@
                           <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
                             <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                               style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                              <%= dayTotal || '-' %>
+                              <%= dayTotal ? dayTotal.toLocaleString('vi-VN') : '-' %>
                             </td>
                             <% }) %>
                     </tr>
@@ -602,35 +602,35 @@
 
                                 <!-- Tháng 7 -->
                                 <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].under6 %>
+                                  <%= row.monthly[7].under6.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].from6To18 %>
+                                  <%= row.monthly[7].from6To18.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                                  <%= row.monthly[7].over18 %>
+                                  <%= row.monthly[7].over18.toLocaleString('vi-VN') %>
                                 </td>
 
                                 <!-- Tháng 8 -->
                                 <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].under6 %>
+                                  <%= row.monthly[8].under6.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].from6To18 %>
+                                  <%= row.monthly[8].from6To18.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                                  <%= row.monthly[8].over18 %>
+                                  <%= row.monthly[8].over18.toLocaleString('vi-VN') %>
                                 </td>
 
                                 <!-- Tháng 9 -->
                                 <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].under6 %>
+                                  <%= row.monthly[9].under6.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].from6To18 %>
+                                  <%= row.monthly[9].from6To18.toLocaleString('vi-VN') %>
                                 </td>
                                 <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                                  <%= row.monthly[9].over18 %>
+                                  <%= row.monthly[9].over18.toLocaleString('vi-VN') %>
                                 </td>
 
                                 <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
@@ -640,7 +640,7 @@
                                     <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
                                       <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                                         style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.18)' : 'rgba(2, 132, 199, 0.04)' %>; display: none; font-size: 0.8rem; font-weight: <%= isCurrentDay ? '700' : 'normal' %>; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                                        <%= cellTotal || '-' %>
+                                        <%= cellTotal ? cellTotal.toLocaleString('vi-VN') : '-' %>
                                       </td>
                                       <% }) %>
                               </tr>
@@ -680,33 +680,33 @@
 
                       <!-- Tháng 7 -->
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].under6 %>
+                        <%= grandMonthly[7].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].from6To18 %>
+                        <%= grandMonthly[7].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-7-bg);">
-                        <%= grandMonthly[7].over18 %>
+                        <%= grandMonthly[7].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Tháng 8 -->
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].under6 %>
+                        <%= grandMonthly[8].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].from6To18 %>
+                        <%= grandMonthly[8].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-8-bg);">
-                        <%= grandMonthly[8].over18 %>
+                        <%= grandMonthly[8].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Tháng 9 -->
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].under6 %>
+                        <%= grandMonthly[9].under6.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].from6To18 %>
+                        <%= grandMonthly[9].from6To18.toLocaleString('vi-VN') %>
                       </td>
                       <td class="col-month" style="text-align: center; background: var(--month-9-bg);">
-                        <%= grandMonthly[9].over18 %>
+                        <%= grandMonthly[9].over18.toLocaleString('vi-VN') %>
                       </td>
                       <!-- Trong Ngày (từng ngày 01/07 đến 30/09) -->
                       <% campaignDays.forEach(day=> { %>
@@ -714,7 +714,7 @@
                           <% const isCurrentDay=(day.dateStr===dailyMatchDateStr); %>
                             <td class="col-day <%= isCurrentDay ? 'col-current-day' : '' %>"
                               style="text-align: center; background: <%= isCurrentDay ? 'rgba(253, 224, 71, 0.25)' : 'rgba(2, 132, 199, 0.08)' %>; display: none; font-size: 0.8rem; font-weight: 700; color: <%= isCurrentDay ? '#854d0e' : 'inherit' %>;">
-                              <%= dayTotal || '-' %>
+                              <%= dayTotal ? dayTotal.toLocaleString('vi-VN') : '-' %>
                             </td>
                             <% }) %>
                     </tr>
