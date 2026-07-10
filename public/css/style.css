@@ -1324,3 +1324,14 @@ html.light-theme #units-table thead th {
   left: 50px;
   z-index: 30;
 }
+
+/* Mobile adjustments for units-table sticky column */
+@media (max-width: 768px) {
+  #units-table th.col-sticky-2,
+  #units-table td.col-sticky-2 {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    padding: 5px !important;
+  }
+}
