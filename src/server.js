@@ -188,7 +188,8 @@ async function compileReportSvg(dateStr) {
       daily: dailyVal,
       cumulative: cumulativeVal,
       residentPopulation: unit.residentPopulation || 0,
-      firstHalfChecked: unit.firstHalfChecked || 0
+      firstHalfChecked: unit.firstHalfChecked || 0,
+      planTarget: unit.planTarget || 0
     });
 
     grandDailyTotal += dailyVal;
@@ -278,7 +279,7 @@ async function compileReportSvg(dateStr) {
     const daily = unit.daily.toLocaleString('vi-VN');
     const cumulative = unit.cumulative.toLocaleString('vi-VN');
 
-    const rateVal = unit.residentPopulation > 0 ? (unit.cumulative / unit.residentPopulation) * 100 : 0;
+    const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
     const rate = rateVal.toFixed(1) + '%';
 
     dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
