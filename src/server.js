@@ -969,11 +969,10 @@ app.get('/', async (req, res) => {
       dayProvinceMap[formatDateString(d._id)] = d;
     });
 
-    // Fetch political system reports for the selected date
+    // Fetch political system reports (all, not filtered by selected date)
     const dashboardPoliticalReports = await DailyReport.find({
-      date: dailyMatchDate,
       adminIsPolitical: true
-    }).sort({ createdAt: 1 });
+    }).sort({ date: 1, createdAt: 1 });
 
     // Generate the SVG report for the dashboard
     const svgContent = await compileReportSvg(formatDateString(dailyMatchDate));
