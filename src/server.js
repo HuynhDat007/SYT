@@ -251,7 +251,8 @@ async function compileReportSvg(dateStr) {
   const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
 
   const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
-  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + tehsLuyKe + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+  const includeTehs = await getConfigValue('include_tehs_in_total', true);
+  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = 2128099 > 0 ? (grandOverallTotal / 2128099) * 100 : 0;
 
@@ -774,10 +775,11 @@ app.get('/', async (req, res) => {
     const cbccvcLuyKe = politicalAgg.length > 0 ? politicalAgg[0].totalPolitical : 0;
 
     const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
+    const includeTehs = await getConfigValue('include_tehs_in_total', true);
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + tehsLuyKe + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -1182,6 +1184,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const dashboardNoteVisible = await getConfigValue('dashboard_note_visible', true);
     const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
     const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
+    const includeTehs = await getConfigValue('include_tehs_in_total', true);
 
     res.render('input', {
       user: {
@@ -1209,6 +1212,7 @@ app.get('/input', requireAuth, async (req, res) => {
       dashboardNoteVisible,
       allowPastDateInput,
       includeCnldCbccvc,
+      includeTehs,
       success: req.session.success || req.query.success || null,
       error: req.session.error || req.query.error || null
     });
@@ -1724,10 +1728,11 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
   }
 
-  const { noteText, noteVisible, allowPastDateInput, includeCnldCbccvc, date, unitId } = req.body;
+  const { noteText, noteVisible, allowPastDateInput, includeCnldCbccvc, includeTehs, date, unitId } = req.body;
   const isVisible = noteVisible === 'true' || noteVisible === true;
   const isAllowPast = allowPastDateInput === 'true' || allowPastDateInput === true;
   const isIncludeCnldCbccvc = includeCnldCbccvc === 'true' || includeCnldCbccvc === true;
+  const isIncludeTehs = includeTehs === 'true' || includeTehs === true;
 
   try {
     await SystemConfig.findOneAndUpdate(
@@ -1754,13 +1759,19 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       { upsert: true, new: true }
     );
 
+    await SystemConfig.findOneAndUpdate(
+      { key: 'include_tehs_in_total' },
+      { value: isIncludeTehs },
+      { upsert: true, new: true }
+    );
+
     // Log update
     await AuditLog.create({
       userId: req.session.userId,
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}`
+      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}`
     });
 
     return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);

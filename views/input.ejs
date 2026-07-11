@@ -124,6 +124,7 @@
       #history-card {
         height: auto !important;
       }
+
       #history-card .table-responsive {
         max-height: none !important;
         height: auto !important;
@@ -297,14 +298,19 @@
                 <div style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
 
                   <!-- 2 Cards for Admin Global Metrics -->
-                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 0.5rem; width: 100%;">
-                    
+                  <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 0.5rem; width: 100%;">
+
                     <!-- Card 1: CNLĐ ĐÃ KSK -->
-                    <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; border-left: 4px solid var(--primary-color);">
+                    <div class="glass-panel"
+                      style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; border-left: 4px solid var(--primary-color);">
                       <div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2">
+                        <div
+                          style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                          <h4
+                            style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                              stroke-width="2">
                               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                               <circle cx="9" cy="7" r="4" />
                             </svg>
@@ -312,7 +318,8 @@
                           </h4>
                           <button type="button" class="btn btn-secondary" onclick="openEditCnldModal()"
                             style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 4px; cursor: pointer;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
@@ -320,7 +327,8 @@
                           </button>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                          <div style="display: flex; justify-content: space-between; align-items: center; height: 42px;">
+                          <div
+                            style="display: flex; justify-content: space-between; align-items: center; height: 42px;">
                             <span style="font-size: 0.85rem; color: var(--text-secondary);">Số người đã khám:</span>
                             <strong style="font-size: 1.3rem; color: var(--primary-color);">
                               <%= cnldCount.toLocaleString('vi-VN') %>
@@ -331,11 +339,15 @@
                     </div>
 
                     <!-- Card 2: TE&HS ĐÃ KSK -->
-                    <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; border-left: 4px solid var(--accent-green);">
+                    <div class="glass-panel"
+                      style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; border-left: 4px solid var(--accent-green);">
                       <div>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2">
+                        <div
+                          style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                          <h4
+                            style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)"
+                              stroke-width="2">
                               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                               <circle cx="9" cy="7" r="4" />
                             </svg>
@@ -343,7 +355,8 @@
                           </h4>
                           <button type="button" class="btn btn-secondary" onclick="openEditTehsModal()"
                             style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: auto; height: auto; display: flex; align-items: center; gap: 0.25rem; font-weight: 600; border-radius: 4px; cursor: pointer;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
@@ -351,7 +364,8 @@
                           </button>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                          <div style="display: flex; justify-content: space-between; align-items: center; height: 42px;">
+                          <div
+                            style="display: flex; justify-content: space-between; align-items: center; height: 42px;">
                             <span style="font-size: 0.85rem; color: var(--text-secondary);">Số người đã khám:</span>
                             <strong style="font-size: 1.3rem; color: var(--accent-green);">
                               <%= tehsCount.toLocaleString('vi-VN') %>
@@ -569,7 +583,8 @@
                                         <button type="button" class="btn btn-secondary edit-workplace-btn"
                                           style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
                                           data-id="<%= r._id %>" data-center="<%= r.centerId ? r.centerId._id : '' %>"
-                                          data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('&quot;').split('\'').join('&#39;') : '' %>"
+                                          data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('
+                                          &quot;').split('\'').join('&#39;') : '' %>"
                                           data-date="<%= rDateVal %>"
                                             data-workers="<%= r.adminWorkers || 0 %>"
                                               data-children="<%= r.adminChildren || 0 %>"
@@ -698,7 +713,8 @@
                                         <button type="button" class="btn btn-secondary edit-political-btn"
                                           style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
                                           data-id="<%= r._id %>"
-                                          data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('&quot;').split('\'').join('&#39;') : '' %>"
+                                          data-workplace="<%= r.adminWorkplace ? r.adminWorkplace.split('"').join('
+                                          &quot;').split('\'').join('&#39;') : '' %>"
                                           data-date="<%= rDateVal %>"
                                             data-workers="<%= r.adminWorkers || 0 %>"
                                               data-political="<%= r.adminPolitical || 0 %>">
@@ -874,10 +890,21 @@
                       <div class="form-group"
                         style="display: flex; flex-direction: row; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.75rem;">
                         <input type="checkbox" id="includeCnldCbccvc" name="includeCnldCbccvc" value="true"
-                          <%= includeCnldCbccvc ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer;
+                          <%=includeCnldCbccvc ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer;
                         margin: 0;">
                         <label for="includeCnldCbccvc"
-                          style="cursor: pointer; margin: 0; user-select: none; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Tổng CNLĐ và CBCCVC vào tổng khám</label>
+                          style="cursor: pointer; margin: 0; user-select: none; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Tính
+                          CNLĐ và CBCCVC vào tổng khám</label>
+                      </div>
+
+                      <div class="form-group"
+                        style="display: flex; flex-direction: row; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.75rem;">
+                        <input type="checkbox" id="includeTehs" name="includeTehs" value="true" <%=includeTehs
+                          ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer;
+                        margin: 0;">
+                        <label for="includeTehs"
+                          style="cursor: pointer; margin: 0; user-select: none; font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">Tính
+                          TE&HS vào tổng khám</label>
                       </div>
 
                       <div class="form-group"
@@ -912,8 +939,7 @@
                     <div style="display: flex; flex-direction: column;">
 
                       <!-- Data Input Form Panel -->
-                      <div class="glass-panel" id="input-form-card"
-                        style="display: flex; flex-direction: column;">
+                      <div class="glass-panel" id="input-form-card" style="display: flex; flex-direction: column;">
                         <h3
                           style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1042,7 +1068,8 @@
                     </div>
 
                     <!-- Right Side: Daily History List -->
-                    <div class="glass-panel" id="history-card" style="display: flex; flex-direction: column; width: 100%;">
+                    <div class="glass-panel" id="history-card"
+                      style="display: flex; flex-direction: column; width: 100%;">
                       <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
                         <h3
@@ -1058,8 +1085,10 @@
                           Danh Sách Số Liệu Đã Nhập Từng Ngày
                         </h3>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                          <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; user-select: none; margin: 0; padding: 0.3rem 0.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); border-radius: 6px;">
-                            <input type="checkbox" id="toggle-only-entered" checked onchange="toggleEnteredOnly()" style="width: 14px; height: 14px; cursor: pointer; margin: 0;">
+                          <label
+                            style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; user-select: none; margin: 0; padding: 0.3rem 0.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--panel-border); border-radius: 6px;">
+                            <input type="checkbox" id="toggle-only-entered" checked onchange="toggleEnteredOnly()"
+                              style="width: 14px; height: 14px; cursor: pointer; margin: 0;">
                             Chỉ ngày đã nhập
                           </label>
                           <button type="button" class="btn btn-secondary" onclick="scrollToTodayRow()"
@@ -1088,43 +1117,45 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <% const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date()); %>
+                            <% const todayStr=new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh'
+                              }).format(new Date()); %>
                               <% allDays.forEach(item=> { %>
-                                <% const isEmpty = (item.total === 0) && (item.dateStr !== selectedDateStr) && (item.dateStr !== todayStr); %>
-                                <tr
-                                  class="<%= item.dateStr === selectedDateStr ? 'highlight' : '' %> <%= item.dateStr === todayStr ? 'today-row' : '' %> <%= isEmpty ? 'empty-row' : '' %>"
-                                  onclick="window.location.href='/input?date=<%= item.dateStr %><%= user.role === 'admin' ? '&unitId=' + selectedUnitId : '' %>'"
-                                  style="<%= isEmpty ? 'display: none;' : '' %> cursor: pointer; <%= item.dateStr === selectedDateStr ? 'background: rgba(0, 242, 254, 0.12); border-left: 3px solid var(--primary-color);' : '' %>"
-                                  title="Nhấp để chọn ngày <%= item.dateDisplay %>">
-                                  <td
-                                    style="font-weight: 600; color: <%= item.dateStr === selectedDateStr ? 'var(--primary-color)' : 'var(--text-primary)' %>;">
-                                    <%= item.dateDisplay %>
-                                      <% if (item.dateStr===selectedDateStr) { %>
-                                        <span class="badge badge-info"
-                                          style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Đang
-                                          chọn</span>
-                                        <% } %>
-                                          <% if (item.dateStr===todayStr) { %>
-                                            <span class="badge badge-success"
-                                              style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Hôm
-                                              nay</span>
-                                            <% } %>
-                                  </td>
-                                  <td>
-                                    <%= item.under6 %>
-                                  </td>
-                                  <td>
-                                    <%= item.from6To18 %>
-                                  </td>
-                                  <td>
-                                    <%= item.over18 %>
-                                  </td>
-                                  <td><strong
-                                      style="<%= item.total > 0 ? 'color: var(--primary-color);' : 'color: var(--text-muted);' %>">
-                                      <%= item.total %>
-                                    </strong></td>
-                                </tr>
-                                <% }) %>
+                                <% const isEmpty=(item.total===0) && (item.dateStr !==selectedDateStr) && (item.dateStr
+                                  !==todayStr); %>
+                                  <tr
+                                    class="<%= item.dateStr === selectedDateStr ? 'highlight' : '' %> <%= item.dateStr === todayStr ? 'today-row' : '' %> <%= isEmpty ? 'empty-row' : '' %>"
+                                    onclick="window.location.href='/input?date=<%= item.dateStr %><%= user.role === 'admin' ? '&unitId=' + selectedUnitId : '' %>'"
+                                    style="<%= isEmpty ? 'display: none;' : '' %> cursor: pointer; <%= item.dateStr === selectedDateStr ? 'background: rgba(0, 242, 254, 0.12); border-left: 3px solid var(--primary-color);' : '' %>"
+                                    title="Nhấp để chọn ngày <%= item.dateDisplay %>">
+                                    <td
+                                      style="font-weight: 600; color: <%= item.dateStr === selectedDateStr ? 'var(--primary-color)' : 'var(--text-primary)' %>;">
+                                      <%= item.dateDisplay %>
+                                        <% if (item.dateStr===selectedDateStr) { %>
+                                          <span class="badge badge-info"
+                                            style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Đang
+                                            chọn</span>
+                                          <% } %>
+                                            <% if (item.dateStr===todayStr) { %>
+                                              <span class="badge badge-success"
+                                                style="font-size: 0.6rem; padding: 0.05rem 0.2rem; margin-left: 0.2rem;">Hôm
+                                                nay</span>
+                                              <% } %>
+                                    </td>
+                                    <td>
+                                      <%= item.under6 %>
+                                    </td>
+                                    <td>
+                                      <%= item.from6To18 %>
+                                    </td>
+                                    <td>
+                                      <%= item.over18 %>
+                                    </td>
+                                    <td><strong
+                                        style="<%= item.total > 0 ? 'color: var(--primary-color);' : 'color: var(--text-muted);' %>">
+                                        <%= item.total %>
+                                      </strong></td>
+                                  </tr>
+                                  <% }) %>
                           </tbody>
                         </table>
                       </div>
@@ -1927,7 +1958,8 @@
                             <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--primary-color);">
                               Cập Nhật Số CNLĐ ĐÃ KSK</h3>
                             <button type="button" class="modal-close-btn" onclick="closeEditCnldModal()">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                               </svg>
@@ -1937,11 +1969,15 @@
                             <input type="hidden" name="date" value="<%= selectedDateStr %>">
                             <div class="form-group" style="margin-bottom: 1.5rem;">
                               <label for="modalCnldCount">Số CNLĐ đã khám sức khỏe</label>
-                              <input type="number" id="modalCnldCount" name="cnldCount" class="form-control" min="0" value="<%= cnldCount %>" required style="background: var(--input-bg); color: var(--text-primary);">
+                              <input type="number" id="modalCnldCount" name="cnldCount" class="form-control" min="0"
+                                value="<%= cnldCount %>" required
+                                style="background: var(--input-bg); color: var(--text-primary);">
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                              <button type="submit" class="btn btn-primary" style="flex: 1; color: #ffffff;">Lưu thay đổi</button>
-                              <button type="button" class="btn btn-secondary" onclick="closeEditCnldModal()">Hủy</button>
+                              <button type="submit" class="btn btn-primary" style="flex: 1; color: #ffffff;">Lưu thay
+                                đổi</button>
+                              <button type="button" class="btn btn-secondary"
+                                onclick="closeEditCnldModal()">Hủy</button>
                             </div>
                           </form>
                         </div>
@@ -1954,7 +1990,8 @@
                             <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--accent-green);">
                               Cập Nhật Số TE&HS ĐÃ KSK</h3>
                             <button type="button" class="modal-close-btn" onclick="closeEditTehsModal()">
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                               </svg>
@@ -1964,11 +2001,15 @@
                             <input type="hidden" name="date" value="<%= selectedDateStr %>">
                             <div class="form-group" style="margin-bottom: 1.5rem;">
                               <label for="modalTehsCount">Số TE&HS đã khám sức khỏe</label>
-                              <input type="number" id="modalTehsCount" name="tehsCount" class="form-control" min="0" value="<%= tehsCount %>" required style="background: var(--input-bg); color: var(--text-primary);">
+                              <input type="number" id="modalTehsCount" name="tehsCount" class="form-control" min="0"
+                                value="<%= tehsCount %>" required
+                                style="background: var(--input-bg); color: var(--text-primary);">
                             </div>
                             <div style="display: flex; gap: 0.5rem;">
-                              <button type="submit" class="btn btn-primary" style="flex: 1; color: #ffffff;">Lưu thay đổi</button>
-                              <button type="button" class="btn btn-secondary" onclick="closeEditTehsModal()">Hủy</button>
+                              <button type="submit" class="btn btn-primary" style="flex: 1; color: #ffffff;">Lưu thay
+                                đổi</button>
+                              <button type="button" class="btn btn-secondary"
+                                onclick="closeEditTehsModal()">Hủy</button>
                             </div>
                           </form>
                         </div>
