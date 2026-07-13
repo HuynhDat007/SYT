@@ -1174,8 +1174,21 @@ app.get('/input', requireAuth, async (req, res) => {
       const currentLinkage = bytLinkages.find(b => new Date(b.date).getTime() === selectedDate.getTime());
       if (currentLinkage) {
         bytLinkageCount = currentLinkage.count;
-        cnldCount = currentLinkage.cnldCount || 0;
-        tehsCount = currentLinkage.tehsCount || 0;
+      }
+      
+      // Calculate overall cumulative sum for global metrics cards
+      const linkageSumAgg = await BytLinkage.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalCnld: { $sum: '$cnldCount' },
+            totalTehs: { $sum: '$tehsCount' }
+          }
+        }
+      ]);
+      if (linkageSumAgg.length > 0) {
+        cnldCount = linkageSumAgg[0].totalCnld || 0;
+        tehsCount = linkageSumAgg[0].totalTehs || 0;
       }
     }
 
@@ -2068,6 +2081,20 @@ app.post('/admin/global-metrics', requireAuth, requireRole('admin'), async (req,
       });
     }
 
+    // Set all other dates to 0 to keep the global total consistent as a single sum
+    if (cnldVal !== undefined) {
+      await BytLinkage.updateMany(
+        { date: { $ne: selectedDate } },
+        { $set: { cnldCount: 0 } }
+      );
+    }
+    if (tehsVal !== undefined) {
+      await BytLinkage.updateMany(
+        { date: { $ne: selectedDate } },
+        { $set: { tehsCount: 0 } }
+      );
+    }
+
     // Log this action
     let details = `Cập nhật số liệu KSK tỉnh ngày ${date}:`;
     if (cnldVal !== undefined) details += ` CNLĐ = ${cnldVal}`;
@@ -2094,7 +2121,28 @@ app.post('/admin/byt-linkage/delete', requireAuth, requireRole('admin'), async (
     const item = await BytLinkage.findById(linkageId);
     if (item) {
       const formattedDate = formatDateString(item.date);
+      const cnldToShift = item.cnldCount || 0;
+      const tehsToShift = item.tehsCount || 0;
       await BytLinkage.deleteOne({ _id: linkageId });
+
+      // If we deleted the record that held the global metric value, shift it to another record
+      if (cnldToShift > 0 || tehsToShift > 0) {
+        const remaining = await BytLinkage.findOne().sort({ date: -1 });
+        if (remaining) {
+          if (cnldToShift > 0) remaining.cnldCount = cnldToShift;
+          if (tehsToShift > 0) remaining.tehsCount = tehsToShift;
+          await remaining.save();
+        } else {
+          // If no remaining records, recreate a placeholder to preserve the global count
+          await BytLinkage.create({
+            date: item.date,
+            count: 0,
+            cnldCount: cnldToShift,
+            tehsCount: tehsToShift,
+            updatedBy: req.session.userId
+          });
+        }
+      }
 
       await AuditLog.create({
         userId: req.session.userId,
