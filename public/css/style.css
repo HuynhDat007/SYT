@@ -255,11 +255,20 @@ h1.page-title::after {
 .stat-icon {
   width: 56px;
   height: 56px;
+  flex-shrink: 0;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.stat-icon svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .stat-icon.primary {
