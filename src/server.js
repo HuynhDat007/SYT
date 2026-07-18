@@ -221,19 +221,19 @@ async function compileReportSvg(dateStr) {
   const grandBytLuyKe = bytLuyKeAgg.length > 0 ? bytLuyKeAgg[0].total : 0;
 
   // Fetch BytLinkage for global metrics on this date
-  // Fetch BytLinkage cumulative for the selected date
-  const linkageLuyKeAgg = await BytLinkage.aggregate([
-    { $match: { date: { $lte: selectedDate } } },
-    {
-      $group: {
-        _id: null,
-        totalCnld: { $sum: '$cnldCount' },
-        totalTehs: { $sum: '$tehsCount' }
-      }
-    }
-  ]);
-  const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
-  const tehsLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalTehs : 0;
+  // Get latest non-zero cnldCount up to selectedDate, falling back to overall latest if none
+  let cnldLuyKeObj = await BytLinkage.findOne({ date: { $lte: selectedDate }, cnldCount: { $gt: 0 } }).sort({ date: -1 });
+  if (!cnldLuyKeObj) {
+    cnldLuyKeObj = await BytLinkage.findOne({ cnldCount: { $gt: 0 } }).sort({ date: -1 });
+  }
+  const cnldLuyKe = cnldLuyKeObj ? cnldLuyKeObj.cnldCount : 0;
+
+  // Get latest non-zero tehsCount up to selectedDate, falling back to overall latest if none
+  let tehsLuyKeObj = await BytLinkage.findOne({ date: { $lte: selectedDate }, tehsCount: { $gt: 0 } }).sort({ date: -1 });
+  if (!tehsLuyKeObj) {
+    tehsLuyKeObj = await BytLinkage.findOne({ tehsCount: { $gt: 0 } }).sort({ date: -1 });
+  }
+  const tehsLuyKe = tehsLuyKeObj ? tehsLuyKeObj.tehsCount : 0;
 
   // Aggregate cumulative CBCCVC (political reports)
   const politicalAgg = await DailyReport.aggregate([
@@ -747,18 +747,17 @@ app.get('/', async (req, res) => {
     });
 
     // Fetch BytLinkage cumulative for the selected date
-    const linkageLuyKeAgg = await BytLinkage.aggregate([
-      { $match: { date: { $lte: dailyMatchDate } } },
-      {
-        $group: {
-          _id: null,
-          totalCnld: { $sum: '$cnldCount' },
-          totalTehs: { $sum: '$tehsCount' }
-        }
-      }
-    ]);
-    const cnldLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalCnld : 0;
-    const tehsLuyKe = linkageLuyKeAgg.length > 0 ? linkageLuyKeAgg[0].totalTehs : 0;
+    let cnldLuyKeObj = await BytLinkage.findOne({ date: { $lte: dailyMatchDate }, cnldCount: { $gt: 0 } }).sort({ date: -1 });
+    if (!cnldLuyKeObj) {
+      cnldLuyKeObj = await BytLinkage.findOne({ cnldCount: { $gt: 0 } }).sort({ date: -1 });
+    }
+    const cnldLuyKe = cnldLuyKeObj ? cnldLuyKeObj.cnldCount : 0;
+
+    let tehsLuyKeObj = await BytLinkage.findOne({ date: { $lte: dailyMatchDate }, tehsCount: { $gt: 0 } }).sort({ date: -1 });
+    if (!tehsLuyKeObj) {
+      tehsLuyKeObj = await BytLinkage.findOne({ tehsCount: { $gt: 0 } }).sort({ date: -1 });
+    }
+    const tehsLuyKe = tehsLuyKeObj ? tehsLuyKeObj.tehsCount : 0;
 
     // Fetch cumulative CBCCVC (political reports)
     const politicalAgg = await DailyReport.aggregate([
@@ -1179,20 +1178,12 @@ app.get('/input', requireAuth, async (req, res) => {
         bytLinkageCount = currentLinkage.count;
       }
       
-      // Calculate overall cumulative sum for global metrics cards
-      const linkageSumAgg = await BytLinkage.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalCnld: { $sum: '$cnldCount' },
-            totalTehs: { $sum: '$tehsCount' }
-          }
-        }
-      ]);
-      if (linkageSumAgg.length > 0) {
-        cnldCount = linkageSumAgg[0].totalCnld || 0;
-        tehsCount = linkageSumAgg[0].totalTehs || 0;
-      }
+      // Get overall latest non-zero values for global metrics cards
+      const latestCnldObj = await BytLinkage.findOne({ cnldCount: { $gt: 0 } }).sort({ date: -1 });
+      cnldCount = latestCnldObj ? latestCnldObj.cnldCount : 0;
+
+      const latestTehsObj = await BytLinkage.findOne({ tehsCount: { $gt: 0 } }).sort({ date: -1 });
+      tehsCount = latestTehsObj ? latestTehsObj.tehsCount : 0;
     }
 
     const dashboardNoteText = await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)');
@@ -2143,19 +2134,7 @@ app.post('/admin/global-metrics', requireAuth, requireRole('admin'), async (req,
       });
     }
 
-    // Set all other dates to 0 to keep the global total consistent as a single sum
-    if (cnldVal !== undefined) {
-      await BytLinkage.updateMany(
-        { date: { $ne: selectedDate } },
-        { $set: { cnldCount: 0 } }
-      );
-    }
-    if (tehsVal !== undefined) {
-      await BytLinkage.updateMany(
-        { date: { $ne: selectedDate } },
-        { $set: { tehsCount: 0 } }
-      );
-    }
+    // Stop resetting other dates to 0 so we can preserve historical time-series data
 
     // Log this action
     let details = `Cập nhật số liệu KSK tỉnh ngày ${date}:`;
