@@ -193,7 +193,7 @@
 
       <!-- Table: Thống kê KSK các cơ quan trong hệ thống chính trị -->
       <% if (typeof dashboardPoliticalReports !=='undefined' ) { %>
-        <div class="glass-panel" style="margin-bottom: 2rem; overflow-x: auto;">
+        <div class="glass-panel" style="margin-bottom: 2rem;">
           <h3
             style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -202,59 +202,61 @@
             THỐNG KÊ KSK CÁC CQ TRONG HỆ THỐNG CHÍNH TRỊ
           </h3>
 
-          <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
-            <thead>
-              <tr
-                style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
-                <th
-                  style="padding: 0.75rem 0.5rem; width: 50px; text-align: center; border-right: 1px solid var(--panel-border);">
-                  STT</th>
-                <th style="padding: 0.75rem 0.5rem; border-right: 1px solid var(--panel-border);">Tên cơ quan, đơn vị
-                </th>
-                <th style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
-                  CBCC CV NLĐ</th>
-                <th style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
-                  đã KSK</th>
-                <th style="padding: 0.75rem 0.5rem; text-align: center; width: 120px;">Ngày báo cáo</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (dashboardPoliticalReports.length> 0) { %>
-                <% dashboardPoliticalReports.forEach((r, idx)=> { %>
-                  <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
-                    )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
-                    <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
-                      <td
-                        style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
-                        <%= idx + 1 %>
-                      </td>
-                      <td
-                        style="padding: 0.75rem 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
-                        <%= r.adminWorkplace %>
-                      </td>
-                      <td
-                        style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
-                        <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
-                      </td>
-                      <td
-                        style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
-                        <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
-                      </td>
-                      <td style="padding: 0.75rem 0.5rem; text-align: center; color: var(--text-secondary);">
-                        <%= rDateStr %>
-                      </td>
-                    </tr>
-                    <% }) %>
-                      <% } else { %>
-                        <tr>
-                          <td colspan="5"
-                            style="text-align: center; color: var(--text-secondary); padding: 1.5rem; font-size: 0.9rem;">
-                            Không có dữ liệu báo cáo cơ quan chính trị.
-                          </td>
-                        </tr>
-                        <% } %>
-            </tbody>
-          </table>
+          <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+              <thead>
+                <tr
+                  style="border-bottom: 2px solid var(--panel-border); text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
+                  <th class="sticky-thead"
+                    style="padding: 0.75rem 0.5rem; width: 50px; text-align: center; border-right: 1px solid var(--panel-border);">
+                    STT</th>
+                  <th class="sticky-thead" style="padding: 0.75rem 0.5rem; border-right: 1px solid var(--panel-border);">Tên cơ quan, đơn vị
+                  </th>
+                  <th class="sticky-thead" style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                    CBCC CV NLĐ</th>
+                  <th class="sticky-thead" style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">Số
+                    đã KSK</th>
+                  <th class="sticky-thead" style="padding: 0.75rem 0.5rem; text-align: center; width: 120px;">Ngày báo cáo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (dashboardPoliticalReports.length> 0) { %>
+                  <% dashboardPoliticalReports.forEach((r, idx)=> { %>
+                    <% const rDate=new Date(r.date); const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0'
+                      )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
+                      <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.9rem;">
+                        <td
+                          style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                          <%= idx + 1 %>
+                        </td>
+                        <td
+                          style="padding: 0.75rem 0.5rem; font-weight: 600; border-right: 1px solid var(--panel-border);">
+                          <%= r.adminWorkplace %>
+                        </td>
+                        <td
+                          style="padding: 0.75rem 0.5rem; text-align: center; border-right: 1px solid var(--panel-border);">
+                          <%= (r.adminWorkers || 0).toLocaleString('vi-VN') %>
+                        </td>
+                        <td
+                          style="padding: 0.75rem 0.5rem; text-align: center; font-weight: 700; color: var(--primary-color); border-right: 1px solid var(--panel-border);">
+                          <%= (r.adminPolitical || 0).toLocaleString('vi-VN') %>
+                        </td>
+                        <td style="padding: 0.75rem 0.5rem; text-align: center; color: var(--text-secondary);">
+                          <%= rDateStr %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="5"
+                              style="text-align: center; color: var(--text-secondary); padding: 1.5rem; font-size: 0.9rem;">
+                              Không có dữ liệu báo cáo cơ quan chính trị.
+                            </td>
+                          </tr>
+                          <% } %>
+              </tbody>
+            </table>
+          </div>
         </div>
         <% } %>
 

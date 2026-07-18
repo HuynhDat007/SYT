@@ -182,9 +182,11 @@ async function compileReportSvg(dateStr) {
 
   let grandDailyTotal = 0;
   let grandCumulativeTotal = 0;
-  let grandFirstHalfTotal = 833233;
+  const grandFirstHalfTotal = await getConfigValue('grand_first_half_checked', 833233);
   let grandTargetTotal = 0;
-  let grandResidentPopulation = 3194187;
+  const grandResidentPopulation = await getConfigValue('grand_resident_population', 3194187);
+  const campaignTarget = await getConfigValue('campaign_target', 2128099);
+  const campaignOffset = await getConfigValue('campaign_offset', 40000);
   let grandFirstHalfCheckedSum = 0;
 
   const reportsTable = [];
@@ -252,9 +254,9 @@ async function compileReportSvg(dateStr) {
 
   const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
   const includeTehs = await getConfigValue('include_tehs_in_total', true);
-  const grandOverallTotal = grandCumulativeTotal + 833233 + grandFirstHalfCheckedSum - 40000 + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
-  const progressRateCampaign = 2128099 > 0 ? (grandOverallTotal / 2128099) * 100 : 0;
+  const progressRateCampaign = campaignTarget > 0 ? (grandOverallTotal / campaignTarget) * 100 : 0;
 
   // Generate the SVG dynamic text nodes for the 96 communes
   let dynamicTexts = '';
@@ -307,7 +309,7 @@ async function compileReportSvg(dateStr) {
 
   // Replace "Tổng khám" text with placeholders so they get dynamic overall total values
   template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/\{5\}/g, '{4}/{5}');
-  template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/2\.128\.099/g, '{4}/2.128.099');
+  template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/2\.128\.099/g, '{4}/' + campaignTarget.toLocaleString('vi-VN'));
 
   // Replace top card counters using placeholders
   template = template.replace('%%GRAND_DAILY_TOTAL%%', grandDailyTotal.toLocaleString('vi-VN'));
@@ -639,9 +641,10 @@ app.get('/', async (req, res) => {
     let grandAdminCumulative = { under6: 0, from6To18: 0, over18: 0, total: 0 };
 
     let grandTarget = 0;
-    let grandResidentPopulation = 3194187;
+    const grandResidentPopulation = await getConfigValue('grand_resident_population', 3194187);
+    const grandFirstHalfChecked = await getConfigValue('grand_first_half_checked', 833233);
+    const campaignOffset = await getConfigValue('campaign_offset', 40000);
     let grandLocalManagedPopulation = 0;
-    let grandFirstHalfChecked = 833233;
     let grandFirstHalfCheckedSum = 0;
 
     let grandMonthly = {
@@ -779,7 +782,7 @@ app.get('/', async (req, res) => {
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = 833233 + displayCumulative.total + grandFirstHalfCheckedSum - 40000 + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+    const displayYearCumulative = grandFirstHalfChecked + displayCumulative.total + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -1198,6 +1201,11 @@ app.get('/input', requireAuth, async (req, res) => {
     const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
     const includeTehs = await getConfigValue('include_tehs_in_total', true);
 
+    const grandResidentPopulationConfig = await getConfigValue('grand_resident_population', 3194187);
+    const grandFirstHalfCheckedConfig = await getConfigValue('grand_first_half_checked', 833233);
+    const campaignTargetConfig = await getConfigValue('campaign_target', 2128099);
+    const campaignOffsetConfig = await getConfigValue('campaign_offset', 40000);
+
     res.render('input', {
       user: {
         id: req.session.userId,
@@ -1225,6 +1233,10 @@ app.get('/input', requireAuth, async (req, res) => {
       allowPastDateInput,
       includeCnldCbccvc,
       includeTehs,
+      grandResidentPopulationConfig,
+      grandFirstHalfCheckedConfig,
+      campaignTargetConfig,
+      campaignOffsetConfig,
       success: req.session.success || req.query.success || null,
       error: req.session.error || req.query.error || null
     });
@@ -1740,11 +1752,29 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
   }
 
-  const { noteText, noteVisible, allowPastDateInput, includeCnldCbccvc, includeTehs, date, unitId } = req.body;
+  const {
+    noteText,
+    noteVisible,
+    allowPastDateInput,
+    includeCnldCbccvc,
+    includeTehs,
+    date,
+    unitId,
+    grandResidentPopulation,
+    grandFirstHalfChecked,
+    campaignTarget,
+    campaignOffset
+  } = req.body;
+
   const isVisible = noteVisible === 'true' || noteVisible === true;
   const isAllowPast = allowPastDateInput === 'true' || allowPastDateInput === true;
   const isIncludeCnldCbccvc = includeCnldCbccvc === 'true' || includeCnldCbccvc === true;
   const isIncludeTehs = includeTehs === 'true' || includeTehs === true;
+
+  const parsedResidentPopulation = parseInt(grandResidentPopulation);
+  const parsedFirstHalfChecked = parseInt(grandFirstHalfChecked);
+  const parsedCampaignTarget = parseInt(campaignTarget);
+  const parsedCampaignOffset = parseInt(campaignOffset);
 
   try {
     await SystemConfig.findOneAndUpdate(
@@ -1777,13 +1807,45 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       { upsert: true, new: true }
     );
 
+    if (!isNaN(parsedResidentPopulation)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'grand_resident_population' },
+        { value: parsedResidentPopulation },
+        { upsert: true, new: true }
+      );
+    }
+
+    if (!isNaN(parsedFirstHalfChecked)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'grand_first_half_checked' },
+        { value: parsedFirstHalfChecked },
+        { upsert: true, new: true }
+      );
+    }
+
+    if (!isNaN(parsedCampaignTarget)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'campaign_target' },
+        { value: parsedCampaignTarget },
+        { upsert: true, new: true }
+      );
+    }
+
+    if (!isNaN(parsedCampaignOffset)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'campaign_offset' },
+        { value: parsedCampaignOffset },
+        { upsert: true, new: true }
+      );
+    }
+
     // Log update
     await AuditLog.create({
       userId: req.session.userId,
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}`
+      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}, tổng dân số toàn tỉnh=${parsedResidentPopulation}, đã khám 6T đầu năm=${parsedFirstHalfChecked}, chỉ tiêu chiến dịch=${parsedCampaignTarget}, sai số điều chỉnh=${parsedCampaignOffset}`
     });
 
     return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);

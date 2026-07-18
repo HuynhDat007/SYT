@@ -914,6 +914,44 @@
                           thị ghi chú trên Dashboard</label>
                       </div>
 
+                      <!-- New Admin Config Fields for Campaign Targets & Populations -->
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                          <label for="grandResidentPopulationConfig"
+                            style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Tổng dân số toàn
+                            tỉnh</label>
+                          <input type="number" id="grandResidentPopulationConfig" name="grandResidentPopulation"
+                            class="form-control no-icon" value="<%= grandResidentPopulationConfig %>" required
+                            style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                          <label for="grandFirstHalfCheckedConfig"
+                            style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Đã khám 6T đầu năm</label>
+                          <input type="number" id="grandFirstHalfCheckedConfig" name="grandFirstHalfChecked"
+                            class="form-control no-icon" value="<%= grandFirstHalfCheckedConfig %>" required
+                            style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                          <label for="campaignTargetConfig"
+                            style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Số lượng nhóm ưu tiên đã
+                            khám</label>
+                          <input type="number" id="campaignTargetConfig" name="campaignTarget"
+                            class="form-control no-icon" value="<%= campaignTargetConfig %>" required
+                            style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                          <label for="campaignOffsetConfig"
+                            style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Sai số điều chỉnh (Trừ
+                            bớt)</label>
+                          <input type="number" id="campaignOffsetConfig" name="campaignOffset"
+                            class="form-control no-icon" value="<%= campaignOffsetConfig %>" required
+                            style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
+                        </div>
+                      </div>
+
                       <div class="form-group" style="margin-bottom: 1.25rem;">
                         <label for="noteText" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Nội dung
                           ghi
