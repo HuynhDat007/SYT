@@ -1053,6 +1053,14 @@
       font-family: 'Momo Trust Display Web';
       src: url('data:application/x-font-ttf;charset=utf-8;base64,${MOMO_FONT_BASE64}') format('truetype');
     }
+    text, tspan {
+      font-family: 'Momo Trust Display Web', 'Momo Trust Display', sans-serif !important;
+      paint-order: stroke fill;
+    }
+    .center-text, .center-text tspan {
+      text-anchor: middle !important;
+      white-space: normal !important;
+    }
   </style>
 </defs>
 `;
