@@ -83,6 +83,11 @@ const DailyReportSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
+  },
+  type: {
+    type: String,
+    enum: ['commune', 'admin_general', 'workplace', 'political'],
+    default: 'commune'
   }
 }, {
   timestamps: true
@@ -92,5 +97,7 @@ const DailyReportSchema = new mongoose.Schema({
 DailyReportSchema.index({ date: 1, centerId: 1 });
 // Index for quick queries of all data for a unit
 DailyReportSchema.index({ date: 1, unitId: 1 });
+// Index for type-based query speed
+DailyReportSchema.index({ date: 1, centerId: 1, type: 1 });
 
 module.exports = mongoose.model('DailyReport', DailyReportSchema);

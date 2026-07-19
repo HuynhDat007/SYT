@@ -400,10 +400,10 @@
                       </button>
                     </h3>
 
-                    <% const generalReports=reports.filter(r=> !r.adminWorkplace && r.unitId && r.unitId.toString() ===
-                      selectedUnitId);
-                      const workplaceReports = reports.filter(r => r.adminWorkplace && !r.adminIsPolitical);
-                      %>
+                    <% 
+                    const generalReports = reports.filter(r => r.type === 'admin_general' && r.unitId && r.unitId.toString() === selectedUnitId);
+                    const workplaceReports = reports.filter(r => r.adminWorkplace && !r.adminIsPolitical);
+                    %>
 
                       <table class="table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
                         <thead>
@@ -422,12 +422,10 @@
                         <tbody id="general-table-body">
                           <% if (generalReports.length> 0) { %>
                             <% generalReports.forEach((r, idx)=> { %>
-                              <% const rTotal=(r.adminUnder6 || 0) + (r.adminFrom6To18 || 0) + (r.adminOver18 || 0); %>
-                                <% const rDate=new Date(r.date); const
-                                  rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0' )}/${String(rDate.getUTCMonth()
-                                  + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
-                                  <% const rDateVal=`${rDate.getUTCFullYear()}-${String(rDate.getUTCMonth() +
-                                    1).padStart(2, '0' )}-${String(rDate.getUTCDate()).padStart(2, '0' )}`; %>
+                              <% const rTotal = (r.adminUnder6 || 0) + (r.adminFrom6To18 || 0) + (r.adminOver18 || 0); %>
+                              <% const rDate=new Date(r.date); %>
+                              <% const rDateStr=`${String(rDate.getUTCDate()).padStart(2, '0' )}/${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}/${rDate.getUTCFullYear()}`; %>
+                              <% const rDateVal=`${rDate.getUTCFullYear()}-${String(rDate.getUTCMonth() + 1).padStart(2, '0' )}-${String(rDate.getUTCDate()).padStart(2, '0' )}`; %>
                                     <tr style="border-bottom: 1px solid var(--panel-border); font-size: 0.82rem;">
                                       <td style="padding: 0.5rem; text-align: center;">
                                         <%= idx + 1 %>
@@ -436,8 +434,8 @@
                                         <%= rDateStr %>
                                       </td>
                                       <td style="padding: 0.5rem;">
-                                        <%= r.centerId ? r.centerId.name : '-' %>
-                                      </td>
+                                         <%= r.centerId ? r.centerId.name : '-' %>
+                                       </td>
                                       <td style="padding: 0.5rem; text-align: center;">
                                         <%= r.adminUnder6 || 0 %>
                                       </td>
@@ -455,7 +453,7 @@
                                         <div style="display: flex; gap: 0.35rem; justify-content: center;">
                                           <button type="button" class="btn btn-secondary"
                                             style="padding: 0.2rem 0.35rem; font-size: 0.7rem; border-radius: 4px; min-width: auto; height: auto;"
-                                            onclick="editAdminGeneralReport('<%= r._id %>', '<%= r.unitId ? r.unitId._id : '' %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= rDateVal %>', <%= r.adminUnder6 || 0 %>, <%= r.adminFrom6To18 || 0 %>, <%= r.adminOver18 || 0 %>)">
+                                            onclick="editAdminGeneralReport('<%= r._id %>', '<%= r.unitId ? (r.unitId._id || r.unitId) : selectedUnitId %>', '<%= r.centerId ? r.centerId._id : '' %>', '<%= rDateVal %>', <%= r.adminUnder6 || 0 %>, <%= r.adminFrom6To18 || 0 %>, <%= r.adminOver18 || 0 %>)">
                                             Sửa
                                           </button>
                                           <form action="/input/delete" method="POST"

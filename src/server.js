@@ -1346,38 +1346,50 @@ app.post('/input', requireAuth, async (req, res) => {
     if (reportId && reportId !== '') {
       existing = await DailyReport.findById(reportId);
     } else if (isGeneralAdminInput) {
-      existing = await DailyReport.findOne({ date: selectedDate, centerId: cId, $or: [{ adminWorkplace: '' }, { adminWorkplace: { $exists: false } }] });
+      existing = await DailyReport.findOne({ date: selectedDate, centerId: cId, type: 'admin_general' });
     } else if (!isAdmin) {
-      existing = await DailyReport.findOne({ date: selectedDate, centerId: cId });
+      existing = await DailyReport.findOne({ date: selectedDate, unitId: uId, type: 'commune' });
     }
 
     if (existing) {
       // Update
-      const oldUnder6 = isAdmin ? existing.adminUnder6 : existing.under6;
-      const oldFrom6To18 = isAdmin ? existing.adminFrom6To18 : existing.from6To18;
-      const oldOver18 = isAdmin ? existing.adminOver18 : existing.over18;
+      const isCommuneRecord = existing.type === 'commune';
+      const oldUnder6 = (isAdmin && !isCommuneRecord) ? existing.adminUnder6 : existing.under6;
+      const oldFrom6To18 = (isAdmin && !isCommuneRecord) ? existing.adminFrom6To18 : existing.from6To18;
+      const oldOver18 = (isAdmin && !isCommuneRecord) ? existing.adminOver18 : existing.over18;
 
       if (isAdmin) {
-        existing.adminUnder6 = valUnder6;
-        existing.adminFrom6To18 = valFrom6To18;
-        existing.adminOver18 = valOver18;
-        existing.adminWorkplace = workplace;
-        existing.adminWorkers = workers;
-        existing.adminChildren = children;
-        existing.adminPolitical = political;
-        existing.adminOthers = others;
-        existing.adminIsPolitical = isPoliticalInput;
-        if (isGeneralAdminInput) {
-          existing.unitId = uId;
-          existing.centerId = cId;
+        if (isCommuneRecord) {
+          existing.under6 = valUnder6;
+          existing.from6To18 = valFrom6To18;
+          existing.over18 = valOver18;
+          existing.centerId = null; // Decouple commune report from station
         } else {
-          existing.unitId = null;
-          existing.centerId = null;
+          existing.adminUnder6 = valUnder6;
+          existing.adminFrom6To18 = valFrom6To18;
+          existing.adminOver18 = valOver18;
+          existing.adminWorkplace = workplace;
+          existing.adminWorkers = workers;
+          existing.adminChildren = children;
+          existing.adminPolitical = political;
+          existing.adminOthers = others;
+          existing.adminIsPolitical = isPoliticalInput;
+          if (isGeneralAdminInput) {
+            existing.unitId = uId;
+            existing.centerId = cId;
+            existing.type = 'admin_general';
+          } else {
+            existing.unitId = null;
+            existing.centerId = null;
+            existing.type = isPoliticalInput ? 'political' : 'workplace';
+          }
         }
       } else {
         existing.under6 = valUnder6;
         existing.from6To18 = valFrom6To18;
         existing.over18 = valOver18;
+        existing.type = 'commune';
+        existing.centerId = null; // Decouple commune report from station
       }
       existing.updatedBy = req.session.userId;
       await existing.save();
@@ -1417,6 +1429,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminPolitical = 0;
           createData.adminOthers = 0;
           createData.adminIsPolitical = false;
+          createData.type = 'admin_general';
         } else {
           createData.unitId = null;
           createData.centerId = null;
@@ -1429,6 +1442,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminPolitical = political;
           createData.adminOthers = others;
           createData.adminIsPolitical = isPoliticalInput;
+          createData.type = isPoliticalInput ? 'political' : 'workplace';
         }
 
         createData.under6 = 0;
@@ -1436,7 +1450,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.over18 = 0;
       } else {
         createData.unitId = uId;
-        createData.centerId = cId;
+        createData.centerId = null; // Decouple commune report from station
         createData.under6 = valUnder6;
         createData.from6To18 = valFrom6To18;
         createData.over18 = valOver18;
@@ -1450,6 +1464,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.adminPolitical = 0;
         createData.adminOthers = 0;
         createData.adminIsPolitical = false;
+        createData.type = 'commune';
       }
 
       await DailyReport.create(createData);
@@ -1496,44 +1511,43 @@ app.post('/input/delete', requireAuth, async (req, res) => {
     const centerName = report.centerId ? report.centerId.name : '-';
     const isAdmin = req.session.userRole === 'admin';
 
+    // Block deleting commune reports (Số liệu do Xã/Phường tự nhập)
+    if (report.type === 'commune') {
+      return res.redirect(`/input?date=${date}&unitId=${unitId}&error=${encodeURIComponent('Không được phép xóa số liệu của Xã/Phường tự nhập')}`);
+    }
+
+    // Delete the document entirely since they are separate documents
+    await DailyReport.deleteOne({ _id: reportId });
+
     if (isAdmin) {
       const workplace = report.adminWorkplace || '';
-      await DailyReport.deleteOne({ _id: reportId });
-
-      // Log deletion
-      await AuditLog.create({
-        userId: req.session.userId,
-        username: req.session.username,
-        action: 'DELETE',
-        targetType: 'REPORT',
-        details: `Xóa đơn vị KSK [${workplace}] tại [${centerName}] ngày ${formattedDate}`
-      });
-    } else {
-      const oldUnder6 = report.under6;
-      const oldFrom6To18 = report.from6To18;
-      const oldOver18 = report.over18;
-
-      report.under6 = 0;
-      report.from6To18 = 0;
-      report.over18 = 0;
-      report.updatedBy = req.session.userId;
-
-      const hasCommuneData = report.under6 > 0 || report.from6To18 > 0 || report.over18 > 0;
-      const hasAdminData = report.adminUnder6 > 0 || report.adminFrom6To18 > 0 || report.adminOver18 > 0;
-
-      if (!hasCommuneData && !hasAdminData) {
-        await DailyReport.deleteOne({ _id: reportId });
+      if (!workplace || workplace.trim() === '') {
+        // Log deletion of admin general report
+        await AuditLog.create({
+          userId: req.session.userId,
+          username: req.session.username,
+          action: 'DELETE',
+          targetType: 'REPORT',
+          details: `Xóa số liệu Sở nhập [${centerName}] ngày ${formattedDate}: Dưới 6 tuổi (${report.adminUnder6}), 6-18 tuổi (${report.adminFrom6To18}), Trên 18 tuổi (${report.adminOver18})`
+        });
       } else {
-        await report.save();
+        // Log deletion of workplace/political report
+        await AuditLog.create({
+          userId: req.session.userId,
+          username: req.session.username,
+          action: 'DELETE',
+          targetType: 'REPORT',
+          details: `Xóa đơn vị KSK [${workplace}] tại [${centerName}] ngày ${formattedDate}`
+        });
       }
-
-      // Log deletion (acting as clear/reset)
+    } else {
+      // Log deletion of commune report
       await AuditLog.create({
         userId: req.session.userId,
         username: req.session.username,
         action: 'DELETE',
         targetType: 'REPORT',
-        details: `Xóa số liệu [${centerName}] ngày ${formattedDate} (Xã/Phường nhập): Dưới 6 tuổi (${oldUnder6}), 6-18 tuổi (${oldFrom6To18}), Trên 18 tuổi (${oldOver18})`
+        details: `Xóa số liệu [${centerName}] ngày ${formattedDate} (Xã/Phường nhập): Dưới 6 tuổi (${report.under6}), 6-18 tuổi (${report.from6To18}), Trên 18 tuổi (${report.over18})`
       });
     }
 
