@@ -837,12 +837,13 @@ body.no-scroll {
     right: -300px;
     width: 280px;
     height: 100vh;
+    height: 100dvh;
     background: var(--panel-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-left: 1px solid var(--panel-border);
     z-index: 1000;
-    padding: 5rem 1.5rem 2rem;
+    padding: 5rem 1.5rem calc(3.5rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
     gap: 0.5rem;

@@ -59,6 +59,10 @@ const DailyReportSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  adminIncludeInTotal: {
+    type: Boolean,
+    default: false
+  },
   adminWorkers: {
     type: Number,
     min: 0,

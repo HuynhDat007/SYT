@@ -254,7 +254,35 @@ async function compileReportSvg(dateStr) {
 
   const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
   const includeTehs = await getConfigValue('include_tehs_in_total', true);
-  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+
+  // Fetch cumulative workplace reports that are marked to be included in total
+  const workplaceIncludedAgg = await DailyReport.aggregate([
+    {
+      $match: {
+        date: { $gte: startDate, $lte: selectedDate },
+        type: 'workplace',
+        adminIncludeInTotal: true
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalWorkplace: {
+          $sum: {
+            $add: [
+              { $ifNull: ['$adminWorkers', 0] },
+              { $ifNull: ['$adminChildren', 0] },
+              { $ifNull: ['$adminPolitical', 0] },
+              { $ifNull: ['$adminOthers', 0] }
+            ]
+          }
+        }
+      }
+    }
+  ]);
+  const workplaceIncludedLuyKe = workplaceIncludedAgg.length > 0 ? workplaceIncludedAgg[0].totalWorkplace : 0;
+
+  const grandOverallTotal = grandCumulativeTotal + grandFirstHalfTotal + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0) + workplaceIncludedLuyKe;
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = campaignTarget > 0 ? (grandOverallTotal / campaignTarget) * 100 : 0;
 
@@ -778,10 +806,38 @@ app.get('/', async (req, res) => {
 
     const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
     const includeTehs = await getConfigValue('include_tehs_in_total', true);
+
+    // Fetch cumulative workplace reports that are marked to be included in total
+    const workplaceIncludedAgg = await DailyReport.aggregate([
+      {
+        $match: {
+          date: { $gte: startDate, $lte: dailyMatchDate },
+          type: 'workplace',
+          adminIncludeInTotal: true
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalWorkplace: {
+            $sum: {
+              $add: [
+                { $ifNull: ['$adminWorkers', 0] },
+                { $ifNull: ['$adminChildren', 0] },
+                { $ifNull: ['$adminPolitical', 0] },
+                { $ifNull: ['$adminOthers', 0] }
+              ]
+            }
+          }
+        }
+      }
+    ]);
+    const workplaceIncludedLuyKe = workplaceIncludedAgg.length > 0 ? workplaceIncludedAgg[0].totalWorkplace : 0;
+
     const isUserAdmin = req.session.userRole === 'admin';
     const displayDaily = grandDaily;
     const displayCumulative = grandCumulative;
-    const displayYearCumulative = grandFirstHalfChecked + displayCumulative.total + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0);
+    const displayYearCumulative = grandFirstHalfChecked + displayCumulative.total + grandFirstHalfCheckedSum - campaignOffset + (includeTehs ? tehsLuyKe : 0) + (includeCnldCbccvc ? (cnldLuyKe + cbccvcLuyKe) : 0) + workplaceIncludedLuyKe;
     const displayOverallCompletionRate = grandTarget > 0 ? (displayYearCumulative / grandTarget) * 100 : 0;
 
     // Admin health centers data aggregation
@@ -1251,7 +1307,8 @@ app.post('/input', requireAuth, async (req, res) => {
     adminChildren,
     adminPolitical,
     adminOthers,
-    adminInputMode
+    adminInputMode,
+    adminIncludeInTotal
   } = req.body;
 
   let targetUnitId = req.session.userId;
@@ -1378,10 +1435,12 @@ app.post('/input', requireAuth, async (req, res) => {
             existing.unitId = uId;
             existing.centerId = cId;
             existing.type = 'admin_general';
+            existing.adminIncludeInTotal = false;
           } else {
             existing.unitId = null;
             existing.centerId = null;
             existing.type = isPoliticalInput ? 'political' : 'workplace';
+            existing.adminIncludeInTotal = !isPoliticalInput && (adminIncludeInTotal === 'true' || adminIncludeInTotal === true);
           }
         }
       } else {
@@ -1429,6 +1488,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminPolitical = 0;
           createData.adminOthers = 0;
           createData.adminIsPolitical = false;
+          createData.adminIncludeInTotal = false;
           createData.type = 'admin_general';
         } else {
           createData.unitId = null;
@@ -1442,6 +1502,7 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminPolitical = political;
           createData.adminOthers = others;
           createData.adminIsPolitical = isPoliticalInput;
+          createData.adminIncludeInTotal = !isPoliticalInput && (adminIncludeInTotal === 'true' || adminIncludeInTotal === true);
           createData.type = isPoliticalInput ? 'political' : 'workplace';
         }
 
@@ -1464,6 +1525,7 @@ app.post('/input', requireAuth, async (req, res) => {
         createData.adminPolitical = 0;
         createData.adminOthers = 0;
         createData.adminIsPolitical = false;
+        createData.adminIncludeInTotal = false;
         createData.type = 'commune';
       }
 
