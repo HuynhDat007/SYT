@@ -851,7 +851,7 @@ app.get('/', async (req, res) => {
         const cId = center._id.toString();
 
         // daily for this center
-        const cDailyReport = centerDailyReports.find(r => r.centerId.toString() === cId);
+        const cDailyReport = centerDailyReports.find(r => r.centerId && r.centerId.toString() === cId);
         const cDaily = cDailyReport ? {
           under6: cDailyReport.under6,
           from6To18: cDailyReport.from6To18,
@@ -862,7 +862,7 @@ app.get('/', async (req, res) => {
         // cumulative for this center
         let cCum = { under6: 0, from6To18: 0, over18: 0, total: 0 };
         centerCumulativeReports.forEach(r => {
-          if (r.centerId.toString() === cId) {
+          if (r.centerId && r.centerId.toString() === cId) {
             cCum.under6 += r.under6;
             cCum.from6To18 += r.from6To18;
             cCum.over18 += r.over18;
