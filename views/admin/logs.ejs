@@ -98,10 +98,22 @@
           <a href="/admin/logs?page=<%= currentPage - 1 %>&username=<%= usernameQuery %>&action=<%= actionQuery %>" class="pagination-btn">&laquo;</a>
         <% } %>
         
-        <% for(let i = 1; i <= totalPages; i++) { %>
+        <% 
+          let startPage = Math.max(1, currentPage - 2);
+          let endPage = Math.min(totalPages, currentPage + 2);
+        %>
+        <% if (startPage > 1) { %>
+          <a href="/admin/logs?page=1&username=<%= usernameQuery %>&action=<%= actionQuery %>" class="pagination-btn <%= currentPage === 1 ? 'active' : '' %>">1</a>
+          <% if (startPage > 2) { %><span class="pagination-ellipsis">...</span><% } %>
+        <% } %>
+        <% for(let i = startPage; i <= endPage; i++) { %>
           <a href="/admin/logs?page=<%= i %>&username=<%= usernameQuery %>&action=<%= actionQuery %>" class="pagination-btn <%= currentPage === i ? 'active' : '' %>">
             <%= i %>
           </a>
+        <% } %>
+        <% if (endPage < totalPages) { %>
+          <% if (endPage < totalPages - 1) { %><span class="pagination-ellipsis">...</span><% } %>
+          <a href="/admin/logs?page=<%= totalPages %>&username=<%= usernameQuery %>&action=<%= actionQuery %>" class="pagination-btn <%= currentPage === totalPages ? 'active' : '' %>"><%= totalPages %></a>
         <% } %>
         
         <% if (currentPage < totalPages) { %>
