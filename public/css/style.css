@@ -344,6 +344,8 @@ h1.page-title::after {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
   border-radius: 12px;
   border: 1px solid var(--panel-border);
 }
@@ -363,6 +365,9 @@ h1.page-title::after {
   border-bottom: 2px solid var(--panel-border);
   border-right: 1px solid var(--panel-border);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .data-table td {
