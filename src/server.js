@@ -1046,6 +1046,22 @@ app.get('/', async (req, res) => {
       adminIsPolitical: true
     }).sort({ date: 1, createdAt: 1 });
 
+    // Sort political system reports by completion rate descending (from high to low)
+    dashboardPoliticalReports.sort((a, b) => {
+      const workersA = a.adminWorkers || 0;
+      const politicalA = a.adminPolitical || 0;
+      const rateA = workersA > 0 ? (politicalA / workersA) * 100 : 0;
+
+      const workersB = b.adminWorkers || 0;
+      const politicalB = b.adminPolitical || 0;
+      const rateB = workersB > 0 ? (politicalB / workersB) * 100 : 0;
+
+      if (rateB !== rateA) {
+        return rateB - rateA;
+      }
+      return (a.adminWorkplace || '').localeCompare(b.adminWorkplace || '', 'vi', { sensitivity: 'base' });
+    });
+
     // Generate the SVG report for the dashboard
     const svgContent = await compileReportSvg(formatDateString(dailyMatchDate));
 
