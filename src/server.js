@@ -194,6 +194,8 @@ async function compileReportSvg(dateStr) {
     const uId = unit._id.toString();
     const dailyVal = dailyMap[uId] ? dailyMap[uId].total : 0;
     const cumulativeVal = cumulativeMap[uId] ? cumulativeMap[uId].total : 0;
+    const targetVal = unit.planTarget || 0;
+    const completionRateVal = targetVal > 0 ? (cumulativeVal / targetVal) * 100 : 0;
 
     reportsTable.push({
       unitName: unit.unitName,
@@ -201,13 +203,22 @@ async function compileReportSvg(dateStr) {
       cumulative: cumulativeVal,
       residentPopulation: unit.residentPopulation || 0,
       firstHalfChecked: unit.firstHalfChecked || 0,
-      planTarget: unit.planTarget || 0
+      planTarget: targetVal,
+      completionRate: completionRateVal
     });
 
     grandDailyTotal += dailyVal;
     grandCumulativeTotal += cumulativeVal;
-    grandTargetTotal += (unit.planTarget || 0);
+    grandTargetTotal += targetVal;
     grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
+  });
+
+  // Sort reportsTable by completion rate descending (from high to low)
+  reportsTable.sort((a, b) => {
+    if (b.completionRate !== a.completionRate) {
+      return b.completionRate - a.completionRate;
+    }
+    return a.unitName.localeCompare(b.unitName, 'vi', { sensitivity: 'base' });
   });
 
   // Fetch BYT Linkage count for this date and cumulative
@@ -934,13 +945,16 @@ app.get('/', async (req, res) => {
       });
     }
 
-    // Top 5 units and Bottom 5 units for Chart visualization
-    const sortedByCompletion = [...reportsTable].sort((a, b) => {
+    // Sort reportsTable by completion rate descending (from high to low)
+    reportsTable.sort((a, b) => {
       const rateA = isUserAdmin ? a.adminCompletionRate : a.completionRate;
       const rateB = isUserAdmin ? b.adminCompletionRate : b.completionRate;
-      return rateB - rateA;
+      if (rateB !== rateA) {
+        return rateB - rateA;
+      }
+      return a.unitName.localeCompare(b.unitName, 'vi', { sensitivity: 'base' });
     });
-    const topUnits = sortedByCompletion.slice(0, 5).map(u => ({
+    const topUnits = reportsTable.slice(0, 5).map(u => ({
       ...u,
       completionRate: isUserAdmin ? u.adminCompletionRate : u.completionRate
     }));
