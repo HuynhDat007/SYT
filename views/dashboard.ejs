@@ -1077,8 +1077,13 @@
                   }
                 };
 
-                // Export units table to Excel using SheetJS for native .xlsx mobile & desktop compatibility
-                window.exportUnitsTableToExcel = function () {
+                // Export units table to Excel using ExcelJS for genuine .xlsx with 100% full colors & styling on Mobile & PC
+                window.exportUnitsTableToExcel = async function () {
+                  if (!window.ExcelJS) {
+                    alert("Thư viện xuất Excel đang được tải, vui lòng thử lại sau vài giây.");
+                    return;
+                  }
+
                   const mode = window.currentTableMode || 'month';
                   const dateInput = document.getElementById('dashboard-date-picker');
                   const selectedDateStr = dateInput ? dateInput.value : '';
@@ -1109,93 +1114,180 @@
                   };
 
                   const dayThs = document.querySelectorAll('#units-table thead tr:first-child th.col-day');
-                  const aoa = [];
-                  const merges = [];
+                  const totalCols = mode === 'month' ? 17 : (8 + dayThs.length);
 
-                  // Title row
+                  const workbook = new ExcelJS.Workbook();
+                  const worksheet = workbook.addWorksheet('Thống kê 96 xã phường', {
+                    views: [{ showGridLines: true }]
+                  });
+
+                  const borderStyle = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                  };
+
+                  // Title Row
                   const titleText = `BẢNG THỐNG KÊ CHI TIẾT 96 XÃ / PHƯỜNG ${formattedDateTitle ? '- NGÀY ' + formattedDateTitle : ''}`;
-                  aoa.push([titleText]);
-                  aoa.push([]); // Blank row
+                  const titleRow = worksheet.addRow([titleText]);
+                  titleRow.height = 35;
+                  worksheet.mergeCells(1, 1, 1, totalCols);
+                  const titleCell = titleRow.getCell(1);
+                  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF0284C7' } };
+                  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-                  let maxColIndex = 7;
+                  // Blank Row
+                  worksheet.addRow([]);
 
                   if (mode === 'month') {
-                    maxColIndex = 16;
-                    // Header Row 1
-                    aoa.push([
-                      'STT',
-                      'Tên xã phường',
-                      'Tổng nhân khẩu',
-                      'Nhân khẩu địa phương quản lý',
-                      'Số người khám 6 tháng đầu năm',
-                      'Số người cần khám 90 ngày',
-                      'Số người đã KSK trong 90 ngày',
-                      'Tỷ lệ hoàn thành 90 ngày (%)',
-                      'Tháng 7', '', '',
-                      'Tháng 8', '', '',
-                      'Tháng 9', '', ''
+                    // Header Row 1 (Row 3)
+                    const h1Row = worksheet.addRow([
+                      'STT', 'Tên xã phường', 'Tổng nhân khẩu', 'Nhân khẩu địa phương quản lý',
+                      'Số người khám 6 tháng đầu năm', 'Số người cần khám 90 ngày',
+                      'Số người đã KSK trong 90 ngày', 'Tỷ lệ hoàn thành 90 ngày',
+                      'Tháng 7', '', '', 'Tháng 8', '', '', 'Tháng 9', '', ''
                     ]);
-                    // Header Row 2
-                    aoa.push([
+                    h1Row.height = 25;
+
+                    // Header Row 2 (Row 4)
+                    const h2Row = worksheet.addRow([
                       '', '', '', '', '', '', '', '',
                       '< 6 tuổi', '[6, 18]', '> 18 tuổi',
                       '< 6 tuổi', '[6, 18]', '> 18 tuổi',
                       '< 6 tuổi', '[6, 18]', '> 18 tuổi'
                     ]);
+                    h2Row.height = 22;
 
-                    // Merges
-                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 16 } }); // Title
-                    for (let c = 0; c <= 7; c++) {
-                      merges.push({ s: { r: 2, c }, e: { r: 3, c } }); // Main headers
+                    // Merge Main Headers (Rows 3-4)
+                    for (let c = 1; c <= 8; c++) {
+                      worksheet.mergeCells(3, c, 4, c);
+                      const cell = worksheet.getCell(3, c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                      cell.border = borderStyle;
                     }
-                    merges.push({ s: { r: 2, c: 8 }, e: { r: 2, c: 10 } }); // Tháng 7
-                    merges.push({ s: { r: 2, c: 11 }, e: { r: 2, c: 13 } }); // Tháng 8
-                    merges.push({ s: { r: 2, c: 14 }, e: { r: 2, c: 16 } }); // Tháng 9
+
+                    // Month 7 Header (Cols 9-11)
+                    worksheet.mergeCells(3, 9, 3, 11);
+                    const m7Cell = worksheet.getCell(3, 9);
+                    m7Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                    m7Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    m7Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    m7Cell.border = borderStyle;
+
+                    // Month 8 Header (Cols 12-14)
+                    worksheet.mergeCells(3, 12, 3, 14);
+                    const m8Cell = worksheet.getCell(3, 12);
+                    m8Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF059669' } };
+                    m8Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    m8Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    m8Cell.border = borderStyle;
+
+                    // Month 9 Header (Cols 15-17)
+                    worksheet.mergeCells(3, 15, 3, 17);
+                    const m9Cell = worksheet.getCell(3, 15);
+                    m9Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD97706' } };
+                    m9Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    m9Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    m9Cell.border = borderStyle;
+
+                    // Sub Headers (Row 4, Cols 9-17)
+                    for (let c = 9; c <= 11; c++) {
+                      const cell = h2Row.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+                      cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF0369A1' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      cell.border = borderStyle;
+                    }
+                    for (let c = 12; c <= 14; c++) {
+                      const cell = h2Row.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD1FAE5' } };
+                      cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF047857' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      cell.border = borderStyle;
+                    }
+                    for (let c = 15; c <= 17; c++) {
+                      const cell = h2Row.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE3C7' } };
+                      cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FFB45309' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      cell.border = borderStyle;
+                    }
                   } else {
+                    // Day Mode Headers
                     const dayHeaders = [];
                     dayThs.forEach(th => dayHeaders.push(th.textContent.trim()));
-                    maxColIndex = 7 + dayHeaders.length;
-
-                    aoa.push([
-                      'STT',
-                      'Tên xã phường',
-                      'Tổng nhân khẩu',
-                      'Nhân khẩu địa phương quản lý',
-                      'Số người khám 6 tháng đầu năm',
-                      'Số người cần khám 90 ngày',
-                      'Số người đã KSK trong 90 ngày',
-                      'Tỷ lệ hoàn thành 90 ngày (%)',
+                    const hRow = worksheet.addRow([
+                      'STT', 'Tên xã phường', 'Tổng nhân khẩu', 'Nhân khẩu địa phương quản lý',
+                      'Số người khám 6 tháng đầu năm', 'Số người cần khám 90 ngày',
+                      'Số người đã KSK trong 90 ngày', 'Tỷ lệ hoàn thành 90 ngày',
                       ...dayHeaders
                     ]);
-
-                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: maxColIndex } }); // Title
+                    hRow.height = 25;
+                    for (let c = 1; c <= totalCols; c++) {
+                      const cell = hRow.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                      cell.border = borderStyle;
+                    }
                   }
 
                   // Summary Row
                   const topSummaryTr = document.querySelector('#units-table tbody tr');
                   if (topSummaryTr) {
                     const tds = topSummaryTr.children;
-                    const summaryRow = ['TỔNG CỘNG', ''];
+                    const summaryValues = ['TỔNG CỘNG', ''];
 
                     for (let i = 1; i <= 5; i++) {
-                      summaryRow.push(tds[i] ? parseNum(tds[i].textContent) : 0);
+                      summaryValues.push(tds[i] ? parseNum(tds[i].textContent) : 0);
                     }
-                    summaryRow.push(parseRateText(tds[6]));
+                    summaryValues.push(parseRateText(tds[6]));
 
                     if (mode === 'month') {
                       const monthTds = topSummaryTr.querySelectorAll('.col-month');
-                      monthTds.forEach(td => summaryRow.push(parseNum(td.textContent)));
+                      monthTds.forEach(td => summaryValues.push(parseNum(td.textContent)));
                     } else {
                       const dayTds = topSummaryTr.querySelectorAll('.col-day');
-                      dayTds.forEach(td => summaryRow.push(parseNum(td.textContent)));
+                      dayTds.forEach(td => summaryValues.push(parseNum(td.textContent)));
                     }
 
-                    const summaryRowIndex = aoa.length;
-                    aoa.push(summaryRow);
-                    merges.push({ s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 1 } });
+                    const sRow = worksheet.addRow(summaryValues);
+                    sRow.height = 24;
+                    const sRowIdx = sRow.number;
+
+                    worksheet.mergeCells(sRowIdx, 1, sRowIdx, 2);
+
+                    const summaryBorder = {
+                      top: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                      bottom: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    for (let c = 1; c <= totalCols; c++) {
+                      const cell = sRow.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: (c === 8 ? { argb: 'FF0284C7' } : { argb: 'FF0F172A' }) };
+                      cell.border = summaryBorder;
+
+                      if (c === 1) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      } else if (c >= 3 && c <= 7) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 8) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                      } else {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFmt = '#,##0';
+                      }
+                    }
                   }
 
-                  // Unit Rows
+                  // Unit rows
                   const allUnitTrs = document.querySelectorAll('#units-table tbody tr');
                   let rowIndex = 0;
                   for (let i = 1; i < allUnitTrs.length; i++) {
@@ -1203,58 +1295,84 @@
                     if (!tr || tr.style.display === 'none') continue;
 
                     rowIndex++;
+                    const isEven = rowIndex % 2 === 0;
+                    const rowBg = isEven ? 'FFF8FAFC' : 'FFFFFFFF';
                     const tds = tr.children;
-                    const unitRow = [];
+                    const unitValues = [];
 
-                    unitRow.push(tds[0] ? parseNum(tds[0].textContent) : rowIndex);
+                    unitValues.push(tds[0] ? parseNum(tds[0].textContent) : rowIndex);
 
                     const unitNameCell = tds[1];
                     const unitNameText = unitNameCell ? unitNameCell.childNodes[0].textContent.trim() : '';
-                    unitRow.push(unitNameText);
+                    unitValues.push(unitNameText);
 
                     for (let m = 2; m <= 6; m++) {
-                      unitRow.push(tds[m] ? parseNum(tds[m].textContent) : 0);
+                      unitValues.push(tds[m] ? parseNum(tds[m].textContent) : 0);
                     }
 
-                    unitRow.push(parseRateText(tds[7]));
+                    unitValues.push(parseRateText(tds[7]));
 
                     if (mode === 'month') {
                       const monthTds = tr.querySelectorAll('.col-month');
-                      monthTds.forEach(td => unitRow.push(parseNum(td.textContent)));
+                      monthTds.forEach(td => unitValues.push(parseNum(td.textContent)));
                     } else {
                       const dayTds = tr.querySelectorAll('.col-day');
-                      dayTds.forEach(td => unitRow.push(parseNum(td.textContent)));
+                      dayTds.forEach(td => unitValues.push(parseNum(td.textContent)));
                     }
 
-                    aoa.push(unitRow);
+                    const uRow = worksheet.addRow(unitValues);
+                    uRow.height = 22;
+
+                    for (let c = 1; c <= totalCols; c++) {
+                      const cell = uRow.getCell(c);
+                      if (isEven) {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                      }
+                      cell.border = borderStyle;
+
+                      if (c === 1) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                      } else if (c === 2) {
+                        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                      } else if (c >= 3 && c <= 7) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 8) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0284C7' } };
+                      } else {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.numFmt = '#,##0';
+                      }
+                    }
                   }
+
+                  // Column Widths
+                  worksheet.columns.forEach((col, idx) => {
+                    if (idx === 0) col.width = 6;
+                    else if (idx === 1) col.width = 28;
+                    else if (idx >= 2 && idx <= 7) col.width = 16;
+                    else col.width = 11;
+                  });
 
                   const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
                   const modeSuffix = mode === 'month' ? 'Thang' : 'Ngay';
                   const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xlsx`;
 
-                  if (window.XLSX) {
-                    const ws = XLSX.utils.aoa_to_sheet(aoa);
-                    ws['!merges'] = merges;
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-                    // Set column widths
-                    const colWidths = [];
-                    for (let c = 0; c <= maxColIndex; c++) {
-                      if (c === 0) colWidths.push({ wch: 6 });
-                      else if (c === 1) colWidths.push({ wch: 26 });
-                      else if (c >= 2 && c <= 7) colWidths.push({ wch: 16 });
-                      else colWidths.push({ wch: 10 });
-                    }
-                    ws['!cols'] = colWidths;
-
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "ThongKe96XaPhuong");
-
-                    // Generate native binary .xlsx for 100% mobile & PC support
-                    XLSX.writeFile(wb, fileName);
-                  } else {
-                    alert("Thư viện xuất Excel đang được tải, vui lòng thử lại sau giây lát.");
-                  }
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = fileName;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(link.href);
                 };
 
                 // Export political reports table to PDF
