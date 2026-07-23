@@ -51,6 +51,7 @@
                 <thead class="sticky-thead">
                   <tr>
                     <th>STT</th>
+                    <th style="width: 80px; text-align: center;">Cấu hình</th>
                     <th>Tên đơn vị (Xã / Phường)</th>
                     <th>Tên đăng nhập</th>
                     <th>Chỉ tiêu kế hoạch</th>
@@ -60,14 +61,27 @@
                     <th>Người nhập liệu</th>
                     <th>SĐT liên hệ</th>
                     <th>Email liên hệ</th>
-                    <th style="width: 100px; text-align: center;">Cấu hình</th>
                   </tr>
                 </thead>
                 <tbody>
                   <% units.forEach((unit, index)=> { %>
                     <tr>
-                      <td>
+                      <td style="text-align: center;">
                         <%= index + 1 %>
+                      </td>
+                      <td>
+                        <div style="text-align: center;">
+                          <button class="btn btn-secondary btn-icon"
+                            onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', <%= unit.planTarget %>, <%= unit.residentPopulation %>, <%= unit.localManagedPopulation || 0 %>, <%= unit.firstHalfChecked %>, '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
+                            <!-- Cog icon SVG -->
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
+                              stroke-width="2">
+                              <circle cx="12" cy="12" r="3" />
+                              <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                       <td style="font-weight: 600; color: var(--text-primary);">
                         <%= unit.unitName %>
@@ -93,20 +107,6 @@
                       </td>
                       <td>
                         <%= unit.contactEmail || '-' %>
-                      </td>
-                      <td>
-                        <div style="text-align: center;">
-                          <button class="btn btn-secondary btn-icon"
-                            onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', <%= unit.planTarget %>, <%= unit.residentPopulation %>, <%= unit.localManagedPopulation || 0 %>, <%= unit.firstHalfChecked %>, '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
-                            <!-- Cog icon SVG -->
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
-                              stroke-width="2">
-                              <circle cx="12" cy="12" r="3" />
-                              <path
-                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                            </svg>
-                          </button>
-                        </div>
                       </td>
                     </tr>
                     <% }) %>
@@ -314,15 +314,14 @@
               const tr = table.getElementsByTagName('tr');
 
               for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName('td')[1]; // Column index 1 is Ward Name
-                if (td) {
-                  let txtValue = td.textContent || td.innerText;
-                  let normalizedText = txtValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
-                  if (normalizedText.indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                  } else {
-                    tr[i].style.display = "none";
-                  }
+                let tdName = tr[i].getElementsByTagName('td')[2]; // Column index 2 is Ward Name
+                let tdUser = tr[i].getElementsByTagName('td')[3]; // Column index 3 is Username
+                let txtValue = (tdName ? tdName.textContent : '') + ' ' + (tdUser ? tdUser.textContent : '');
+                let normalizedText = txtValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+                if (normalizedText.indexOf(filter) > -1) {
+                  tr[i].style.display = "";
+                } else {
+                  tr[i].style.display = "none";
                 }
               }
             }

@@ -35,6 +35,63 @@ async function getConfigValue(key, defaultValue) {
   }
 }
 
+// Helper to sort reportsTable according to unitSortType configuration ('stt', 'cumulative_desc', 'cumulative_asc', 'completion_rate_desc', 'completion_rate_asc', 'alphabet')
+function sortReportsTable(reportsTable, unitSortType) {
+  const getUnitType = (name) => {
+    if (!name) return 3;
+    if (name.startsWith('Phường')) return 1;
+    if (name.startsWith('Xã')) return 2;
+    return 3;
+  };
+
+  const getCumulative = (item) => {
+    if (typeof item.cumulative === 'number') return item.cumulative;
+    if (item.cumulative && typeof item.cumulative.total === 'number') return item.cumulative.total;
+    if (typeof item.yearCumulative === 'number') return item.yearCumulative;
+    return 0;
+  };
+
+  reportsTable.sort((a, b) => {
+    if (unitSortType === 'cumulative_desc') {
+      const cumA = getCumulative(a);
+      const cumB = getCumulative(b);
+      if (cumB !== cumA) return cumB - cumA;
+      return (a.unitName || '').localeCompare(b.unitName || '', 'vi', { sensitivity: 'base' });
+    } else if (unitSortType === 'cumulative_asc') {
+      const cumA = getCumulative(a);
+      const cumB = getCumulative(b);
+      if (cumA !== cumB) return cumA - cumB;
+      return (a.unitName || '').localeCompare(b.unitName || '', 'vi', { sensitivity: 'base' });
+    } else if (unitSortType === 'completion_rate_desc' || unitSortType === 'completion_rate') {
+      const rateA = a.completionRate || 0;
+      const rateB = b.completionRate || 0;
+      if (rateB !== rateA) return rateB - rateA;
+      return (a.unitName || '').localeCompare(b.unitName || '', 'vi', { sensitivity: 'base' });
+    } else if (unitSortType === 'completion_rate_asc') {
+      const rateA = a.completionRate || 0;
+      const rateB = b.completionRate || 0;
+      if (rateA !== rateB) return rateA - rateB;
+      return (a.unitName || '').localeCompare(b.unitName || '', 'vi', { sensitivity: 'base' });
+    } else if (unitSortType === 'alphabet') {
+      return (a.unitName || '').localeCompare(b.unitName || '', 'vi', { sensitivity: 'base' });
+    } else {
+      // Default: 'stt' (Số thứ tự đơn vị)
+      const orderA = a.order || 0;
+      const orderB = b.order || 0;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const typeA = getUnitType(a.unitName || '');
+      const typeB = getUnitType(b.unitName || '');
+      if (typeA !== typeB) return typeA - typeB;
+
+      const nameA = (a.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      const nameB = (b.unitName || '').replace(/^(Xã|Phường)\s+/i, '').trim();
+      return nameA.localeCompare(nameB, 'vi', { sensitivity: 'base' });
+    }
+  });
+}
+
+
 
 // Database connection will be initiated before starting the server
 
@@ -199,6 +256,7 @@ async function compileReportSvg(dateStr) {
 
     reportsTable.push({
       unitName: unit.unitName,
+      order: unit.order || 0,
       daily: dailyVal,
       cumulative: cumulativeVal,
       residentPopulation: unit.residentPopulation || 0,
@@ -213,13 +271,10 @@ async function compileReportSvg(dateStr) {
     grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
   });
 
-  // Sort reportsTable by completion rate descending (from high to low)
-  reportsTable.sort((a, b) => {
-    if (b.completionRate !== a.completionRate) {
-      return b.completionRate - a.completionRate;
-    }
-    return a.unitName.localeCompare(b.unitName, 'vi', { sensitivity: 'base' });
-  });
+  // Sort reportsTable based on system config (stt, completion_rate, alphabet)
+  const unitSortType = await getConfigValue('unit_sort_type', 'stt');
+  sortReportsTable(reportsTable, unitSortType, false);
+
 
   // Fetch BYT Linkage count for this date and cumulative
   const bytTodayObj = await BytLinkage.findOne({ date: selectedDate }) || { count: 0 };
@@ -730,6 +785,7 @@ app.get('/', async (req, res) => {
         unitId: uId,
         unitName: unit.unitName,
         username: unit.username,
+        order: unit.order || 0,
         planTarget: unit.planTarget,
         residentPopulation: unit.residentPopulation,
         localManagedPopulation: unit.localManagedPopulation || 0,
@@ -945,19 +1001,18 @@ app.get('/', async (req, res) => {
       });
     }
 
-    // Sort reportsTable by completion rate descending (from high to low)
-    reportsTable.sort((a, b) => {
-      const rateA = isUserAdmin ? a.adminCompletionRate : a.completionRate;
-      const rateB = isUserAdmin ? b.adminCompletionRate : b.completionRate;
-      if (rateB !== rateA) {
-        return rateB - rateA;
-      }
-      return a.unitName.localeCompare(b.unitName, 'vi', { sensitivity: 'base' });
-    });
-    const topUnits = reportsTable.slice(0, 5).map(u => ({
-      ...u,
-      completionRate: isUserAdmin ? u.adminCompletionRate : u.completionRate
-    }));
+    // Top 5 units with highest completion rate for topUnits chart
+    const topUnits = [...reportsTable]
+      .sort((a, b) => (b.completionRate || 0) - (a.completionRate || 0))
+      .slice(0, 5)
+      .map(u => ({
+        ...u,
+        completionRate: u.completionRate
+      }));
+
+    // Sort reportsTable for detailed 96 communes table & SVG report based on system config (stt, completion_rate, alphabet)
+    const unitSortType = await getConfigValue('unit_sort_type', 'stt');
+    sortReportsTable(reportsTable, unitSortType);
 
     // Daily progress timeline (aggregate daily total counts from 01/07 to endDate)
     const dailyProgressAgg = await DailyReport.aggregate([
@@ -1277,6 +1332,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
     const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
     const includeTehs = await getConfigValue('include_tehs_in_total', true);
+    const unitSortType = await getConfigValue('unit_sort_type', 'stt');
 
     const grandResidentPopulationConfig = await getConfigValue('grand_resident_population', 3194187);
     const grandFirstHalfCheckedConfig = await getConfigValue('grand_first_half_checked', 833233);
@@ -1310,6 +1366,7 @@ app.get('/input', requireAuth, async (req, res) => {
       allowPastDateInput,
       includeCnldCbccvc,
       includeTehs,
+      unitSortType,
       grandResidentPopulationConfig,
       grandFirstHalfCheckedConfig,
       campaignTargetConfig,
@@ -1844,6 +1901,50 @@ app.post('/input/plan-target', requireAuth, async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
+// ROUTES: ADMIN SYSTEM CONFIGURATION
+// -------------------------------------------------------------
+
+app.get('/admin/config', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const dashboardNoteText = await getConfigValue('dashboard_note_text', '* Ghi chú: Số đã KSK toàn tỉnh = Lũy kế 90 ngày đêm + Số đã KSK 6 tháng đầu năm + CBCC + CNLĐ - 40.000(người cao tuổi đã khám 6 tháng đầu năm)');
+    const dashboardNoteVisible = await getConfigValue('dashboard_note_visible', true);
+    const allowPastDateInput = await getConfigValue('allow_past_date_input', false);
+    const includeCnldCbccvc = await getConfigValue('include_cnld_cbccvc_in_total', true);
+    const includeTehs = await getConfigValue('include_tehs_in_total', true);
+    const unitSortType = await getConfigValue('unit_sort_type', 'stt');
+
+    const grandResidentPopulationConfig = await getConfigValue('grand_resident_population', 3194187);
+    const grandFirstHalfCheckedConfig = await getConfigValue('grand_first_half_checked', 833233);
+    const campaignTargetConfig = await getConfigValue('campaign_target', 2128099);
+    const campaignOffsetConfig = await getConfigValue('campaign_offset', 40000);
+
+    res.render('admin/config', {
+      user: {
+        id: req.session.userId,
+        username: req.session.username,
+        role: req.session.userRole,
+        unitName: req.session.unitName
+      },
+      dashboardNoteText,
+      dashboardNoteVisible,
+      allowPastDateInput,
+      includeCnldCbccvc,
+      includeTehs,
+      unitSortType,
+      grandResidentPopulationConfig,
+      grandFirstHalfCheckedConfig,
+      campaignTargetConfig,
+      campaignOffsetConfig,
+      success: req.query.success || null,
+      error: req.query.error || null
+    });
+  } catch (error) {
+    console.error('GET admin config error:', error);
+    res.status(500).send('Lỗi hệ thống khi tải trang cấu hình');
+  }
+});
+
 app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
   if (req.session.userRole !== 'admin') {
     return res.status(403).send('Bạn không có quyền thực hiện hành động này.');
@@ -1855,6 +1956,7 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     allowPastDateInput,
     includeCnldCbccvc,
     includeTehs,
+    unitSortType,
     date,
     unitId,
     grandResidentPopulation,
@@ -1904,6 +2006,14 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       { upsert: true, new: true }
     );
 
+    if (unitSortType && ['stt', 'cumulative_desc', 'cumulative_asc', 'completion_rate_desc', 'completion_rate_asc', 'completion_rate', 'alphabet'].includes(unitSortType)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'unit_sort_type' },
+        { value: unitSortType },
+        { upsert: true, new: true }
+      );
+    }
+
     if (!isNaN(parsedResidentPopulation)) {
       await SystemConfig.findOneAndUpdate(
         { key: 'grand_resident_population' },
@@ -1942,13 +2052,13 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình hệ thống: hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}, tổng dân số toàn tỉnh=${parsedResidentPopulation}, đã khám 6T đầu năm=${parsedFirstHalfChecked}, chỉ tiêu chiến dịch=${parsedCampaignTarget}, sai số điều chỉnh=${parsedCampaignOffset}`
+      details: `Cập nhật cấu hình hệ thống: kiểu sắp xếp=${unitSortType}, hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}, tổng dân số toàn tỉnh=${parsedResidentPopulation}, đã khám 6T đầu năm=${parsedFirstHalfChecked}, chỉ tiêu chiến dịch=${parsedCampaignTarget}, sai số điều chỉnh=${parsedCampaignOffset}`
     });
 
-    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);
+    return res.redirect(`/admin/config?success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);
   } catch (error) {
     console.error('Update dashboard note config error:', error);
-    return res.redirect(`/input?date=${date || ''}&unitId=${unitId || ''}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật cấu hình ghi chú')}`);
+    return res.redirect(`/admin/config?error=${encodeURIComponent('Lỗi hệ thống khi cập nhật cấu hình ghi chú')}`);
   }
 });
 
