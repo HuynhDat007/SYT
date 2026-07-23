@@ -1077,14 +1077,13 @@
                   }
                 };
 
-                // Export units table to Excel with rich styling and formatting
+                // Export units table to Excel using SheetJS for native .xlsx mobile & desktop compatibility
                 window.exportUnitsTableToExcel = function () {
                   const mode = window.currentTableMode || 'month';
                   const dateInput = document.getElementById('dashboard-date-picker');
                   const selectedDateStr = dateInput ? dateInput.value : '';
                   const formattedDateTitle = selectedDateStr ? selectedDateStr.split('-').reverse().join('/') : '';
 
-                  // Parse count numbers (e.g. "1.665" -> 1665)
                   const parseNum = (str) => {
                     if (!str) return 0;
                     const clean = str.replace(/\./g, '').replace(/,/g, '.').trim();
@@ -1093,145 +1092,107 @@
                     return isNaN(num) ? 0 : num;
                   };
 
-                  // Parse percentage rates (e.g. "46.5%" -> 46.5)
-                  const parseRate = (tdElement) => {
-                    if (!tdElement) return 0;
+                  const parseRateText = (tdElement) => {
+                    if (!tdElement) return '0.0%';
                     const rateDiv = tdElement.querySelector('div');
                     const rawText = rateDiv ? rateDiv.textContent : tdElement.textContent;
-                    if (!rawText) return 0;
+                    if (!rawText) return '0.0%';
                     const match = rawText.match(/([\d]+(?:[\.,]\d+)?)\s*%/);
                     if (match && match[1]) {
                       const numStr = match[1].replace(',', '.');
                       const val = parseFloat(numStr);
-                      return isNaN(val) ? 0 : val;
+                      return (isNaN(val) ? 0 : val).toFixed(1) + '%';
                     }
                     const clean = rawText.replace(/%/g, '').replace(/,/g, '.').trim();
                     const val = parseFloat(clean);
-                    return isNaN(val) ? 0 : val;
+                    return (isNaN(val) ? 0 : val).toFixed(1) + '%';
                   };
 
                   const dayThs = document.querySelectorAll('#units-table thead tr:first-child th.col-day');
-                  const totalCols = mode === 'month' ? 17 : (8 + dayThs.length);
+                  const aoa = [];
+                  const merges = [];
 
-                  let html = `
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<!--[if gte mso 9]>
-<xml>
- <x:ExcelWorkbook>
-  <x:ExcelWorksheets>
-   <x:ExcelWorksheet>
-    <x:Name>Thống kê 96 xã phường</x:Name>
-    <x:WorksheetOptions>
-     <x:DisplayGridlines/>
-    </x:WorksheetOptions>
-   </x:ExcelWorksheet>
-  </x:ExcelWorksheets>
- </x:ExcelWorkbook>
-</xml>
-<![endif]-->
-<style>
-  table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; }
-  th, td { border: 1px solid #cbd5e1; padding: 7px 10px; vertical-align: middle; }
-  .title-cell { font-size: 14pt; font-weight: bold; color: #0284c7; text-align: center; border: none; padding: 12px 0; }
-  .header-main { background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; font-size: 10pt; vertical-align: middle; border: 1px solid #0369a1; }
-  .header-m7 { background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #0369a1; }
-  .header-m8 { background-color: #059669; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #047857; }
-  .header-m9 { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #b45309; }
-  .header-sub-m7 { background-color: #e0f2fe; color: #0369a1; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #0284c7; }
-  .header-sub-m8 { background-color: #d1fae5; color: #047857; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #059669; }
-  .header-sub-m9 { background-color: #fef3c7; color: #b45309; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #d97706; }
-  .summary-row td { background-color: #e0f2fe; font-weight: bold; color: #0f172a; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7; }
-  .row-even td { background-color: #f8fafc; }
-  .row-odd td { background-color: #ffffff; }
-  .text-center { text-align: center; }
-  .text-left { text-align: left; }
-  .num { text-align: right; mso-number-format: "\\#\\,\\#\\#0"; }
-  .rate { text-align: right; font-weight: bold; color: #0284c7; mso-number-format: "\\@"; }
-</style>
-</head>
-<body>
-<table>
-`;
+                  // Title row
+                  const titleText = `BẢNG THỐNG KÊ CHI TIẾT 96 XÃ / PHƯỜNG ${formattedDateTitle ? '- NGÀY ' + formattedDateTitle : ''}`;
+                  aoa.push([titleText]);
+                  aoa.push([]); // Blank row
 
-                  html += `<tr><td colspan="${totalCols}" class="title-cell">BẢNG THỐNG KÊ CHI TIẾT 96 XÃ / PHƯỜNG ${formattedDateTitle ? '- NGÀY ' + formattedDateTitle : ''}</td></tr>`;
+                  let maxColIndex = 7;
 
                   if (mode === 'month') {
-                    html += `
-<thead>
-  <tr>
-    <th rowspan="2" class="header-main" style="width: 45px;">STT</th>
-    <th rowspan="2" class="header-main" style="width: 220px;">Tên xã phường</th>
-    <th rowspan="2" class="header-main" style="width: 110px;">Tổng nhân khẩu</th>
-    <th rowspan="2" class="header-main" style="width: 130px;">Nhân khẩu địa phương quản lý</th>
-    <th rowspan="2" class="header-main" style="width: 130px;">Số người khám 6 tháng đầu năm</th>
-    <th rowspan="2" class="header-main" style="width: 120px;">Số người cần khám 90 ngày</th>
-    <th rowspan="2" class="header-main" style="width: 120px;">Số người đã KSK trong 90 ngày</th>
-    <th rowspan="2" class="header-main" style="width: 120px;">Tỷ lệ hoàn thành 90 ngày</th>
-    <th colspan="3" class="header-m7">Tháng 7</th>
-    <th colspan="3" class="header-m8">Tháng 8</th>
-    <th colspan="3" class="header-m9">Tháng 9</th>
-  </tr>
-  <tr>
-    <th class="header-sub-m7" style="width: 70px;">&lt; 6 tuổi</th>
-    <th class="header-sub-m7" style="width: 70px;">[6, 18]</th>
-    <th class="header-sub-m7" style="width: 70px;">&gt; 18 tuổi</th>
-    <th class="header-sub-m8" style="width: 70px;">&lt; 6 tuổi</th>
-    <th class="header-sub-m8" style="width: 70px;">[6, 18]</th>
-    <th class="header-sub-m8" style="width: 70px;">&gt; 18 tuổi</th>
-    <th class="header-sub-m9" style="width: 70px;">&lt; 6 tuổi</th>
-    <th class="header-sub-m9" style="width: 70px;">[6, 18]</th>
-    <th class="header-sub-m9" style="width: 70px;">&gt; 18 tuổi</th>
-  </tr>
-</thead>
-`;
+                    maxColIndex = 16;
+                    // Header Row 1
+                    aoa.push([
+                      'STT',
+                      'Tên xã phường',
+                      'Tổng nhân khẩu',
+                      'Nhân khẩu địa phương quản lý',
+                      'Số người khám 6 tháng đầu năm',
+                      'Số người cần khám 90 ngày',
+                      'Số người đã KSK trong 90 ngày',
+                      'Tỷ lệ hoàn thành 90 ngày (%)',
+                      'Tháng 7', '', '',
+                      'Tháng 8', '', '',
+                      'Tháng 9', '', ''
+                    ]);
+                    // Header Row 2
+                    aoa.push([
+                      '', '', '', '', '', '', '', '',
+                      '< 6 tuổi', '[6, 18]', '> 18 tuổi',
+                      '< 6 tuổi', '[6, 18]', '> 18 tuổi',
+                      '< 6 tuổi', '[6, 18]', '> 18 tuổi'
+                    ]);
+
+                    // Merges
+                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 16 } }); // Title
+                    for (let c = 0; c <= 7; c++) {
+                      merges.push({ s: { r: 2, c }, e: { r: 3, c } }); // Main headers
+                    }
+                    merges.push({ s: { r: 2, c: 8 }, e: { r: 2, c: 10 } }); // Tháng 7
+                    merges.push({ s: { r: 2, c: 11 }, e: { r: 2, c: 13 } }); // Tháng 8
+                    merges.push({ s: { r: 2, c: 14 }, e: { r: 2, c: 16 } }); // Tháng 9
                   } else {
-                    html += `
-<thead>
-  <tr>
-    <th class="header-main" style="width: 45px;">STT</th>
-    <th class="header-main" style="width: 220px;">Tên xã phường</th>
-    <th class="header-main" style="width: 110px;">Tổng nhân khẩu</th>
-    <th class="header-main" style="width: 130px;">Nhân khẩu địa phương quản lý</th>
-    <th class="header-main" style="width: 130px;">Số người khám 6 tháng đầu năm</th>
-    <th class="header-main" style="width: 120px;">Số người cần khám 90 ngày</th>
-    <th class="header-main" style="width: 120px;">Số người đã KSK trong 90 ngày</th>
-    <th class="header-main" style="width: 120px;">Tỷ lệ hoàn thành 90 ngày</th>`;
-                    dayThs.forEach(th => {
-                      html += `<th class="header-main" style="width: 65px;">${th.textContent.trim()}</th>`;
-                    });
-                    html += `</tr></thead>`;
+                    const dayHeaders = [];
+                    dayThs.forEach(th => dayHeaders.push(th.textContent.trim()));
+                    maxColIndex = 7 + dayHeaders.length;
+
+                    aoa.push([
+                      'STT',
+                      'Tên xã phường',
+                      'Tổng nhân khẩu',
+                      'Nhân khẩu địa phương quản lý',
+                      'Số người khám 6 tháng đầu năm',
+                      'Số người cần khám 90 ngày',
+                      'Số người đã KSK trong 90 ngày',
+                      'Tỷ lệ hoàn thành 90 ngày (%)',
+                      ...dayHeaders
+                    ]);
+
+                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: maxColIndex } }); // Title
                   }
 
-                  html += `<tbody>`;
-
-                  // Top Summary Row
+                  // Summary Row
                   const topSummaryTr = document.querySelector('#units-table tbody tr');
                   if (topSummaryTr) {
                     const tds = topSummaryTr.children;
-                    html += `<tr class="summary-row">`;
-                    html += `<td colspan="2" class="text-center">TỔNG CỘNG</td>`;
+                    const summaryRow = ['TỔNG CỘNG', ''];
+
                     for (let i = 1; i <= 5; i++) {
-                      const val = tds[i] ? parseNum(tds[i].textContent) : 0;
-                      html += `<td class="num">${val}</td>`;
+                      summaryRow.push(tds[i] ? parseNum(tds[i].textContent) : 0);
                     }
-                    // Rate for summary row (tds[6])
-                    const summaryRateVal = parseRate(tds[6]);
-                    html += `<td class="rate">${summaryRateVal.toFixed(1)}%</td>`;
+                    summaryRow.push(parseRateText(tds[6]));
 
                     if (mode === 'month') {
                       const monthTds = topSummaryTr.querySelectorAll('.col-month');
-                      monthTds.forEach(td => {
-                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
-                      });
+                      monthTds.forEach(td => summaryRow.push(parseNum(td.textContent)));
                     } else {
                       const dayTds = topSummaryTr.querySelectorAll('.col-day');
-                      dayTds.forEach(td => {
-                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
-                      });
+                      dayTds.forEach(td => summaryRow.push(parseNum(td.textContent)));
                     }
-                    html += `</tr>`;
+
+                    const summaryRowIndex = aoa.length;
+                    aoa.push(summaryRow);
+                    merges.push({ s: { r: summaryRowIndex, c: 0 }, e: { r: summaryRowIndex, c: 1 } });
                   }
 
                   // Unit Rows
@@ -1242,52 +1203,58 @@
                     if (!tr || tr.style.display === 'none') continue;
 
                     rowIndex++;
-                    const rowClass = (rowIndex % 2 === 0) ? 'row-even' : 'row-odd';
                     const tds = tr.children;
+                    const unitRow = [];
 
-                    html += `<tr class="${rowClass}">`;
-                    html += `<td class="text-center">${tds[0] ? parseNum(tds[0].textContent) : rowIndex}</td>`;
+                    unitRow.push(tds[0] ? parseNum(tds[0].textContent) : rowIndex);
 
                     const unitNameCell = tds[1];
                     const unitNameText = unitNameCell ? unitNameCell.childNodes[0].textContent.trim() : '';
-                    html += `<td class="text-left" style="font-weight: 600;">${unitNameText}</td>`;
+                    unitRow.push(unitNameText);
 
                     for (let m = 2; m <= 6; m++) {
-                      html += `<td class="num">${tds[m] ? parseNum(tds[m].textContent) : 0}</td>`;
+                      unitRow.push(tds[m] ? parseNum(tds[m].textContent) : 0);
                     }
 
-                    // Rate for unit row (tds[7])
-                    const unitRateVal = parseRate(tds[7]);
-                    html += `<td class="rate">${unitRateVal.toFixed(1)}%</td>`;
+                    unitRow.push(parseRateText(tds[7]));
 
                     if (mode === 'month') {
                       const monthTds = tr.querySelectorAll('.col-month');
-                      monthTds.forEach(td => {
-                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
-                      });
+                      monthTds.forEach(td => unitRow.push(parseNum(td.textContent)));
                     } else {
                       const dayTds = tr.querySelectorAll('.col-day');
-                      dayTds.forEach(td => {
-                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
-                      });
+                      dayTds.forEach(td => unitRow.push(parseNum(td.textContent)));
                     }
-                    html += `</tr>`;
+
+                    aoa.push(unitRow);
                   }
 
-                  html += `</tbody></table></body></html>`;
-
-                  const blob = new Blob(["\uFEFF" + html], { type: "application/vnd.ms-excel;charset=utf-8;" });
                   const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
                   const modeSuffix = mode === 'month' ? 'Thang' : 'Ngay';
-                  const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xls`;
+                  const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xlsx`;
 
-                  const link = document.createElement("a");
-                  link.href = URL.createObjectURL(blob);
-                  link.download = fileName;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(link.href);
+                  if (window.XLSX) {
+                    const ws = XLSX.utils.aoa_to_sheet(aoa);
+                    ws['!merges'] = merges;
+
+                    // Set column widths
+                    const colWidths = [];
+                    for (let c = 0; c <= maxColIndex; c++) {
+                      if (c === 0) colWidths.push({ wch: 6 });
+                      else if (c === 1) colWidths.push({ wch: 26 });
+                      else if (c >= 2 && c <= 7) colWidths.push({ wch: 16 });
+                      else colWidths.push({ wch: 10 });
+                    }
+                    ws['!cols'] = colWidths;
+
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "ThongKe96XaPhuong");
+
+                    // Generate native binary .xlsx for 100% mobile & PC support
+                    XLSX.writeFile(wb, fileName);
+                  } else {
+                    alert("Thư viện xuất Excel đang được tải, vui lòng thử lại sau giây lát.");
+                  }
                 };
 
                 // Export political reports table to PDF
