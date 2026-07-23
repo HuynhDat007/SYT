@@ -342,6 +342,19 @@
                   </button>
                 </div>
 
+                <!-- Export Excel Button -->
+                <button type="button" class="btn btn-secondary" onclick="exportUnitsTableToExcel()"
+                  style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  Xuất Excel
+                </button>
+
 
 
                 <!-- Custom Multi-select Dropdown -->
@@ -1005,8 +1018,12 @@
                   filterTable();
                 });
 
+                // Track table display mode
+                window.currentTableMode = 'month';
+
                 // Switch table display modes client-side
                 window.switchTableMode = function (mode) {
+                  window.currentTableMode = mode;
                   const monthCols = document.querySelectorAll('.col-month');
                   const dayCols = document.querySelectorAll('.col-day');
                   const btnMonth = document.getElementById('btn-mode-month');
@@ -1044,6 +1061,219 @@
                       }
                     }, 150);
                   }
+                };
+
+                // Export units table to Excel with rich styling and formatting
+                window.exportUnitsTableToExcel = function () {
+                  const mode = window.currentTableMode || 'month';
+                  const dateInput = document.getElementById('dashboard-date-picker');
+                  const selectedDateStr = dateInput ? dateInput.value : '';
+                  const formattedDateTitle = selectedDateStr ? selectedDateStr.split('-').reverse().join('/') : '';
+
+                  // Parse count numbers (e.g. "1.665" -> 1665)
+                  const parseNum = (str) => {
+                    if (!str) return 0;
+                    const clean = str.replace(/\./g, '').replace(/,/g, '.').trim();
+                    if (clean === '-' || clean === '') return 0;
+                    const num = parseFloat(clean);
+                    return isNaN(num) ? 0 : num;
+                  };
+
+                  // Parse percentage rates (e.g. "46.5%" -> 46.5)
+                  const parseRate = (tdElement) => {
+                    if (!tdElement) return 0;
+                    const rateDiv = tdElement.querySelector('div');
+                    const rawText = rateDiv ? rateDiv.textContent : tdElement.textContent;
+                    if (!rawText) return 0;
+                    const match = rawText.match(/([\d]+(?:[\.,]\d+)?)\s*%/);
+                    if (match && match[1]) {
+                      const numStr = match[1].replace(',', '.');
+                      const val = parseFloat(numStr);
+                      return isNaN(val) ? 0 : val;
+                    }
+                    const clean = rawText.replace(/%/g, '').replace(/,/g, '.').trim();
+                    const val = parseFloat(clean);
+                    return isNaN(val) ? 0 : val;
+                  };
+
+                  const dayThs = document.querySelectorAll('#units-table thead tr:first-child th.col-day');
+                  const totalCols = mode === 'month' ? 17 : (8 + dayThs.length);
+
+                  let html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]>
+<xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name>Thống kê 96 xã phường</x:Name>
+    <x:WorksheetOptions>
+     <x:DisplayGridlines/>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+ </x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; }
+  th, td { border: 1px solid #cbd5e1; padding: 7px 10px; vertical-align: middle; }
+  .title-cell { font-size: 14pt; font-weight: bold; color: #0284c7; text-align: center; border: none; padding: 12px 0; }
+  .header-main { background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; font-size: 10pt; vertical-align: middle; border: 1px solid #0369a1; }
+  .header-m7 { background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #0369a1; }
+  .header-m8 { background-color: #059669; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #047857; }
+  .header-m9 { background-color: #d97706; color: #ffffff; font-weight: bold; text-align: center; border: 1px solid #b45309; }
+  .header-sub-m7 { background-color: #e0f2fe; color: #0369a1; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #0284c7; }
+  .header-sub-m8 { background-color: #d1fae5; color: #047857; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #059669; }
+  .header-sub-m9 { background-color: #fef3c7; color: #b45309; font-weight: bold; text-align: center; font-size: 9pt; border: 1px solid #d97706; }
+  .summary-row td { background-color: #e0f2fe; font-weight: bold; color: #0f172a; border-top: 2px solid #0284c7; border-bottom: 2px solid #0284c7; }
+  .row-even td { background-color: #f8fafc; }
+  .row-odd td { background-color: #ffffff; }
+  .text-center { text-align: center; }
+  .text-left { text-align: left; }
+  .num { text-align: right; mso-number-format: "\\#\\,\\#\\#0"; }
+  .rate { text-align: right; font-weight: bold; color: #0284c7; mso-number-format: "\\@"; }
+</style>
+</head>
+<body>
+<table>
+`;
+
+                  html += `<tr><td colspan="${totalCols}" class="title-cell">BẢNG THỐNG KÊ CHI TIẾT 96 XÃ / PHƯỜNG ${formattedDateTitle ? '- NGÀY ' + formattedDateTitle : ''}</td></tr>`;
+
+                  if (mode === 'month') {
+                    html += `
+<thead>
+  <tr>
+    <th rowspan="2" class="header-main" style="width: 45px;">STT</th>
+    <th rowspan="2" class="header-main" style="width: 220px;">Tên xã phường</th>
+    <th rowspan="2" class="header-main" style="width: 110px;">Tổng nhân khẩu</th>
+    <th rowspan="2" class="header-main" style="width: 130px;">Nhân khẩu địa phương quản lý</th>
+    <th rowspan="2" class="header-main" style="width: 130px;">Số người khám 6 tháng đầu năm</th>
+    <th rowspan="2" class="header-main" style="width: 120px;">Số người cần khám 90 ngày</th>
+    <th rowspan="2" class="header-main" style="width: 120px;">Số người đã KSK trong 90 ngày</th>
+    <th rowspan="2" class="header-main" style="width: 120px;">Tỷ lệ hoàn thành 90 ngày</th>
+    <th colspan="3" class="header-m7">Tháng 7</th>
+    <th colspan="3" class="header-m8">Tháng 8</th>
+    <th colspan="3" class="header-m9">Tháng 9</th>
+  </tr>
+  <tr>
+    <th class="header-sub-m7" style="width: 70px;">&lt; 6 tuổi</th>
+    <th class="header-sub-m7" style="width: 70px;">[6, 18]</th>
+    <th class="header-sub-m7" style="width: 70px;">&gt; 18 tuổi</th>
+    <th class="header-sub-m8" style="width: 70px;">&lt; 6 tuổi</th>
+    <th class="header-sub-m8" style="width: 70px;">[6, 18]</th>
+    <th class="header-sub-m8" style="width: 70px;">&gt; 18 tuổi</th>
+    <th class="header-sub-m9" style="width: 70px;">&lt; 6 tuổi</th>
+    <th class="header-sub-m9" style="width: 70px;">[6, 18]</th>
+    <th class="header-sub-m9" style="width: 70px;">&gt; 18 tuổi</th>
+  </tr>
+</thead>
+`;
+                  } else {
+                    html += `
+<thead>
+  <tr>
+    <th class="header-main" style="width: 45px;">STT</th>
+    <th class="header-main" style="width: 220px;">Tên xã phường</th>
+    <th class="header-main" style="width: 110px;">Tổng nhân khẩu</th>
+    <th class="header-main" style="width: 130px;">Nhân khẩu địa phương quản lý</th>
+    <th class="header-main" style="width: 130px;">Số người khám 6 tháng đầu năm</th>
+    <th class="header-main" style="width: 120px;">Số người cần khám 90 ngày</th>
+    <th class="header-main" style="width: 120px;">Số người đã KSK trong 90 ngày</th>
+    <th class="header-main" style="width: 120px;">Tỷ lệ hoàn thành 90 ngày</th>`;
+                    dayThs.forEach(th => {
+                      html += `<th class="header-main" style="width: 65px;">${th.textContent.trim()}</th>`;
+                    });
+                    html += `</tr></thead>`;
+                  }
+
+                  html += `<tbody>`;
+
+                  // Top Summary Row
+                  const topSummaryTr = document.querySelector('#units-table tbody tr');
+                  if (topSummaryTr) {
+                    const tds = topSummaryTr.children;
+                    html += `<tr class="summary-row">`;
+                    html += `<td colspan="2" class="text-center">TỔNG CỘNG</td>`;
+                    for (let i = 1; i <= 5; i++) {
+                      const val = tds[i] ? parseNum(tds[i].textContent) : 0;
+                      html += `<td class="num">${val}</td>`;
+                    }
+                    // Rate for summary row (tds[6])
+                    const summaryRateVal = parseRate(tds[6]);
+                    html += `<td class="rate">${summaryRateVal.toFixed(1)}%</td>`;
+
+                    if (mode === 'month') {
+                      const monthTds = topSummaryTr.querySelectorAll('.col-month');
+                      monthTds.forEach(td => {
+                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
+                      });
+                    } else {
+                      const dayTds = topSummaryTr.querySelectorAll('.col-day');
+                      dayTds.forEach(td => {
+                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
+                      });
+                    }
+                    html += `</tr>`;
+                  }
+
+                  // Unit Rows
+                  const allUnitTrs = document.querySelectorAll('#units-table tbody tr');
+                  let rowIndex = 0;
+                  for (let i = 1; i < allUnitTrs.length; i++) {
+                    const tr = allUnitTrs[i];
+                    if (!tr || tr.style.display === 'none') continue;
+
+                    rowIndex++;
+                    const rowClass = (rowIndex % 2 === 0) ? 'row-even' : 'row-odd';
+                    const tds = tr.children;
+
+                    html += `<tr class="${rowClass}">`;
+                    html += `<td class="text-center">${tds[0] ? parseNum(tds[0].textContent) : rowIndex}</td>`;
+
+                    const unitNameCell = tds[1];
+                    const unitNameText = unitNameCell ? unitNameCell.childNodes[0].textContent.trim() : '';
+                    html += `<td class="text-left" style="font-weight: 600;">${unitNameText}</td>`;
+
+                    for (let m = 2; m <= 6; m++) {
+                      html += `<td class="num">${tds[m] ? parseNum(tds[m].textContent) : 0}</td>`;
+                    }
+
+                    // Rate for unit row (tds[7])
+                    const unitRateVal = parseRate(tds[7]);
+                    html += `<td class="rate">${unitRateVal.toFixed(1)}%</td>`;
+
+                    if (mode === 'month') {
+                      const monthTds = tr.querySelectorAll('.col-month');
+                      monthTds.forEach(td => {
+                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
+                      });
+                    } else {
+                      const dayTds = tr.querySelectorAll('.col-day');
+                      dayTds.forEach(td => {
+                        html += `<td class="num">${parseNum(td.textContent)}</td>`;
+                      });
+                    }
+                    html += `</tr>`;
+                  }
+
+                  html += `</tbody></table></body></html>`;
+
+                  const blob = new Blob(["\uFEFF" + html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+                  const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
+                  const modeSuffix = mode === 'month' ? 'Thang' : 'Ngay';
+                  const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xls`;
+
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = fileName;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(link.href);
                 };
 
 
