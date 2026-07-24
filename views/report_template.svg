@@ -503,9 +503,9 @@
     <text fill="#DD0000" font-family="Momo Trust Display" font-size="80" text-anchor="middle"
       x="1604" y="719">{3}</text>
     <text fill="black" style="white-space: pre" xml:space="preserve"
-      font-family="Momo Trust Display" font-size="40" letter-spacing="0em"><tspan x="2105.45" y="765">S&#x1ed0; NG&#x1af;&#x1edc;I&#x2028;</tspan><tspan x="2127.39" y="817">&#x110;&#xc3; KSK &#x2028;</tspan><tspan x="2095.82" y="869">TO&#xc0;N T&#x1ec8;NH</tspan></text>
+      font-family="Momo Trust Display" font-size="40" letter-spacing="0em"><tspan x="2085.45" y="765">S&#x1ed0; NG&#x1af;&#x1edc;I&#x2028;</tspan><tspan x="2107.39" y="817">&#x110;&#xc3; KSK &#x2028;</tspan><tspan x="2075.82" y="869">TO&#xc0;N T&#x1ec8;NH</tspan></text>
     <text fill="#DD0000" font-family="Momo Trust Display" font-size="80" text-anchor="middle"
-      x="2208" y="710.5">{4}</text>
+      x="2188" y="710.5">{4}</text>
     <path
       d="M2190.25 2890.82C2191.74 2886.21 2198.26 2886.21 2199.75 2890.82L2207.08 2913.37C2209.09 2919.55 2214.85 2923.73 2221.35 2923.73H2245.06C2249.91 2923.73 2251.92 2929.93 2248 2932.78L2228.82 2946.72C2223.56 2950.54 2221.36 2957.31 2223.37 2963.49L2230.7 2986.04C2232.19 2990.65 2226.92 2994.48 2223 2991.63L2203.82 2977.69C2198.56 2973.87 2191.44 2973.87 2186.18 2977.69L2167 2991.63C2163.08 2994.48 2157.81 2990.65 2159.3 2986.04L2166.63 2963.49C2168.64 2957.31 2166.44 2950.54 2161.18 2946.72L2142 2932.78C2138.08 2929.93 2140.09 2923.73 2144.94 2923.73H2168.65C2175.15 2923.73 2180.91 2919.55 2182.92 2913.37L2190.25 2890.82Z"
       stroke="#003136" stroke-width="10" />

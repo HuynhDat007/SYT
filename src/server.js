@@ -361,38 +361,27 @@ async function compileReportSvg(dateStr) {
     const col = Math.floor(i / 32); // Columns: 0, 1, 2
     const row = i % 32;
 
-    let xName = 120;
-    let xDaily = 455;
-    let xCumulative = 586;
-    let xRate = 716;
-
-    if (col === 1) {
-      xName = 907;
-      xDaily = 1242;
-      xCumulative = 1373;
-      xRate = 1503;
-    } else if (col === 2) {
-      xName = 1694;
-      xDaily = 2029;
-      xCumulative = 2160;
-      xRate = 2290;
-    }
+    const baseShift = col * 787;
+    const xName = 105 + baseShift;
+    const xDaily = 501 + baseShift;
+    const xCumulative = 636 + baseShift;
+    const xRate = 751 + baseShift;
 
     const yName = 1171.75 + row * 51;
     const yVal = 1172.75 + row * 51;
 
     const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-    const name = escapeXml(unit.unitName);
+    const name = escapeXml(`${i + 1}. ${unit.unitName}`);
     const daily = unit.daily.toLocaleString('vi-VN');
     const cumulative = unit.cumulative.toLocaleString('vi-VN');
 
     const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
     const rate = rateVal.toFixed(1) + '%';
 
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="30" letter-spacing="0em"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
   }
 
   // Read templates and replace variables
