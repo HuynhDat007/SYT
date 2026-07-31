@@ -2715,9 +2715,43 @@ app.post('/profile', requireAuth, async (req, res) => {
   }
 });
 
+// -------------------------------------------------------------
+// HEALTH CHECK & KEEP-ALIVE (Render Anti-Sleep)
+// -------------------------------------------------------------
+
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
+function startKeepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL || process.env.APP_URL;
+  if (!url) {
+    console.log('[Keep-Alive] No RENDER_EXTERNAL_URL or APP_URL defined. Internal keep-alive skipped.');
+    return;
+  }
+
+  const https = require('https');
+  const http = require('http');
+  const pingUrl = `${url.replace(/\/$/, '')}/ping`;
+  const client = pingUrl.startsWith('https') ? https : http;
+
+  console.log(`[Keep-Alive] Scheduled self-ping to ${pingUrl} every 14 minutes.`);
+
+  // Self-ping every 14 minutes (Render free instance sleeps after 15 mins of inactivity)
+  setInterval(() => {
+    client.get(pingUrl, (res) => {
+      console.log(`[Keep-Alive Ping] Status: ${res.statusCode} at ${new Date().toISOString()}`);
+    }).on('error', (err) => {
+      console.error('[Keep-Alive Ping Error]:', err.message);
+    });
+  }, 14 * 60 * 1000);
+}
+
 // Connect to Database and then start Express Server
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
+    startKeepAlive();
   });
 });
+
