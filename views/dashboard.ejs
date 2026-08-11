@@ -203,15 +203,27 @@
               </svg>
               THỐNG KÊ KSK CÁC CQ TRONG HỆ THỐNG CHÍNH TRỊ
             </h3>
-            <button class="btn btn-secondary" onclick="exportPoliticalPdf()"
-              style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Tải file PDF
-            </button>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button class="btn btn-secondary" onclick="exportPoliticalExcel()"
+                style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="8" y1="13" x2="16" y2="13" />
+                  <line x1="8" y1="17" x2="16" y2="17" />
+                </svg>
+                Xuất Excel
+              </button>
+              <button class="btn btn-secondary" onclick="exportPoliticalPdf()"
+                style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Tải file PDF
+              </button>
+            </div>
           </div>
 
           <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
@@ -1357,6 +1369,10 @@
                     else col.width = 11;
                   });
 
+                  const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
+                  const modeSuffix = mode === 'month' ? 'Thang' : 'Ngay';
+                  const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xlsx`;
+
                   const buffer = await workbook.xlsx.writeBuffer();
                   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
@@ -1368,6 +1384,159 @@
                   document.body.removeChild(link);
                   URL.revokeObjectURL(link.href);
                 };
+
+                // Export political table to Excel
+                window.exportPoliticalExcel = async function () {
+                    if (!window.ExcelJS) {
+                      alert('Thư viện ExcelJS đang được nạp, vui lòng thử lại sau vài giây.');
+                      return;
+                    }
+
+                    const table = document.getElementById('political-table');
+                    if (!table) return;
+
+                    const rows = table.querySelectorAll('tbody tr');
+                    if (rows.length === 0) return;
+
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet('Thống kê CQ Chính trị');
+
+                    // Title row
+                    worksheet.mergeCells('A1:F1');
+                    const titleCell = worksheet.getCell('A1');
+                    titleCell.value = 'THỐNG KÊ KSK CÁC CƠ QUAN TRONG HỆ THỐNG CHÍNH TRỊ';
+                    titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF0284C7' } };
+                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    worksheet.getRow(1).height = 30;
+
+                    // Subtitle
+                    worksheet.mergeCells('A2:F2');
+                    const subCell = worksheet.getCell('A2');
+                    subCell.value = `(Ngày xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')})`;
+                    subCell.font = { name: 'Segoe UI', size: 9.5, italic: true, color: { argb: 'FF475569' } };
+                    subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    worksheet.getRow(2).height = 20;
+
+                    worksheet.addRow([]); // Blank row 3
+
+                    // Header row
+                    const headerRow = worksheet.addRow(['STT', 'Tên cơ quan, đơn vị', 'Số CBCC CV NLĐ', 'Số đã KSK', 'Tỷ lệ hoàn thành', 'Ngày báo cáo']);
+                    headerRow.height = 26;
+                    headerRow.eachCell((cell) => {
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                      cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF0369A1' } },
+                        left: { style: 'thin', color: { argb: 'FF0369A1' } },
+                        bottom: { style: 'thin', color: { argb: 'FF0369A1' } },
+                        right: { style: 'thin', color: { argb: 'FF0369A1' } }
+                      };
+                    });
+
+                    let totalWorkers = 0;
+                    let totalChecked = 0;
+                    const dataRows = [];
+
+                    rows.forEach((tr) => {
+                      const tds = tr.children;
+                      if (tds.length < 6) return;
+
+                      const stt = tds[0].textContent.trim();
+                      const workplace = tds[1].textContent.trim();
+                      const workersStr = tds[2].textContent.trim();
+                      const checkedStr = tds[3].textContent.trim();
+                      const rateStr = tds[4].textContent.trim();
+                      const dateStr = tds[5].textContent.trim();
+
+                      const workers = parseFloat(workersStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
+                      const checked = parseFloat(checkedStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
+
+                      totalWorkers += workers;
+                      totalChecked += checked;
+
+                      dataRows.push([stt, workplace, workers, checked, rateStr, dateStr]);
+                    });
+
+                    const overallRate = totalWorkers > 0 ? (totalChecked / totalWorkers * 100).toFixed(1) + '%' : '0.0%';
+
+                    // Summary Row
+                    const summaryRow = worksheet.addRow(['TỔNG CỘNG', '', totalWorkers, totalChecked, overallRate, '-']);
+                    worksheet.mergeCells(`A${summaryRow.number}:B${summaryRow.number}`);
+                    summaryRow.height = 24;
+                    summaryRow.eachCell((cell, colNum) => {
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0284C7' } };
+                      cell.border = {
+                        top: { style: 'medium', color: { argb: 'FF0284C7' } },
+                        bottom: { style: 'medium', color: { argb: 'FF0284C7' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                      };
+                      if (colNum === 1) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      else if (colNum === 3 || colNum === 4 || colNum === 5) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        if (colNum === 3 || colNum === 4) cell.numFmt = '#,##0';
+                      } else cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    });
+
+                    // Data Rows
+                    dataRows.forEach((r, idx) => {
+                      const row = worksheet.addRow(r);
+                      row.height = 22;
+                      const bgHex = idx % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
+                      row.eachCell((cell, c) => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
+                        cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF0F172A' } };
+                        cell.border = {
+                          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                        };
+
+                        if (c === 1 || c === 6) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        else if (c === 2) {
+                          cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+                        } else if (c === 3) {
+                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                          cell.numFmt = '#,##0';
+                        } else if (c === 4) {
+                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
+                          cell.numFmt = '#,##0';
+                        } else if (c === 5) {
+                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
+                        }
+                      });
+                    });
+
+                    // Column Widths
+                    worksheet.columns.forEach((col, idx) => {
+                      if (idx === 0) col.width = 8;
+                      else if (idx === 1) col.width = 38;
+                      else if (idx === 2) col.width = 20;
+                      else if (idx === 3) col.width = 16;
+                      else if (idx === 4) col.width = 18;
+                      else if (idx === 5) col.width = 16;
+                    });
+
+                    const dateSuffix = new Date().toISOString().slice(0, 10);
+                    const fileName = `Thong_Ke_KSK_He_Thong_Chinh_Tri_${dateSuffix}.xlsx`;
+
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                  };
 
                 // Export political reports table directly to PDF file download
                 window.exportPoliticalPdf = async function () {
@@ -1403,102 +1572,141 @@
                     const rowBg = validRowCount % 2 === 0 ? '#f8fafc' : '#ffffff';
 
                     tableRowsHtml += `
-                      <tr style="background-color: ${rowBg}; font-size: 9.5pt;">
-                        <td style="padding: 7px 5px; text-align: center; border: 1px solid #cbd5e1; color: #0f172a;">${stt}</td>
-                        <td style="padding: 7px 8px; font-weight: 600; text-align: left; border: 1px solid #cbd5e1; color: #0f172a;">${workplace}</td>
-                        <td style="padding: 7px 8px; text-align: right; border: 1px solid #cbd5e1; color: #0f172a;">${workers.toLocaleString('vi-VN')}</td>
-                        <td style="padding: 7px 8px; text-align: right; font-weight: bold; color: #0284c7; border: 1px solid #cbd5e1;">${checked.toLocaleString('vi-VN')}</td>
-                        <td style="padding: 7px 8px; text-align: right; font-weight: bold; color: #0284c7; border: 1px solid #cbd5e1;">${rateStr}</td>
-                        <td style="padding: 7px 5px; text-align: center; border: 1px solid #cbd5e1; color: #475569;">${dateStr}</td>
+                      <tr style="background-color: ${rowBg} !important; font-size: 8.5pt;">
+                        <td style="padding: 5px 3px; text-align: center; border: 1px solid #cbd5e1; color: #0f172a !important;">${stt}</td>
+                        <td style="padding: 5px 3px; font-weight: 600; text-align: left; border: 1px solid #cbd5e1; color: #0f172a !important;">${workplace}</td>
+                        <td style="padding: 5px 3px; text-align: right; border: 1px solid #cbd5e1; color: #0f172a !important;">${workers.toLocaleString('vi-VN')}</td>
+                        <td style="padding: 5px 3px; text-align: right; font-weight: bold; color: #0284c7 !important; border: 1px solid #cbd5e1;">${checked.toLocaleString('vi-VN')}</td>
+                        <td style="padding: 5px 3px; text-align: right; font-weight: bold; color: #0284c7 !important; border: 1px solid #cbd5e1;">${rateStr}</td>
+                        <td style="padding: 5px 3px; text-align: center; border: 1px solid #cbd5e1; color: #475569 !important;">${dateStr}</td>
                       </tr>
                     `;
                   });
 
                   const overallRate = totalWorkers > 0 ? (totalChecked / totalWorkers * 100).toFixed(1) + '%' : '0.0%';
                   const currentDateStr = new Date().toLocaleDateString('vi-VN');
+                  const dateSuffix = new Date().toISOString().slice(0, 10);
+                  const fileName = `Thong_Ke_KSK_He_Thong_Chinh_Tri_${dateSuffix}.pdf`;
 
-                  // Save scroll position and reset to 0,0 for html2canvas capture
+                  // Save scroll position and reset to top to prevent html2canvas offset bug
                   const originalScrollY = window.scrollY || window.pageYOffset || 0;
+                  const originalOverflow = document.body.style.overflow;
                   window.scrollTo(0, 0);
+                  document.body.style.overflow = 'hidden'; // Hide scrollbar to prevent width clipping
 
-                  const container = document.createElement('div');
-                  container.style.position = 'absolute';
-                  container.style.top = '0';
-                  container.style.left = '0';
-                  container.style.width = '790px';
-                  container.style.padding = '25px';
-                  container.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-                  container.style.color = '#0f172a';
-                  container.style.backgroundColor = '#ffffff';
-                  container.style.zIndex = '9999999';
-                  container.style.boxSizing = 'border-box';
+                  // Create visible overlay container covering the top of the document
+                  const overlay = document.createElement('div');
+                  overlay.id = 'pdf-export-overlay';
+                  overlay.style.position = 'absolute';
+                  overlay.style.top = '0';
+                  overlay.style.left = '0';
+                  overlay.style.width = '100%';
+                  overlay.style.minHeight = '100vh';
+                  overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+                  overlay.style.zIndex = '999999';
+                  overlay.style.display = 'flex';
+                  overlay.style.flexDirection = 'column';
+                  overlay.style.alignItems = 'center';
+                  overlay.style.padding = '40px 20px';
 
-                  container.innerHTML = `
-                    <table style="width: 100%; margin-bottom: 18px; border-collapse: collapse; border: none;">
+                  const paper = document.createElement('div');
+                  paper.id = 'pdf-export-paper';
+                  paper.style.width = '760px';
+                  paper.style.padding = '20px';
+                  paper.style.boxSizing = 'border-box';
+                  paper.style.backgroundColor = '#ffffff';
+                  paper.style.color = '#0f172a';
+                  paper.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+
+                  paper.innerHTML = `
+                    <style>
+                      #pdf-export-paper, #pdf-export-paper * {
+                        color: #0f172a !important;
+                        box-sizing: border-box !important;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                      }
+                      #pdf-export-paper table {
+                        table-layout: fixed !important;
+                        width: 100% !important;
+                        word-wrap: break-word !important;
+                      }
+                      #pdf-export-paper th, #pdf-export-paper td {
+                        white-space: normal !important;
+                        overflow-wrap: break-word !important;
+                      }
+                      #pdf-export-paper th {
+                        background-color: #0284c7 !important;
+                        color: #ffffff !important;
+                        font-weight: bold !important;
+                      }
+                      #pdf-export-paper .summary-cell {
+                        background-color: #e0f2fe !important;
+                        color: #0f172a !important;
+                        font-weight: bold !important;
+                      }
+                    </style>
+
+                    <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse; border: none;">
                       <tr>
-                        <td style="width: 45%; text-align: center; vertical-align: top; border: none; padding: 0;">
-                          <div style="font-size: 10pt; font-weight: bold; text-transform: uppercase; color: #0f172a;">SỞ Y TẾ TỈNH TÂY NINH</div>
-                          <div style="font-size: 9.5pt; font-style: italic; color: #0f172a;">***</div>
+                        <td style="width: 40%; text-align: center; vertical-align: top; border: none; padding: 0;">
+                          <div style="font-size: 11pt; font-weight: bold; text-transform: uppercase;">SỞ Y TẾ TỈNH TÂY NINH</div>
+                          <div style="font-size: 10pt; font-style: italic;">***</div>
                         </td>
-                        <td style="width: 55%; text-align: center; vertical-align: top; border: none; padding: 0;">
-                          <div style="font-size: 10pt; font-weight: bold; text-transform: uppercase; color: #0f172a;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                          <div style="font-size: 9.5pt; font-weight: bold; color: #0f172a;">Độc lập - Tự do - Hạnh phúc</div>
-                          <div style="font-size: 9.5pt; font-style: italic; color: #0f172a;">-------------------</div>
+                        <td style="width: 60%; text-align: center; vertical-align: top; border: none; padding: 0;">
+                          <div style="font-size: 11pt; font-weight: bold; text-transform: uppercase;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                          <div style="font-size: 10pt; font-weight: bold;">Độc lập - Tự do - Hạnh phúc</div>
+                          <div style="font-size: 10pt; font-style: italic;">-------------------</div>
                         </td>
                       </tr>
                     </table>
 
-                    <div style="text-align: center; margin: 15px 0 15px 0;">
-                      <h2 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 0 0 4px 0; color: #0284c7;">THỐNG KÊ KSK CÁC CƠ QUAN TRONG HỆ THỐNG CHÍNH TRỊ</h2>
-                      <p style="font-size: 9.5pt; font-style: italic; color: #475569; margin: 0;">(Ngày xuất báo cáo: ${currentDateStr})</p>
+                    <div style="text-align: center; margin: 15px 0;">
+                      <h2 style="font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 0 0 5px 0; color: #0284c7 !important;">THỐNG KÊ KSK CÁC CƠ QUAN TRONG HỆ THỐNG CHÍNH TRỊ</h2>
+                      <p style="font-size: 10pt; font-style: italic; color: #475569 !important; margin: 0;">(Ngày xuất báo cáo: ${currentDateStr})</p>
                     </div>
 
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                       <thead>
                         <tr>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 5px; font-size: 9.5pt; border: 1px solid #0369a1; width: 40px;">STT</th>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 8px; font-size: 9.5pt; border: 1px solid #0369a1;">Tên cơ quan, đơn vị</th>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 6px; font-size: 9.5pt; border: 1px solid #0369a1; width: 110px;">Số CBCC CV NLĐ</th>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 6px; font-size: 9.5pt; border: 1px solid #0369a1; width: 100px;">Số đã KSK</th>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 6px; font-size: 9.5pt; border: 1px solid #0369a1; width: 110px;">Tỷ lệ hoàn thành</th>
-                          <th style="background-color: #0284c7; color: #ffffff; font-weight: bold; text-align: center; padding: 8px 5px; font-size: 9.5pt; border: 1px solid #0369a1; width: 100px;">Ngày báo cáo</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 35px;">STT</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 210px;">Tên cơ quan, đơn vị</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 95px;">Số CBCC CV NLĐ</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 85px;">Số đã KSK</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 90px;">Tỷ lệ hoàn thành</th>
+                          <th style="padding: 5px 3px; font-size: 8.5pt; border: 1px solid #0369a1; text-align: center; width: 85px;">Ngày báo cáo</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr style="background-color: #e0f2fe; font-weight: bold; font-size: 9.5pt;">
-                          <td colspan="2" style="padding: 8px 8px; text-align: center; border: 1px solid #cbd5e1; color: #0f172a;">TỔNG CỘNG</td>
-                          <td style="padding: 8px 8px; text-align: right; border: 1px solid #cbd5e1; color: #0f172a;">${totalWorkers.toLocaleString('vi-VN')}</td>
-                          <td style="padding: 8px 8px; text-align: right; color: #0284c7; border: 1px solid #cbd5e1;">${totalChecked.toLocaleString('vi-VN')}</td>
-                          <td style="padding: 8px 8px; text-align: right; color: #0284c7; border: 1px solid #cbd5e1;">${overallRate}</td>
-                          <td style="padding: 8px 5px; text-align: center; border: 1px solid #cbd5e1; color: #0f172a;">-</td>
+                        <tr style="font-size: 8.5pt;">
+                          <td colspan="2" class="summary-cell" style="padding: 5px 3px; text-align: center; border: 1px solid #cbd5e1;">TỔNG CỘNG</td>
+                          <td class="summary-cell" style="padding: 5px 3px; text-align: right; border: 1px solid #cbd5e1;">${totalWorkers.toLocaleString('vi-VN')}</td>
+                          <td class="summary-cell" style="padding: 5px 3px; text-align: right; color: #0284c7 !important; border: 1px solid #cbd5e1;">${totalChecked.toLocaleString('vi-VN')}</td>
+                          <td class="summary-cell" style="padding: 5px 3px; text-align: right; color: #0284c7 !important; border: 1px solid #cbd5e1;">${overallRate}</td>
+                          <td class="summary-cell" style="padding: 5px 3px; text-align: center; border: 1px solid #cbd5e1;">-</td>
                         </tr>
                         ${tableRowsHtml}
                       </tbody>
                     </table>
 
-                    <table style="width: 100%; margin-top: 30px; border-collapse: collapse; border: none; page-break-inside: avoid;">
+                    <table style="width: 100%; margin-top: 40px; border-collapse: collapse; border: none; page-break-inside: avoid;">
                       <tr>
                         <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding: 0;">
-                          <div style="font-weight: bold; font-size: 10pt; text-transform: uppercase; color: #0f172a;">NGƯỜI LẬP BÁO CÁO</div>
-                          <div style="font-style: italic; font-size: 8.5pt; color: #64748b; margin-top: 3px;">(Ký, ghi rõ họ tên)</div>
-                          <div style="height: 60px;"></div>
+                          <div style="font-weight: bold; font-size: 11pt; text-transform: uppercase;">NGƯỜI LẬP BÁO CÁO</div>
+                          <div style="font-style: italic; font-size: 9pt; color: #64748b !important; margin-top: 3px;">(Ký, ghi rõ họ tên)</div>
                         </td>
                         <td style="width: 50%; text-align: center; vertical-align: top; border: none; padding: 0;">
-                          <div style="font-weight: bold; font-size: 10pt; text-transform: uppercase; color: #0f172a;">THỦ TRƯỞNG ĐƠN VỊ</div>
-                          <div style="font-style: italic; font-size: 8.5pt; color: #64748b; margin-top: 3px;">(Ký, đóng dấu, ghi rõ họ tên)</div>
-                          <div style="height: 60px;"></div>
+                          <div style="font-weight: bold; font-size: 11pt; text-transform: uppercase;">THỦ TRƯỜNG ĐƠN VỊ</div>
+                          <div style="font-style: italic; font-size: 9pt; color: #64748b !important; margin-top: 3px;">(Ký, đóng dấu, ghi rõ họ tên)</div>
                         </td>
                       </tr>
                     </table>
                   `;
 
-                  document.body.appendChild(container);
+                  overlay.appendChild(paper);
+                  document.body.appendChild(overlay);
 
-                  // Wait 150ms for browser paint frame so html2canvas reads fully rendered layout & fonts
-                  await new Promise((resolve) => setTimeout(resolve, 150));
-
-                  const dateSuffix = new Date().toISOString().slice(0, 10);
-                  const fileName = `Thong_Ke_KSK_He_Thong_Chinh_Tri_${dateSuffix}.pdf`;
+                  // Wait 400ms for browser layout & font rendering
+                  await new Promise((resolve) => setTimeout(resolve, 400));
 
                   const opt = {
                     margin:       [8, 8, 8, 8],
@@ -1507,22 +1715,25 @@
                     html2canvas:  { 
                       scale: 2, 
                       useCORS: true, 
+                      allowTaint: true,
                       logging: false,
-                      scrollX: 0,
-                      scrollY: 0
+                      backgroundColor: '#ffffff',
+                      scrollY: 0,
+                      scrollX: 0
                     },
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                   };
 
                   const triggerDownload = async () => {
                     try {
-                      await html2pdf().set(opt).from(container).save();
+                      await html2pdf().set(opt).from(paper).save();
                     } catch (err) {
                       console.error('PDF export error:', err);
                     } finally {
-                      if (container.parentNode) {
-                        container.parentNode.removeChild(container);
+                      if (overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
                       }
+                      document.body.style.overflow = originalOverflow;
                       window.scrollTo(0, originalScrollY);
                     }
                   };
