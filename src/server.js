@@ -262,7 +262,8 @@ async function compileReportSvg(dateStr) {
       residentPopulation: unit.residentPopulation || 0,
       firstHalfChecked: unit.firstHalfChecked || 0,
       planTarget: targetVal,
-      completionRate: completionRateVal
+      completionRate: completionRateVal,
+      isBorder: Boolean(unit.isBorder)
     });
 
     grandDailyTotal += dailyVal;
@@ -779,6 +780,7 @@ app.get('/', async (req, res) => {
         residentPopulation: unit.residentPopulation,
         localManagedPopulation: unit.localManagedPopulation || 0,
         firstHalfChecked: unit.firstHalfChecked,
+        isBorder: Boolean(unit.isBorder),
         // Commune metrics
         daily,
         cumulative,
@@ -2492,7 +2494,7 @@ app.get('/admin/units', requireAuth, requireRole('admin'), async (req, res) => {
 });
 
 app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitName, username, password, contactName, contactPhone, contactEmail, order } = req.body;
+  const { unitName, username, password, contactName, contactPhone, contactEmail, order, isBorder } = req.body;
   try {
     if (!unitName || !username || !password) {
       return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
@@ -2504,6 +2506,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
       return res.redirect('/admin/units?error=' + encodeURIComponent('Tên đăng nhập đã tồn tại trên hệ thống'));
     }
 
+    const isBorderBool = isBorder === 'true' || isBorder === true || isBorder === 'on' || isBorder === '1';
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUnit = await User.create({
       unitName: unitName.trim(),
@@ -2513,6 +2516,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
       contactPhone: contactPhone ? contactPhone.trim() : '',
       contactEmail: contactEmail ? contactEmail.trim() : '',
       order: Number(order) || 0,
+      isBorder: isBorderBool,
       role: 'unit'
     });
 
@@ -2522,7 +2526,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
       username: req.session.username,
       action: 'CREATE',
       targetType: 'USER',
-      details: `Tạo tài khoản đơn vị mới: ${newUnit.unitName} (${newUnit.username})`
+      details: `Tạo tài khoản đơn vị mới: ${newUnit.unitName} (${newUnit.username})${newUnit.isBorder ? ' [Biên giới]' : ''}`
     });
 
     res.redirect('/admin/units?success=' + encodeURIComponent('Tạo tài khoản đơn vị mới thành công!'));
@@ -2533,7 +2537,7 @@ app.post('/admin/units/add', requireAuth, requireRole('admin'), async (req, res)
 });
 
 app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitId, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation } = req.body;
+  const { unitId, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation, isBorder } = req.body;
   try {
     if (!unitId || !unitName || !username) {
       return res.redirect('/admin/units?error=' + encodeURIComponent('Vui lòng điền đầy đủ các thông tin bắt buộc'));
@@ -2554,6 +2558,7 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
 
     const oldName = unit.unitName;
     const oldUsername = unit.username;
+    const isBorderBool = isBorder === 'true' || isBorder === true || isBorder === 'on' || isBorder === '1';
 
     unit.unitName = unitName.trim();
     unit.username = trimmedUsername;
@@ -2563,6 +2568,7 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
     unit.order = Number(order) || 0;
     unit.residentPopulation = parseInt(residentPopulation) || 0;
     unit.localManagedPopulation = parseInt(localManagedPopulation) || 0;
+    unit.isBorder = isBorderBool;
 
     await unit.save();
 
@@ -2572,13 +2578,38 @@ app.post('/admin/units/update', requireAuth, requireRole('admin'), async (req, r
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'USER',
-      details: `Cập nhật thông tin đơn vị: ${oldName} (${oldUsername}) -> ${unit.unitName} (${unit.username}), Tổng NK: ${unit.residentPopulation}, NK ĐPQL: ${unit.localManagedPopulation}`
+      details: `Cập nhật thông tin đơn vị: ${oldName} (${oldUsername}) -> ${unit.unitName} (${unit.username}), Tổng NK: ${unit.residentPopulation}, NK ĐPQL: ${unit.localManagedPopulation}, Biên giới: ${unit.isBorder ? 'Có' : 'Không'}`
     });
 
     res.redirect('/admin/units?success=' + encodeURIComponent('Cập nhật thông tin đơn vị thành công!'));
   } catch (error) {
     console.error('POST units/update error:', error);
     res.redirect('/admin/units?error=' + encodeURIComponent('Đã xảy ra lỗi khi cập nhật thông tin đơn vị'));
+  }
+});
+
+app.post('/admin/units/toggle-border/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const unit = await User.findById(req.params.id);
+    if (!unit) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy tài khoản đơn vị' });
+    }
+
+    unit.isBorder = !unit.isBorder;
+    await unit.save();
+
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'USER',
+      details: `Cập nhật trạng thái biên giới đơn vị ${unit.unitName}: ${unit.isBorder ? 'Biên giới' : 'Không phải biên giới'}`
+    });
+
+    return res.json({ success: true, isBorder: unit.isBorder });
+  } catch (error) {
+    console.error('POST /admin/units/toggle-border error:', error);
+    return res.status(500).json({ success: false, error: 'Đã xảy ra lỗi khi cập nhật trạng thái biên giới' });
   }
 });
 
@@ -2748,7 +2779,11 @@ function startKeepAlive() {
 }
 
 // Connect to Database and then start Express Server
-connectDB().then(() => {
+connectDB().then(async () => {
+  const borderCount = await User.countDocuments({ isBorder: true });
+  const totalUnits = await User.countDocuments({ role: 'unit' });
+  console.log(`[DB Info] Total units: ${totalUnits}, Border units (isBorder=true): ${borderCount}`);
+
   app.listen(PORT, () => {
     console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
     startKeepAlive();

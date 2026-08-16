@@ -68,6 +68,7 @@
                       <th style="width: 50px;">STT</th>
                       <th>Tên Đơn Vị</th>
                       <th style="width: 80px; text-align: center;">Thứ Tự</th>
+                      <th style="width: 90px; text-align: center;">Biên Giới</th>
                       <th>Tên Đăng Nhập</th>
                       <th>Người Liên Hệ / SĐT</th>
                       <th style="width: 140px; text-align: center;">Thao Tác</th>
@@ -81,9 +82,17 @@
                         </td>
                         <td style="font-weight: 600; color: var(--text-primary);">
                           <%= unit.unitName %>
+                          <% if (unit.isBorder) { %>
+                            <span class="badge" style="font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); margin-left: 0.35rem;">Biên giới</span>
+                          <% } %>
                         </td>
                         <td style="text-align: center; font-weight: bold; color: var(--accent-yellow);">
                           <%= unit.order || 0 %>
+                        </td>
+                        <td style="text-align: center;">
+                          <label style="margin: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="<%= unit.isBorder ? 'Xã/phường biên giới' : 'Không phải biên giới' %>">
+                            <input type="checkbox" class="unit-border-checkbox" data-id="<%= unit._id %>" <%= unit.isBorder ? 'checked' : '' %> onchange="toggleBorderStatus('<%= unit._id %>', this)" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-color);">
+                          </label>
                         </td>
                         <td style="font-family: monospace; font-size: 0.95rem; color: var(--primary-color);">
                           <%= unit.username %>
@@ -103,7 +112,7 @@
                         <td>
                           <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                             <button type="button" class="btn btn-secondary btn-icon" title="Chỉnh sửa thông tin đơn vị"
-                              onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>', <%= unit.order || 0 %>, <%= unit.residentPopulation || 0 %>, <%= unit.localManagedPopulation || 0 %>)">
+                              onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', '<%= unit.username %>', '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>', <%= unit.order || 0 %>, <%= unit.residentPopulation || 0 %>, <%= unit.localManagedPopulation || 0 %>, <%= unit.isBorder ? 'true' : 'false' %>)">
                               <!-- Edit Pencil Icon SVG -->
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
                                 stroke-width="2">
@@ -183,6 +192,11 @@
                     placeholder="Ví dụ: 1">
                 </div>
 
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: center; gap: 0.6rem; margin: 1rem 0; cursor: pointer;">
+                  <input type="checkbox" name="isBorder" id="add-isBorder" value="true" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-color); margin: 0;">
+                  <label for="add-isBorder" style="margin-bottom: 0; cursor: pointer; font-weight: 600; color: var(--text-primary); user-select: none;">Xã / Phường biên giới</label>
+                </div>
+
                 <h4
                   style="font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.75rem 0; color: var(--text-secondary);">
                   Thông Tin Liên Hệ (Không bắt buộc)</h4>
@@ -250,6 +264,11 @@
                   <div class="form-group">
                     <label for="modal-order">Thứ Tự Hiển Thị</label>
                     <input type="number" name="order" id="modal-order" class="form-control" min="0">
+                  </div>
+
+                  <div class="form-group" style="display: flex; flex-direction: row; align-items: center; gap: 0.6rem; margin: 1rem 0; cursor: pointer;">
+                    <input type="checkbox" name="isBorder" id="modal-isBorder" value="true" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-color); margin: 0;">
+                    <label for="modal-isBorder" style="margin-bottom: 0; cursor: pointer; font-weight: 600; color: var(--text-primary); user-select: none;">Xã / Phường biên giới</label>
                   </div>
 
                   <div class="form-group">
@@ -338,28 +357,22 @@
               const tr = table.getElementsByTagName('tr');
 
               for (let i = 1; i < tr.length; i++) {
-                const tdName = tr[i].getElementsByTagName('td')[1];
-                const tdUsername = tr[i].getElementsByTagName('td')[2];
-
-                if (tdName || tdUsername) {
-                  const nameText = (tdName.textContent || tdName.innerText).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
-                  const userText = (tdUsername.textContent || tdUsername.innerText).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
-
-                  if (nameText.indexOf(filter) > -1 || userText.indexOf(filter) > -1) {
-                    tr[i].style.display = '';
-                  } else {
-                    tr[i].style.display = 'none';
-                  }
+                const rowText = (tr[i].textContent || tr[i].innerText).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd');
+                if (rowText.indexOf(filter) > -1) {
+                  tr[i].style.display = '';
+                } else {
+                  tr[i].style.display = 'none';
                 }
               }
             }
 
             // Edit Modal Controls
-            function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation) {
+            function openEditModal(id, unitName, username, contactName, contactPhone, contactEmail, order, residentPopulation, localManagedPopulation, isBorder) {
               document.getElementById('modal-unitId').value = id;
               document.getElementById('modal-unitName').value = unitName;
               document.getElementById('modal-username').value = username;
               document.getElementById('modal-order').value = order || 0;
+              document.getElementById('modal-isBorder').checked = (isBorder === true || isBorder === 'true');
               document.getElementById('modal-contactName').value = contactName;
               document.getElementById('modal-contactPhone').value = contactPhone;
               document.getElementById('modal-contactEmail').value = contactEmail;
@@ -370,6 +383,33 @@
 
             function closeEditModal() {
               document.getElementById('edit-modal').style.display = 'none';
+            }
+
+            // Toggle Border Status via AJAX
+            async function toggleBorderStatus(unitId, checkbox) {
+              const originalChecked = !checkbox.checked;
+              checkbox.disabled = true;
+              try {
+                const response = await fetch(`/admin/units/toggle-border/${unitId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+                const result = await response.json();
+                if (result && result.success) {
+                  checkbox.checked = result.isBorder;
+                  checkbox.parentElement.title = result.isBorder ? 'Xã/phường biên giới' : 'Không phải biên giới';
+                  window.location.reload();
+                } else {
+                  alert(result.error || 'Đã xảy ra lỗi khi cập nhật trạng thái');
+                  checkbox.checked = originalChecked;
+                }
+              } catch (err) {
+                console.error('Error toggling border status:', err);
+                alert('Lỗi kết nối máy chủ');
+                checkbox.checked = originalChecked;
+              } finally {
+                checkbox.disabled = false;
+              }
             }
 
             // Password Modal Controls

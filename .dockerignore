@@ -1,10 +1,11 @@
 node_modules
 npm-debug.log
-.env
 .git
 .gitignore
 .dockerignore
-Dockerfile
-docker-compose.yml
+.env
+.env.example
+scratch
 scratch_*.js
 *.log
+*.md

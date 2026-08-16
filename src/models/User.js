@@ -52,6 +52,10 @@ const UserSchema = new mongoose.Schema({
   order: {
     type: Number,
     default: 0
+  },
+  isBorder: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

@@ -206,7 +206,8 @@
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               <button class="btn btn-secondary" onclick="exportPoliticalExcel()"
                 style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="8" y1="13" x2="16" y2="13" />
@@ -216,7 +217,8 @@
               </button>
               <button class="btn btn-secondary" onclick="exportPoliticalPdf()"
                 style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #ef4444; border-color: #ef4444; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
@@ -366,6 +368,26 @@
                   </button>
                 </div>
 
+                <!-- Region Filter Segment Controller (Tất cả / Nội địa / Biên giới) -->
+                <div class="segment-control"
+                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                  <button type="button" class="btn segment-btn" id="btn-region-all"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
+                    onclick="switchRegionFilter('all')">
+                    Tất cả
+                  </button>
+                  <button type="button" class="btn segment-btn" id="btn-region-interior"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                    onclick="switchRegionFilter('interior')">
+                    Nội địa
+                  </button>
+                  <button type="button" class="btn segment-btn" id="btn-region-border"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                    onclick="switchRegionFilter('border')">
+                    Biên giới
+                  </button>
+                </div>
+
                 <!-- Export Excel Button -->
                 <button type="button" class="btn btn-secondary" onclick="exportUnitsTableToExcel()"
                   style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
@@ -424,14 +446,18 @@
                     <div class="multiselect-options" id="multiselect-options"
                       style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem; padding-right: 0.25rem;">
                       <% reportsTable.forEach((row, index)=> { %>
-                        <div class="multiselect-option-item"
+                        <div class="multiselect-option-item" data-border="<%= row.isBorder ? 'true' : 'false' %>"
                           style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.15rem 0;">
                           <input type="checkbox" class="multiselect-checkbox" id="chk-unit-<%= row.unitId %>"
-                            value="<%= row.unitName %>" checked
+                            value="<%= row.unitName %>" data-border="<%= row.isBorder ? 'true' : 'false' %>" checked
                             style="cursor: pointer; accent-color: var(--primary-color);">
                           <label for="chk-unit-<%= row.unitId %>"
                             style="cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--text-primary);">
                             <%= row.unitName %>
+                              <% if (row.isBorder) { %>
+                                <span style="font-size: 0.7rem; color: #60a5fa; margin-left: 0.25rem;">(Biên
+                                  giới)</span>
+                                <% } %>
                           </label>
                         </div>
                         <% }) %>
@@ -524,7 +550,7 @@
                   </thead>
                   <tbody>
                     <!-- Summary Totals Row at the Top of Records -->
-                    <tr
+                    <tr id="summary-totals-row"
                       style="font-weight: 700; background: rgba(2, 132, 199, 0.15); color: var(--text-primary); border-bottom: 2px solid var(--panel-border);">
                       <td colspan="2" class="col-sticky-1"
                         style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
@@ -604,7 +630,9 @@
                               row.residentPopulation) *
                               100 : 0; %>
 
-                              <tr class="<%= row.username === user.username ? 'highlight' : '' %>">
+                              <tr class="unit-data-row <%= row.username === user.username ? 'highlight' : '' %>"
+                                data-unit-name="<%= row.unitName %>"
+                                data-border="<%= row.isBorder ? 'true' : 'false' %>">
                                 <td class="col-sticky-1"
                                   style="text-align: center; min-width: 50px; max-width: 50px; width: 50px;">
                                   <%= index + 1 %>
@@ -612,13 +640,18 @@
                                 <td class="col-sticky-2"
                                   style="font-weight: 600; text-align: left; min-width: 170px; max-width: 170px; width: 170px; border-right: 2px solid var(--panel-border) !important;">
                                   <%= row.unitName %>
-                                    <% if (row.username===user.username) { %>
-                                      <span class="badge badge-info"
-                                        style="font-size: 0.65rem; margin-left: 0.25rem; padding: 0.1rem 0.3rem;">Đơn
-                                        vị
-                                        của
-                                        bạn</span>
+                                    <% if (row.isBorder) { %>
+                                      <span class="badge"
+                                        style="font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); margin-left: 0.25rem;">Biên
+                                        giới</span>
                                       <% } %>
+                                        <% if (row.username===user.username) { %>
+                                          <span class="badge badge-info"
+                                            style="font-size: 0.65rem; margin-left: 0.25rem; padding: 0.1rem 0.3rem;">Đơn
+                                            vị
+                                            của
+                                            bạn</span>
+                                          <% } %>
                                 </td>
                                 <td style="text-align: center;">
                                   <%= row.residentPopulation.toLocaleString('vi-VN') %>
@@ -986,39 +1019,161 @@
                   });
                 });
 
+                // Track region filter: 'all' | 'interior' | 'border'
+                window.currentRegionFilter = 'all';
+
+                window.switchRegionFilter = function (region) {
+                  window.currentRegionFilter = region;
+                  const btnAll = document.getElementById('btn-region-all');
+                  const btnInterior = document.getElementById('btn-region-interior');
+                  const btnBorder = document.getElementById('btn-region-border');
+
+                  [btnAll, btnInterior, btnBorder].forEach(btn => {
+                    if (btn) {
+                      btn.style.background = 'transparent';
+                      btn.style.color = 'var(--text-secondary)';
+                    }
+                  });
+
+                  if (region === 'all' && btnAll) {
+                    btnAll.style.background = 'var(--primary-color)';
+                    btnAll.style.color = '#ffffff';
+                  } else if (region === 'interior' && btnInterior) {
+                    btnInterior.style.background = 'var(--primary-color)';
+                    btnInterior.style.color = '#ffffff';
+                  } else if (region === 'border' && btnBorder) {
+                    btnBorder.style.background = 'var(--primary-color)';
+                    btnBorder.style.color = '#ffffff';
+                  }
+
+                  filterTable();
+                };
+
                 // Function to apply filters to the table rows and update status label
                 function filterTable() {
                   const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
                   const totalUnits = checkboxes.length;
+                  const checkedNames = checkedBoxes.map(cb => cb.value.trim());
+                  const region = window.currentRegionFilter || 'all';
+
+                  const unitRows = document.querySelectorAll('#units-table tbody tr.unit-data-row');
+                  let visibleCount = 0;
+
+                  unitRows.forEach(row => {
+                    const isBorder = row.getAttribute('data-border') === 'true';
+                    const unitName = (row.getAttribute('data-unit-name') || '').trim();
+
+                    let matchRegion = true;
+                    if (region === 'interior') {
+                      matchRegion = !isBorder;
+                    } else if (region === 'border') {
+                      matchRegion = isBorder;
+                    }
+
+                    const matchMultiselect = (checkedBoxes.length === totalUnits || checkedNames.includes(unitName));
+
+                    if (matchRegion && matchMultiselect) {
+                      row.style.display = '';
+                      visibleCount++;
+                      const sttCell = row.querySelector('.col-sticky-1');
+                      if (sttCell) {
+                        sttCell.textContent = visibleCount;
+                      }
+                    } else {
+                      row.style.display = 'none';
+                    }
+                  });
 
                   // Update label text
+                  let regionSuffix = '';
+                  if (region === 'border') regionSuffix = ' (Biên giới)';
+                  else if (region === 'interior') regionSuffix = ' (Nội địa)';
+
                   if (checkedBoxes.length === totalUnits) {
-                    label.textContent = `Tất cả đơn vị (${totalUnits})`;
+                    label.textContent = `Tất cả đơn vị (${visibleCount})${regionSuffix}`;
                   } else if (checkedBoxes.length === 0) {
                     label.textContent = 'Chưa chọn đơn vị nào';
                   } else {
                     const names = checkedBoxes.map(cb => cb.value);
                     if (names.length <= 2) {
-                      label.textContent = names.join(', ');
+                      label.textContent = names.join(', ') + regionSuffix;
                     } else {
-                      label.textContent = `Đã chọn ${checkedBoxes.length} đơn vị`;
+                      label.textContent = `Đã chọn ${checkedBoxes.length} đơn vị${regionSuffix}`;
                     }
                   }
 
-                  // Hide or show table rows based on checks
-                  const checkedNames = checkedBoxes.map(cb => cb.value.trim());
-                  tableRows.forEach(row => {
-                    const unitCell = row.cells[1];
-                    if (unitCell) {
-                      // Extract plain text (ignoring potential badge elements)
-                      const unitName = unitCell.childNodes[0].textContent.trim();
-                      if (checkedBoxes.length === totalUnits || checkedNames.includes(unitName)) {
-                        row.style.display = '';
-                      } else {
-                        row.style.display = 'none';
-                      }
+                  // Update summary totals row based on visible units
+                  updateSummaryRow();
+                }
+
+                // Function to recalculate top summary row for visible units
+                function updateSummaryRow() {
+                  const visibleUnitRows = Array.from(document.querySelectorAll('#units-table tbody tr.unit-data-row')).filter(r => r.style.display !== 'none');
+                  const summaryRow = document.getElementById('summary-totals-row');
+                  if (!summaryRow) return;
+
+                  const parseNum = (str) => {
+                    if (!str) return 0;
+                    const clean = str.replace(/\./g, '').replace(/,/g, '.').trim();
+                    if (clean === '-' || clean === '') return 0;
+                    const num = parseFloat(clean);
+                    return isNaN(num) ? 0 : num;
+                  };
+
+                  let sumResPop = 0;
+                  let sumLocalPop = 0;
+                  let sumFirstHalf = 0;
+                  let sumTarget = 0;
+                  let sumCumTotal = 0;
+
+                  const sumMonth = new Array(9).fill(0);
+                  const dayCols = summaryRow.querySelectorAll('.col-day');
+                  const sumDay = new Array(dayCols.length).fill(0);
+
+                  visibleUnitRows.forEach(row => {
+                    const cells = row.children;
+                    sumResPop += parseNum(cells[2]?.textContent);
+                    sumLocalPop += parseNum(cells[3]?.textContent);
+                    sumFirstHalf += parseNum(cells[4]?.textContent);
+                    sumTarget += parseNum(cells[5]?.textContent);
+                    sumCumTotal += parseNum(cells[6]?.textContent);
+
+                    for (let m = 0; m < 9; m++) {
+                      sumMonth[m] += parseNum(cells[8 + m]?.textContent);
+                    }
+
+                    for (let d = 0; d < dayCols.length; d++) {
+                      sumDay[d] += parseNum(cells[17 + d]?.textContent);
                     }
                   });
+
+                  const sumRate = sumTarget > 0 ? (sumCumTotal / sumTarget) * 100 : 0;
+
+                  const summaryCells = summaryRow.children;
+                  if (summaryCells[1]) summaryCells[1].textContent = sumResPop.toLocaleString('vi-VN');
+                  if (summaryCells[2]) summaryCells[2].textContent = sumLocalPop.toLocaleString('vi-VN');
+                  if (summaryCells[3]) summaryCells[3].textContent = sumFirstHalf.toLocaleString('vi-VN');
+                  if (summaryCells[4]) summaryCells[4].textContent = sumTarget.toLocaleString('vi-VN');
+                  if (summaryCells[5]) summaryCells[5].textContent = sumCumTotal.toLocaleString('vi-VN');
+
+                  if (summaryCells[6]) {
+                    const rateDiv = summaryCells[6].querySelector('div:first-child');
+                    const rateDetail = summaryCells[6].querySelector('div:last-child');
+                    if (rateDiv) rateDiv.textContent = sumRate.toFixed(1) + '%';
+                    if (rateDetail) rateDetail.textContent = `(${sumCumTotal.toLocaleString('vi-VN')}/${sumTarget.toLocaleString('vi-VN')})`;
+                  }
+
+                  for (let m = 0; m < 9; m++) {
+                    if (summaryCells[7 + m]) {
+                      summaryCells[7 + m].textContent = sumMonth[m].toLocaleString('vi-VN');
+                    }
+                  }
+
+                  for (let d = 0; d < dayCols.length; d++) {
+                    if (summaryCells[16 + d]) {
+                      summaryCells[16 + d].textContent = sumDay[d] > 0 ? sumDay[d].toLocaleString('vi-VN') : '-';
+                    }
+                  }
                 }
 
                 // Checkbox toggle listener
@@ -1387,156 +1542,156 @@
 
                 // Export political table to Excel
                 window.exportPoliticalExcel = async function () {
-                    if (!window.ExcelJS) {
-                      alert('Thư viện ExcelJS đang được nạp, vui lòng thử lại sau vài giây.');
-                      return;
-                    }
+                  if (!window.ExcelJS) {
+                    alert('Thư viện ExcelJS đang được nạp, vui lòng thử lại sau vài giây.');
+                    return;
+                  }
 
-                    const table = document.getElementById('political-table');
-                    if (!table) return;
+                  const table = document.getElementById('political-table');
+                  if (!table) return;
 
-                    const rows = table.querySelectorAll('tbody tr');
-                    if (rows.length === 0) return;
+                  const rows = table.querySelectorAll('tbody tr');
+                  if (rows.length === 0) return;
 
-                    const workbook = new ExcelJS.Workbook();
-                    const worksheet = workbook.addWorksheet('Thống kê CQ Chính trị');
+                  const workbook = new ExcelJS.Workbook();
+                  const worksheet = workbook.addWorksheet('Thống kê CQ Chính trị');
 
-                    // Title row
-                    worksheet.mergeCells('A1:F1');
-                    const titleCell = worksheet.getCell('A1');
-                    titleCell.value = 'THỐNG KÊ KSK CÁC CƠ QUAN TRONG HỆ THỐNG CHÍNH TRỊ';
-                    titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF0284C7' } };
-                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    worksheet.getRow(1).height = 30;
+                  // Title row
+                  worksheet.mergeCells('A1:F1');
+                  const titleCell = worksheet.getCell('A1');
+                  titleCell.value = 'THỐNG KÊ KSK CÁC CƠ QUAN TRONG HỆ THỐNG CHÍNH TRỊ';
+                  titleCell.font = { name: 'Segoe UI', size: 13, bold: true, color: { argb: 'FF0284C7' } };
+                  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  worksheet.getRow(1).height = 30;
 
-                    // Subtitle
-                    worksheet.mergeCells('A2:F2');
-                    const subCell = worksheet.getCell('A2');
-                    subCell.value = `(Ngày xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')})`;
-                    subCell.font = { name: 'Segoe UI', size: 9.5, italic: true, color: { argb: 'FF475569' } };
-                    subCell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    worksheet.getRow(2).height = 20;
+                  // Subtitle
+                  worksheet.mergeCells('A2:F2');
+                  const subCell = worksheet.getCell('A2');
+                  subCell.value = `(Ngày xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')})`;
+                  subCell.font = { name: 'Segoe UI', size: 9.5, italic: true, color: { argb: 'FF475569' } };
+                  subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  worksheet.getRow(2).height = 20;
 
-                    worksheet.addRow([]); // Blank row 3
+                  worksheet.addRow([]); // Blank row 3
 
-                    // Header row
-                    const headerRow = worksheet.addRow(['STT', 'Tên cơ quan, đơn vị', 'Số CBCC CV NLĐ', 'Số đã KSK', 'Tỷ lệ hoàn thành', 'Ngày báo cáo']);
-                    headerRow.height = 26;
-                    headerRow.eachCell((cell) => {
-                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
-                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                  // Header row
+                  const headerRow = worksheet.addRow(['STT', 'Tên cơ quan, đơn vị', 'Số CBCC CV NLĐ', 'Số đã KSK', 'Tỷ lệ hoàn thành', 'Ngày báo cáo']);
+                  headerRow.height = 26;
+                  headerRow.eachCell((cell) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                    cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    cell.border = {
+                      top: { style: 'thin', color: { argb: 'FF0369A1' } },
+                      left: { style: 'thin', color: { argb: 'FF0369A1' } },
+                      bottom: { style: 'thin', color: { argb: 'FF0369A1' } },
+                      right: { style: 'thin', color: { argb: 'FF0369A1' } }
+                    };
+                  });
+
+                  let totalWorkers = 0;
+                  let totalChecked = 0;
+                  const dataRows = [];
+
+                  rows.forEach((tr) => {
+                    const tds = tr.children;
+                    if (tds.length < 6) return;
+
+                    const stt = tds[0].textContent.trim();
+                    const workplace = tds[1].textContent.trim();
+                    const workersStr = tds[2].textContent.trim();
+                    const checkedStr = tds[3].textContent.trim();
+                    const rateStr = tds[4].textContent.trim();
+                    const dateStr = tds[5].textContent.trim();
+
+                    const workers = parseFloat(workersStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
+                    const checked = parseFloat(checkedStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
+
+                    totalWorkers += workers;
+                    totalChecked += checked;
+
+                    dataRows.push([stt, workplace, workers, checked, rateStr, dateStr]);
+                  });
+
+                  const overallRate = totalWorkers > 0 ? (totalChecked / totalWorkers * 100).toFixed(1) + '%' : '0.0%';
+
+                  // Summary Row
+                  const summaryRow = worksheet.addRow(['TỔNG CỘNG', '', totalWorkers, totalChecked, overallRate, '-']);
+                  worksheet.mergeCells(`A${summaryRow.number}:B${summaryRow.number}`);
+                  summaryRow.height = 24;
+                  summaryRow.eachCell((cell, colNum) => {
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+                    cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0284C7' } };
+                    cell.border = {
+                      top: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      bottom: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+                    if (colNum === 1) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    else if (colNum === 3 || colNum === 4 || colNum === 5) {
+                      cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                      if (colNum === 3 || colNum === 4) cell.numFmt = '#,##0';
+                    } else cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  });
+
+                  // Data Rows
+                  dataRows.forEach((r, idx) => {
+                    const row = worksheet.addRow(r);
+                    row.height = 22;
+                    const bgHex = idx % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
+                    row.eachCell((cell, c) => {
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
+                      cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF0F172A' } };
                       cell.border = {
-                        top: { style: 'thin', color: { argb: 'FF0369A1' } },
-                        left: { style: 'thin', color: { argb: 'FF0369A1' } },
-                        bottom: { style: 'thin', color: { argb: 'FF0369A1' } },
-                        right: { style: 'thin', color: { argb: 'FF0369A1' } }
-                      };
-                    });
-
-                    let totalWorkers = 0;
-                    let totalChecked = 0;
-                    const dataRows = [];
-
-                    rows.forEach((tr) => {
-                      const tds = tr.children;
-                      if (tds.length < 6) return;
-
-                      const stt = tds[0].textContent.trim();
-                      const workplace = tds[1].textContent.trim();
-                      const workersStr = tds[2].textContent.trim();
-                      const checkedStr = tds[3].textContent.trim();
-                      const rateStr = tds[4].textContent.trim();
-                      const dateStr = tds[5].textContent.trim();
-
-                      const workers = parseFloat(workersStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
-                      const checked = parseFloat(checkedStr.replace(/\./g, '').replace(/,/g, '.')) || 0;
-
-                      totalWorkers += workers;
-                      totalChecked += checked;
-
-                      dataRows.push([stt, workplace, workers, checked, rateStr, dateStr]);
-                    });
-
-                    const overallRate = totalWorkers > 0 ? (totalChecked / totalWorkers * 100).toFixed(1) + '%' : '0.0%';
-
-                    // Summary Row
-                    const summaryRow = worksheet.addRow(['TỔNG CỘNG', '', totalWorkers, totalChecked, overallRate, '-']);
-                    worksheet.mergeCells(`A${summaryRow.number}:B${summaryRow.number}`);
-                    summaryRow.height = 24;
-                    summaryRow.eachCell((cell, colNum) => {
-                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
-                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0284C7' } };
-                      cell.border = {
-                        top: { style: 'medium', color: { argb: 'FF0284C7' } },
-                        bottom: { style: 'medium', color: { argb: 'FF0284C7' } },
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                         left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                         right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                       };
-                      if (colNum === 1) cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                      else if (colNum === 3 || colNum === 4 || colNum === 5) {
+
+                      if (c === 1 || c === 6) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      else if (c === 2) {
+                        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+                      } else if (c === 3) {
                         cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                        if (colNum === 3 || colNum === 4) cell.numFmt = '#,##0';
-                      } else cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 4) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 5) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
+                      }
                     });
+                  });
 
-                    // Data Rows
-                    dataRows.forEach((r, idx) => {
-                      const row = worksheet.addRow(r);
-                      row.height = 22;
-                      const bgHex = idx % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
-                      row.eachCell((cell, c) => {
-                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
-                        cell.font = { name: 'Segoe UI', size: 9.5, color: { argb: 'FF0F172A' } };
-                        cell.border = {
-                          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                          right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-                        };
+                  // Column Widths
+                  worksheet.columns.forEach((col, idx) => {
+                    if (idx === 0) col.width = 8;
+                    else if (idx === 1) col.width = 38;
+                    else if (idx === 2) col.width = 20;
+                    else if (idx === 3) col.width = 16;
+                    else if (idx === 4) col.width = 18;
+                    else if (idx === 5) col.width = 16;
+                  });
 
-                        if (c === 1 || c === 6) cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                        else if (c === 2) {
-                          cell.alignment = { horizontal: 'left', vertical: 'middle' };
-                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
-                        } else if (c === 3) {
-                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                          cell.numFmt = '#,##0';
-                        } else if (c === 4) {
-                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
-                          cell.numFmt = '#,##0';
-                        } else if (c === 5) {
-                          cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                          cell.font = { name: 'Segoe UI', size: 9.5, bold: true, color: { argb: 'FF0284C7' } };
-                        }
-                      });
-                    });
+                  const dateSuffix = new Date().toISOString().slice(0, 10);
+                  const fileName = `Thong_Ke_KSK_He_Thong_Chinh_Tri_${dateSuffix}.xlsx`;
 
-                    // Column Widths
-                    worksheet.columns.forEach((col, idx) => {
-                      if (idx === 0) col.width = 8;
-                      else if (idx === 1) col.width = 38;
-                      else if (idx === 2) col.width = 20;
-                      else if (idx === 3) col.width = 16;
-                      else if (idx === 4) col.width = 18;
-                      else if (idx === 5) col.width = 16;
-                    });
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-                    const dateSuffix = new Date().toISOString().slice(0, 10);
-                    const fileName = `Thong_Ke_KSK_He_Thong_Chinh_Tri_${dateSuffix}.xlsx`;
-
-                    const buffer = await workbook.xlsx.writeBuffer();
-                    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(link.href);
-                  };
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = fileName;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(link.href);
+                };
 
                 // Export political reports table directly to PDF file download
                 window.exportPoliticalPdf = async function () {
@@ -1684,19 +1839,19 @@
                   await new Promise((resolve) => setTimeout(resolve, 400));
 
                   const opt = {
-                    margin:       [8, 8, 8, 8],
-                    filename:     fileName,
-                    image:        { type: 'jpeg', quality: 0.98 },
-                    html2canvas:  { 
-                      scale: 2, 
-                      useCORS: true, 
+                    margin: [8, 8, 8, 8],
+                    filename: fileName,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                      scale: 2,
+                      useCORS: true,
                       allowTaint: true,
                       logging: false,
                       backgroundColor: '#ffffff',
                       scrollY: 0,
                       scrollX: 0
                     },
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                   };
 
                   const triggerDownload = async () => {
