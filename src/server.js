@@ -153,7 +153,7 @@ function getTodayStringVN() {
 // -------------------------------------------------------------
 // SVG COMPILATION HELPER
 // -------------------------------------------------------------
-async function compileReportSvg(dateStr) {
+async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const selectedDate = parseDateUTC(dateStr);
   const dateString = `${String(selectedDate.getUTCDate()).padStart(2, '0')}/${String(selectedDate.getUTCMonth() + 1).padStart(2, '0')}/${selectedDate.getUTCFullYear()}`;
 
@@ -276,7 +276,6 @@ async function compileReportSvg(dateStr) {
   const unitSortType = await getConfigValue('unit_sort_type', 'stt');
   sortReportsTable(reportsTable, unitSortType, false);
 
-
   // Fetch BYT Linkage count for this date and cumulative
   const bytTodayObj = await BytLinkage.findOne({ date: selectedDate }) || { count: 0 };
   const grandBytToday = bytTodayObj.count || 0;
@@ -353,46 +352,125 @@ async function compileReportSvg(dateStr) {
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = campaignTarget > 0 ? (grandOverallTotal / campaignTarget) * 100 : 0;
 
-  // Generate the SVG dynamic text nodes for the 96 communes
+  const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   let dynamicTexts = '';
-  for (let i = 0; i < 96; i++) {
-    const unit = reportsTable[i];
-    if (!unit) continue;
+  let templateFile = '';
 
-    const col = Math.floor(i / 32); // Columns: 0, 1, 2
-    const row = i % 32;
+  const isDiaGioi = (reportType === 'diagioi' || reportType === 'phanloai');
 
-    const baseShift = col * 787;
-    const xName = 105 + baseShift;
-    const xDaily = 501 + baseShift;
-    const xCumulative = 636 + baseShift;
-    const xRate = 751 + baseShift;
+  if (isDiaGioi) {
+    templateFile = path.join(__dirname, '../views/report_template_diagioi.svg');
+    const interiorUnits = reportsTable.filter(u => !u.isBorder);
+    const borderUnits = reportsTable.filter(u => u.isBorder);
 
-    const yName = 1171.75 + row * 51;
-    const yVal = 1172.75 + row * 51;
+    // Render 77 interior communes across Col 1 (33), Col 2 (33), Col 3 Top (11)
+    for (let i = 0; i < interiorUnits.length; i++) {
+      const unit = interiorUnits[i];
+      let row, xName, xDaily, xCumulative, xRate;
 
-    const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-    const name = escapeXml(`${i + 1}. ${unit.unitName}`);
-    const daily = unit.daily.toLocaleString('vi-VN');
-    const cumulative = unit.cumulative.toLocaleString('vi-VN');
+      if (i < 33) {
+        // Col 1 (0 to 32)
+        row = i;
+        xName = 105;
+        xDaily = 501;
+        xCumulative = 638;
+        xRate = 756;
+      } else if (i < 66) {
+        // Col 2 (33 to 65)
+        row = i - 33;
+        xName = 876;
+        xDaily = 1271;
+        xCumulative = 1409;
+        xRate = 1527;
+      } else {
+        // Col 3 Top (66 to 76)
+        row = i - 66;
+        xName = 1647;
+        xDaily = 2042;
+        xCumulative = 2180;
+        xRate = 2298;
+      }
 
-    const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
-    const rate = rateVal.toFixed(1) + '%';
+      const yName = 1191.75 + row * 51;
+      const yVal = 1192.75 + row * 51;
 
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
-    dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+      const name = escapeXml(`${i + 1}. ${unit.unitName}`);
+      const daily = unit.daily.toLocaleString('vi-VN');
+      const cumulative = unit.cumulative.toLocaleString('vi-VN');
+      const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
+      const rate = rateVal.toFixed(1) + '%';
+
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    }
+
+    // Render 19 border communes in Col 3 Bottom (0 to 18)
+    for (let i = 0; i < borderUnits.length; i++) {
+      const unit = borderUnits[i];
+      const row = i;
+      const xName = 1647;
+      const xDaily = 2042;
+      const xCumulative = 2180;
+      const xRate = 2298;
+
+      const yName = 1905.75 + row * 51;
+      const yVal = 1906.75 + row * 51;
+
+      const name = escapeXml(`${i + 1}. ${unit.unitName}`);
+      const daily = unit.daily.toLocaleString('vi-VN');
+      const cumulative = unit.cumulative.toLocaleString('vi-VN');
+      const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
+      const rate = rateVal.toFixed(1) + '%';
+
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    }
+  } else {
+    // Standard Toàn tỉnh 96 communes
+    templateFile = path.join(__dirname, '../views/report_template.svg');
+    for (let i = 0; i < 96; i++) {
+      const unit = reportsTable[i];
+      if (!unit) continue;
+
+      const col = Math.floor(i / 32); // Columns: 0, 1, 2
+      const row = i % 32;
+
+      const baseShift = col * 787;
+      const xName = 105 + baseShift;
+      const xDaily = 501 + baseShift;
+      const xCumulative = 636 + baseShift;
+      const xRate = 751 + baseShift;
+
+      const yName = 1171.75 + row * 51;
+      const yVal = 1172.75 + row * 51;
+
+      const name = escapeXml(`${i + 1}. ${unit.unitName}`);
+      const daily = unit.daily.toLocaleString('vi-VN');
+      const cumulative = unit.cumulative.toLocaleString('vi-VN');
+
+      const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
+      const rate = rateVal.toFixed(1) + '%';
+
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    }
   }
 
   // Read templates and replace variables
-  let template = fs.readFileSync(path.join(__dirname, '../views/report_template.svg'), 'utf8');
+  let template = fs.readFileSync(templateFile, 'utf8');
 
   // Replace dynamic text elements
   template = template.replace('<!-- DYNAMIC_TEXT_ELEMENTS -->', dynamicTexts);
 
   // Replace "Tổng khám" text with placeholders so they get dynamic overall total values
   template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/\{5\}/g, '{4}/{5}');
+  template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/3\.194\.187/g, '{4}/' + grandResidentPopulation.toLocaleString('vi-VN'));
   template = template.replace(/T&#x1ed5;ng kh&#xe1;m\/2\.128\.099/g, '{4}/' + campaignTarget.toLocaleString('vi-VN'));
 
   // Replace top card counters using placeholders
@@ -417,17 +495,21 @@ async function compileReportSvg(dateStr) {
   const cnldXOffset = cnldLength > 1 ? -15 * (cnldLength - 1) : 0;
   const cnldX = (277.044 + cnldXOffset).toFixed(3);
   template = template.replace(/x="277\.044"([^>]*>)\{CNLD_KSK\}/g, `x="${cnldX}"$1${cnldStr}`);
+  template = template.replace(/\{CNLD_KSK\}/g, cnldStr);
 
   const tehsStr = tehsLuyKe.toLocaleString('vi-VN');
   const tehsLength = tehsStr.length;
   const tehsXOffset = tehsLength > 1 ? -13 * (tehsLength - 1) : 0;
   const tehsX = (1209.04 + tehsXOffset).toFixed(3);
-  template = template.replace(/x="1209\.04"([^>]*>)\{TEHS_KSK\}/g, `x="${tehsX}"$1${tehsStr}`);
+  template = template.replace(/x="(?:1209\.04|1213\.04)"([^>]*>)\{TEHS_KSK\}/g, `x="${tehsX}"$1${tehsStr}`);
+  template = template.replace(/\{TEHS_KSK\}/g, tehsStr);
+
   const cbccvcStr = cbccvcLuyKe.toLocaleString('vi-VN');
   const cbccvcLength = cbccvcStr.length;
   const cbccvcXOffset = cbccvcLength > 1 ? -13 * (cbccvcLength - 1) : 0;
   const cbccvcX = (751.544 + cbccvcXOffset).toFixed(3);
   template = template.replace(/x="751\.544"([^>]*>)\{CBCCVC_KSK\}/g, `x="${cbccvcX}"$1${cbccvcStr}`);
+  template = template.replace(/\{CBCCVC_KSK\}/g, cbccvcStr);
 
   // Replace report date globally
   template = template.replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, dateString);
@@ -441,6 +523,7 @@ async function compileReportSvg(dateStr) {
 app.get('/report', async (req, res) => {
   try {
     let date = req.query.date;
+    let type = req.query.type || 'toantinh';
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     if (!date) {
       const latestReport = await DailyReport.findOne().sort({ date: -1 });
@@ -450,9 +533,10 @@ app.get('/report', async (req, res) => {
         date = '2026-07-06';
       }
     }
-    const svgContent = await compileReportSvg(date);
+    const svgContent = await compileReportSvg(date, type);
     return res.render('report', {
       date: date,
+      type: type,
       svgContent: svgContent
     });
   } catch (err) {
@@ -464,6 +548,7 @@ app.get('/report', async (req, res) => {
 app.get('/download-report', async (req, res) => {
   try {
     let date = req.query.date;
+    let type = req.query.type || 'toantinh';
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     if (!date) {
       const latestReport = await DailyReport.findOne().sort({ date: -1 });
@@ -473,9 +558,9 @@ app.get('/download-report', async (req, res) => {
         date = '2026-07-06';
       }
     }
-    const svgContent = await compileReportSvg(date);
+    const svgContent = await compileReportSvg(date, type);
     res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Content-Disposition', `attachment; filename="bao-cao-syt-figma-${date}.svg"`);
+    res.setHeader('Content-Disposition', `attachment; filename="bao-cao-syt-${type}-${date}.svg"`);
     return res.send(svgContent);
   } catch (err) {
     console.error('Report download error:', err);
@@ -1108,8 +1193,10 @@ app.get('/', async (req, res) => {
       return (a.adminWorkplace || '').localeCompare(b.adminWorkplace || '', 'vi', { sensitivity: 'base' });
     });
 
-    // Generate the SVG report for the dashboard
-    const svgContent = await compileReportSvg(formatDateString(dailyMatchDate));
+    // Generate both SVG reports for the dashboard (Toàn tỉnh and Địa giới)
+    const reportDateFormatted = formatDateString(dailyMatchDate);
+    const svgToanTinh = await compileReportSvg(reportDateFormatted, 'toantinh');
+    const svgDiaGioi = await compileReportSvg(reportDateFormatted, 'diagioi');
 
     res.render('dashboard', {
       dashboardPoliticalReports,
@@ -1117,7 +1204,9 @@ app.get('/', async (req, res) => {
       campaignDays,
       dailyGridMap,
       dayProvinceMap,
-      svgContent,
+      svgContent: svgToanTinh,
+      svgToanTinh,
+      svgDiaGioi,
       user: {
         id: req.session.userId,
         username: req.session.username,

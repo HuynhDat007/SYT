@@ -144,6 +144,14 @@
       </svg>
       Quay lại Tổng quan
     </button>
+    <div style="display: flex; align-items: center; gap: 0.25rem; background: #e5e7eb; padding: 0.2rem; border-radius: 6px;">
+      <button type="button" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 5px; border: none; font-weight: 600; cursor: pointer; <%= (typeof type === 'undefined' || type === 'toantinh') ? 'background: #003136; color: #ffffff;' : 'background: transparent; color: #4b5563;' %>" onclick="window.location.href='/report?date=<%= date %>&type=toantinh'">
+        Toàn tỉnh
+      </button>
+      <button type="button" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 5px; border: none; font-weight: 600; cursor: pointer; <%= (typeof type !== 'undefined' && type === 'diagioi') ? 'background: #003136; color: #ffffff;' : 'background: transparent; color: #4b5563;' %>" onclick="window.location.href='/report?date=<%= date %>&type=diagioi'">
+        Địa giới
+      </button>
+    </div>
     <button class="btn btn-primary" onclick="window.print()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="6 9 6 2 18 2 18 9" />
