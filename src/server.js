@@ -358,7 +358,37 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
 
   const isDiaGioi = (reportType === 'diagioi' || reportType === 'phanloai');
 
-  if (isDiaGioi) {
+  if (reportType === 'chung') {
+    templateFile = path.join(__dirname, '../views/report_template_chung.svg');
+    for (let i = 0; i < 96; i++) {
+      const unit = reportsTable[i];
+      if (!unit) continue;
+
+      const col = Math.floor(i / 32); // Columns: 0, 1, 2
+      const row = i % 32;
+
+      const baseShift = col * 765;
+      const xName = 105 + baseShift;
+      const xDaily = 503 + baseShift;
+      const xCumulative = 633 + baseShift;
+      const xRate = 753 + baseShift;
+
+      const yName = 1166.88 + row * 51;
+      const yVal = 1167.88 + row * 51;
+
+      const name = escapeXml(`${i + 1}. ${unit.unitName}`);
+      const daily = unit.daily.toLocaleString('vi-VN');
+      const cumulative = unit.cumulative.toLocaleString('vi-VN');
+
+      const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
+      const rate = rateVal.toFixed(1) + '%';
+
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    }
+  } else if (isDiaGioi) {
     templateFile = path.join(__dirname, '../views/report_template_diagioi.svg');
     const interiorUnits = reportsTable.filter(u => !u.isBorder);
     const borderUnits = reportsTable.filter(u => u.isBorder);
@@ -1193,10 +1223,11 @@ app.get('/', async (req, res) => {
       return (a.adminWorkplace || '').localeCompare(b.adminWorkplace || '', 'vi', { sensitivity: 'base' });
     });
 
-    // Generate both SVG reports for the dashboard (Toàn tỉnh and Địa giới)
+    // Generate SVG reports for the dashboard (Toàn tỉnh, Địa giới, and Chung)
     const reportDateFormatted = formatDateString(dailyMatchDate);
     const svgToanTinh = await compileReportSvg(reportDateFormatted, 'toantinh');
     const svgDiaGioi = await compileReportSvg(reportDateFormatted, 'diagioi');
+    const svgChung = await compileReportSvg(reportDateFormatted, 'chung');
 
     res.render('dashboard', {
       dashboardPoliticalReports,
@@ -1207,6 +1238,7 @@ app.get('/', async (req, res) => {
       svgContent: svgToanTinh,
       svgToanTinh,
       svgDiaGioi,
+      svgChung,
       user: {
         id: req.session.userId,
         username: req.session.username,
