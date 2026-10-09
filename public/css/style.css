@@ -31,6 +31,9 @@
   --month-7-bg: rgba(0, 242, 254, 0.08);
   --month-8-bg: rgba(16, 185, 129, 0.08);
   --month-9-bg: rgba(251, 191, 36, 0.08);
+  --month-10-bg: rgba(147, 51, 234, 0.08);
+  --month-11-bg: rgba(249, 115, 22, 0.08);
+  --month-12-bg: rgba(236, 72, 153, 0.08);
 }
 
 * {
@@ -1099,6 +1102,9 @@ html.light-theme {
   --month-7-bg: #e0f2fe;
   --month-8-bg: #dcfce7;
   --month-9-bg: #fef3c7;
+  --month-10-bg: #f3e8ff;
+  --month-11-bg: #ffedd5;
+  --month-12-bg: #fce7f3;
 }
 
 html.light-theme select option {
@@ -1269,25 +1275,30 @@ html.light-theme .data-table tbody tr:hover td.col-sticky-2 {
   background: #f1f5f9 !important;
 }
 
-/* Make detailed table #units-table transparent to match other dashboard tables */
-#units-table th:not(.col-sticky-1):not(.col-sticky-2) {
+/* Make detailed table #units-table and #units-q4-table transparent to match other dashboard tables */
+#units-table th:not(.col-sticky-1):not(.col-sticky-2),
+#units-q4-table th:not(.col-sticky-1):not(.col-sticky-2) {
   color: var(--text-secondary) !important;
 }
 
-#units-table td:not(.col-sticky-1):not(.col-sticky-2) {
+#units-table td:not(.col-sticky-1):not(.col-sticky-2),
+#units-q4-table td:not(.col-sticky-1):not(.col-sticky-2) {
   background: transparent !important;
 }
 
-#units-table tbody tr {
+#units-table tbody tr,
+#units-q4-table tbody tr {
   background: transparent !important;
 }
 
-#units-table tbody tr:hover {
+#units-table tbody tr:hover,
+#units-q4-table tbody tr:hover {
   background: rgba(0, 242, 254, 0.04) !important;
 }
 
-/* Light mode specific override for #units-table hover */
-html.light-theme #units-table tbody tr:hover {
+/* Light mode specific override for #units-table and #units-q4-table hover */
+html.light-theme #units-table tbody tr:hover,
+html.light-theme #units-q4-table tbody tr:hover {
   background: rgba(2, 132, 199, 0.04) !important;
 }
 
@@ -1379,12 +1390,14 @@ html.light-theme #units-table thead th {
 }
 
 /* Dual sticky columns inside header */
-#units-table thead tr:first-child th.col-sticky-1 {
+#units-table thead tr:first-child th.col-sticky-1,
+#units-q4-table thead tr:first-child th.col-sticky-1 {
   left: 0;
   z-index: 30;
 }
 
-#units-table thead tr:first-child th.col-sticky-2 {
+#units-table thead tr:first-child th.col-sticky-2,
+#units-q4-table thead tr:first-child th.col-sticky-2 {
   left: 50px;
   z-index: 30;
 }
@@ -1393,7 +1406,9 @@ html.light-theme #units-table thead th {
 @media (max-width: 768px) {
 
   #units-table th.col-sticky-2,
-  #units-table td.col-sticky-2 {
+  #units-table td.col-sticky-2,
+  #units-q4-table th.col-sticky-2,
+  #units-q4-table td.col-sticky-2 {
     width: 150px !important;
     min-width: 150px !important;
     max-width: 150px !important;
@@ -1403,7 +1418,9 @@ html.light-theme #units-table thead th {
 
 /* Compact row padding for detailed units table */
 #units-table tbody td,
-#units-table tfoot td {
+#units-table tfoot td,
+#units-q4-table tbody td,
+#units-q4-table tfoot td {
   padding-top: 0.3rem !important;
   padding-bottom: 0.3rem !important;
 }

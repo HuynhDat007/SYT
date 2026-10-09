@@ -58,6 +58,7 @@
                     <th>Tổng nhân khẩu</th>
                     <th>Nhân khẩu ĐPQL</th>
                     <th>Đã khám 6T</th>
+                    <th>Cần khám còn lại</th>
                     <th>Người nhập liệu</th>
                     <th>SĐT liên hệ</th>
                     <th>Email liên hệ</th>
@@ -72,7 +73,7 @@
                       <td>
                         <div style="text-align: center;">
                           <button class="btn btn-secondary btn-icon"
-                            onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', <%= unit.planTarget %>, <%= unit.residentPopulation %>, <%= unit.localManagedPopulation || 0 %>, <%= unit.firstHalfChecked %>, '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
+                            onclick="openEditModal('<%= unit._id %>', '<%= unit.unitName %>', <%= unit.planTarget %>, <%= unit.residentPopulation %>, <%= unit.localManagedPopulation || 0 %>, <%= unit.firstHalfChecked %>, <%= unit.remainingTarget || 0 %>, '<%= unit.contactName || '' %>', '<%= unit.contactPhone || '' %>', '<%= unit.contactEmail || '' %>')">
                             <!-- Cog icon SVG -->
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)"
                               stroke-width="2">
@@ -98,6 +99,9 @@
                         </strong></td>
                       <td><strong>
                           <%= unit.firstHalfChecked.toLocaleString('vi-VN') %>
+                        </strong></td>
+                      <td><strong style="color: var(--accent-red, #ef4444);">
+                          <%= (unit.remainingTarget || 0).toLocaleString('vi-VN') %>
                         </strong></td>
                       <td>
                         <%= unit.contactName || '-' %>
@@ -195,6 +199,22 @@
                     </div>
                   </div>
 
+                  <div class="form-group">
+                    <label for="modal-remainingTarget">Số người cần khám còn lại</label>
+                    <div class="input-wrapper">
+                      <div class="input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                      </div>
+                      <input type="number" name="remainingTarget" id="modal-remainingTarget" class="form-control"
+                        min="0" required>
+                    </div>
+                  </div>
+
                   <h4
                     style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin: 1.5rem 0 0.5rem 0; border-bottom: 1px solid var(--panel-border); padding-bottom: 0.25rem;">
                     Thông tin người nhập liệu
@@ -288,13 +308,14 @@
           </style>
 
           <script>
-            function openEditModal(unitId, unitName, target, population, localPopulation, firstHalf, name, phone, email) {
+            function openEditModal(unitId, unitName, target, population, localPopulation, firstHalf, remainingTarget, name, phone, email) {
               document.getElementById('modal-unitId').value = unitId;
               document.getElementById('modal-title').innerText = 'Cấu hình: ' + unitName;
               document.getElementById('modal-planTarget').value = target;
               document.getElementById('modal-residentPopulation').value = population;
               document.getElementById('modal-localManagedPopulation').value = localPopulation;
               document.getElementById('modal-firstHalfChecked').value = firstHalf;
+              document.getElementById('modal-remainingTarget').value = remainingTarget || 0;
               document.getElementById('modal-contactName').value = name;
               document.getElementById('modal-contactPhone').value = phone;
               document.getElementById('modal-contactEmail').value = email;

@@ -1,4 +1,17 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// On Windows, c-ares may query IPv6 DNS servers first and fail SRV resolution with ESERVFAIL.
+// Filter to active IPv4 DNS servers if available.
+try {
+  const currentServers = dns.getServers();
+  const ipv4Servers = currentServers.filter(s => !s.includes(':'));
+  if (ipv4Servers.length > 0) {
+    dns.setServers(ipv4Servers);
+  }
+} catch (e) {
+  // Ignore DNS config errors
+}
 
 const connectDB = async () => {
   try {

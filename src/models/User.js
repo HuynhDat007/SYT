@@ -49,6 +49,10 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  remainingTarget: {
+    type: Number,
+    default: 0
+  },
   order: {
     type: Number,
     default: 0

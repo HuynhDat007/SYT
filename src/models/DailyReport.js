@@ -83,6 +83,15 @@ const DailyReportSchema = new mongoose.Schema({
     min: 0,
     default: 0
   },
+  adminCompany: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  adminIsCompany: {
+    type: Boolean,
+    default: false
+  },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -90,7 +99,7 @@ const DailyReportSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['commune', 'admin_general', 'workplace', 'political'],
+    enum: ['commune', 'admin_general', 'workplace', 'political', 'company'],
     default: 'commune'
   }
 }, {
