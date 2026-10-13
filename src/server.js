@@ -157,8 +157,12 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const selectedDate = parseDateUTC(dateStr);
   const dateString = `${String(selectedDate.getUTCDate()).padStart(2, '0')}/${String(selectedDate.getUTCMonth() + 1).padStart(2, '0')}/${selectedDate.getUTCFullYear()}`;
 
-  const startDate = parseDateUTC('2026-07-01');
-  const cumulativeMatchLimit = selectedDate;
+  const isChung = (reportType === 'chung');
+  const q4StartDate = parseDateUTC('2026-10-01');
+  const q4EndDate = parseDateUTC('2026-12-31');
+
+  const startDate = isChung ? q4StartDate : parseDateUTC('2026-07-01');
+  const cumulativeMatchLimit = (isChung && selectedDate > q4EndDate) ? q4EndDate : selectedDate;
 
   // Fetch all unit users sorted by order, type, and name (A-Z)
   const units = await User.find({ role: 'unit' });
@@ -242,7 +246,7 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const grandFirstHalfTotal = await getConfigValue('grand_first_half_checked', 833233);
   let grandTargetTotal = 0;
   const grandResidentPopulation = await getConfigValue('grand_resident_population', 3194187);
-  const grandResidentPopulationChung = await getConfigValue('grand_resident_population_chung', 3182032);
+  const grandResidentPopulationChung = await getConfigValue('grand_resident_population_chung', 3178342);
   const campaignTarget = await getConfigValue('campaign_target', 2128099);
   const campaignOffset = await getConfigValue('campaign_offset', 40000);
   const luyKeToanTinhBase = await getConfigValue('luy_ke_toan_tinh_base', 1869654);
@@ -251,9 +255,10 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const reportsTable = [];
   units.forEach(unit => {
     const uId = unit._id.toString();
-    const dailyVal = dailyMap[uId] ? dailyMap[uId].total : 0;
-    const cumulativeVal = cumulativeMap[uId] ? cumulativeMap[uId].total : 0;
-    const targetVal = unit.planTarget || 0;
+    const isOutsideQ4 = isChung && (selectedDate < q4StartDate || selectedDate > q4EndDate);
+    const dailyVal = isOutsideQ4 ? 0 : (dailyMap[uId] ? dailyMap[uId].total : 0);
+    const cumulativeVal = isOutsideQ4 ? 0 : (cumulativeMap[uId] ? cumulativeMap[uId].total : 0);
+    const targetVal = isChung ? (unit.remainingTarget || 0) : (unit.planTarget || 0);
     const completionRateVal = targetVal > 0 ? (cumulativeVal / targetVal) * 100 : 0;
 
     reportsTable.push({
@@ -263,7 +268,9 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
       cumulative: cumulativeVal,
       residentPopulation: unit.residentPopulation || 0,
       firstHalfChecked: unit.firstHalfChecked || 0,
-      planTarget: targetVal,
+      planTarget: unit.planTarget || 0,
+      remainingTarget: unit.remainingTarget || 0,
+      target: targetVal,
       completionRate: completionRateVal,
       isBorder: Boolean(unit.isBorder)
     });
@@ -365,27 +372,70 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
 
   if (reportType === 'chung') {
     templateFile = path.join(__dirname, '../views/report_template_chung.svg');
-    for (let i = 0; i < 96; i++) {
-      const unit = reportsTable[i];
-      if (!unit) continue;
+    const interiorUnits = reportsTable.filter(u => !u.isBorder);
+    const borderUnits = reportsTable.filter(u => u.isBorder);
 
-      const col = Math.floor(i / 32); // Columns: 0, 1, 2
-      const row = i % 32;
+    // Render 77 interior communes across Col 1 (33), Col 2 (33), Col 3 Top (11)
+    for (let i = 0; i < interiorUnits.length; i++) {
+      const unit = interiorUnits[i];
+      let row, xName, xDaily, xCumulative, xRate;
 
-      const baseShift = col * 765;
-      const xName = 105 + baseShift;
-      const xDaily = 503 + baseShift;
-      const xCumulative = 634 + baseShift;
-      const xRate = 754 + baseShift;
+      if (i < 33) {
+        // Col 1 (0 to 32)
+        row = i;
+        xName = 105;
+        xDaily = 503;
+        xCumulative = 634;
+        xRate = 755;
+      } else if (i < 66) {
+        // Col 2 (33 to 65)
+        row = i - 33;
+        xName = 876;
+        xDaily = 1274;
+        xCumulative = 1405;
+        xRate = 1526;
+      } else {
+        // Col 3 Top (66 to 76)
+        row = i - 66;
+        xName = 1647;
+        xDaily = 2045;
+        xCumulative = 2176;
+        xRate = 2297;
+      }
 
-      const yName = 1468.89 + row * 58.43;
-      const yVal = 1470.03 + row * 58.43;
+      const yName = 1486.20 + row * 56.272;
+      const yVal = 1487.30 + row * 56.272;
 
       const name = escapeXml(`${i + 1}. ${unit.unitName}`);
       const daily = unit.daily.toLocaleString('vi-VN');
       const cumulative = unit.cumulative.toLocaleString('vi-VN');
 
-      const rateVal = unit.planTarget > 0 ? (unit.cumulative / unit.planTarget) * 100 : 0;
+      const rateVal = unit.completionRate || 0;
+      const rate = rateVal.toFixed(1) + '%';
+
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xDaily}" y="${yVal}">${daily}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xCumulative}" y="${yVal}">${cumulative}</tspan></text>\n`;
+      dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em" text-anchor="middle"><tspan x="${xRate}" y="${yVal}">${rate}</tspan></text>\n`;
+    }
+
+    // Render 19 border communes in Col 3 Bottom (0 to 18)
+    for (let i = 0; i < borderUnits.length; i++) {
+      const unit = borderUnits[i];
+      const row = i;
+      const xName = 1647;
+      const xDaily = 2045;
+      const xCumulative = 2176;
+      const xRate = 2297;
+
+      const yName = 2274.01 + row * 56.272;
+      const yVal = 2275.12 + row * 56.272;
+
+      const name = escapeXml(`${i + 1}. ${unit.unitName}`);
+      const daily = unit.daily.toLocaleString('vi-VN');
+      const cumulative = unit.cumulative.toLocaleString('vi-VN');
+
+      const rateVal = unit.completionRate || 0;
       const rate = rateVal.toFixed(1) + '%';
 
       dynamicTexts += `<text fill="black" style="white-space: pre" xml:space="preserve" font-family="Momo Trust Display Web" font-size="25" letter-spacing="0em"><tspan x="${xName}" y="${yName}">${name}</tspan></text>\n`;
@@ -517,6 +567,7 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   // Replace short parameters globally
   template = template.replace(/\{1\}/g, grandDailyTotal.toLocaleString('vi-VN'));
   if (reportType === 'chung') {
+    template = template.replace(/\(1\.869\.654\/3\.178\.342\)/g, `(${luyKeToanTinhChung.toLocaleString('vi-VN')}/3.178.342)`);
     template = template.replace(/\{2\}/g, luyKeToanTinhChung.toLocaleString('vi-VN'));
     template = template.replace(/\{6\}/g, progressRateChung.toFixed(2) + '%');
   } else {
