@@ -163,6 +163,13 @@
                     value="<%= campaignOffsetConfig %>" required
                     style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
                 </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="luyKeToanTinhBaseConfig" style="display: block; margin-bottom: 0.4rem; font-weight: 600;">Lũy kế toàn tỉnh ban đầu (Mẫu Chung)</label>
+                  <input type="number" id="luyKeToanTinhBaseConfig" name="luyKeToanTinhBase" class="form-control no-icon"
+                    value="<%= typeof luyKeToanTinhBaseConfig !== 'undefined' ? luyKeToanTinhBaseConfig : 1869654 %>" required
+                    style="background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--panel-border); border-radius: 6px; padding: 0.65rem 0.75rem; width: 100%; box-sizing: border-box;">
+                </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 1.5rem;">

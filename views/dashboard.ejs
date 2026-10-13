@@ -220,7 +220,7 @@
 
       <!-- Table: Thống kê KSK các cơ quan trong hệ thống chính trị -->
       <% if (typeof dashboardPoliticalReports !=='undefined' ) { %>
-        <div class="glass-panel" style="margin-bottom: 2rem;">
+        <div class="glass-panel" style="margin-bottom: 2rem; display: none;">
           <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
             <h3
@@ -363,8 +363,9 @@
             </div>
           </div>
 
-          <!-- Detailed Table Board -->
-          <div class="glass-panel">
+          <!-- Detailed Table Board Q4 (Tháng 10, 11, 12) -->
+          <% const safeGrandQ4 = (typeof grandQ4 !== 'undefined' && grandQ4) ? grandQ4 : (locals.grandQ4 || {}); %>
+          <div class="glass-panel" style="margin-bottom: 2rem;">
             <div
               style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
               <h3
@@ -376,47 +377,12 @@
                   <line x1="3" y1="15" x2="21" y2="15" />
                   <line x1="12" y1="3" x2="12" y2="21" />
                 </svg>
-                BẢNG THỐNG KÊ CHI TIẾT 96 XÃ / PHƯỜNG
+                THỐNG KÊ CHI TIẾT CÁC ĐƠN VỊ THÁNG 10, 11, 12
               </h3>
 
               <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <!-- Toggle Mode Segment Controller -->
-                <div
-                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
-                  <button type="button" class="btn segment-btn" id="btn-mode-month"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
-                    onclick="switchTableMode('month')">
-                    Thống kê Tháng
-                  </button>
-                  <button type="button" class="btn segment-btn" id="btn-mode-day"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
-                    onclick="switchTableMode('day')">
-                    Số liệu trong Ngày
-                  </button>
-                </div>
-
-                <!-- Region Filter Segment Controller (Tất cả / Nội địa / Biên giới) -->
-                <div class="segment-control"
-                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
-                  <button type="button" class="btn segment-btn" id="btn-region-all"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
-                    onclick="switchRegionFilter('all')">
-                    Tất cả
-                  </button>
-                  <button type="button" class="btn segment-btn" id="btn-region-interior"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
-                    onclick="switchRegionFilter('interior')">
-                    Nội địa
-                  </button>
-                  <button type="button" class="btn segment-btn" id="btn-region-border"
-                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
-                    onclick="switchRegionFilter('border')">
-                    Biên giới
-                  </button>
-                </div>
-
-                <!-- Export Excel Button -->
-                <button type="button" class="btn btn-secondary" onclick="exportUnitsTableToExcel()"
+                <!-- Export Excel Button for Q4 -->
+                <button type="button" class="btn btn-secondary" onclick="exportUnitsQ4TableToExcel()"
                   style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -425,12 +391,10 @@
                     <line x1="16" y1="17" x2="8" y2="17" />
                     <polyline points="10 9 9 9 8 9" />
                   </svg>
-                  Xuất Excel
+                  Xuất Excel (T10-12)
                 </button>
 
-
-
-                <!-- Custom Multi-select Dropdown -->
+                <!-- Custom Multi-select Dropdown (Filters both tables) -->
                 <div class="multiselect-container" style="position: relative; width: 280px;">
                   <div class="form-control multiselect-trigger" id="multiselect-trigger"
                     style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-right: 1rem; user-select: none; border-radius: 8px; border: 1px solid var(--input-border); background: var(--input-bg); min-height: 42px;">
@@ -492,6 +456,215 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+              <table class="data-table" id="units-q4-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead>
+                  <tr>
+                    <th rowspan="2" class="col-sticky-1"
+                      style="vertical-align: middle; text-align: center; min-width: 50px; max-width: 50px; width: 50px; position: sticky; top: 0; left: 0; z-index: 35; border-bottom: 1px solid var(--panel-border) !important;">
+                      STT</th>
+                    <th rowspan="2" class="col-sticky-2"
+                      style="vertical-align: middle; text-align: left; min-width: 170px; max-width: 170px; width: 170px; position: sticky; top: 0; left: 50px; z-index: 35; border-bottom: 1px solid var(--panel-border) !important;">
+                      Tên xã phường</th>
+                    <th rowspan="2"
+                      style="vertical-align: middle; text-align: center; white-space: normal; min-width: 100px; max-width: 100px; line-height: 1.2; position: sticky; top: 0; z-index: 30; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border) !important;">
+                      Tổng nhân<br>khẩu</th>
+                    <th rowspan="2"
+                      style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2; position: sticky; top: 0; z-index: 30; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border) !important;">
+                      Số người cần<br>khám còn lại</th>
+                    <th rowspan="2"
+                      style="vertical-align: middle; text-align: center; white-space: normal; min-width: 120px; max-width: 120px; line-height: 1.2; position: sticky; top: 0; z-index: 30; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border) !important;">
+                      Tổng số người<br>đã khám (T10-12)</th>
+                    <th rowspan="2"
+                      style="vertical-align: middle; text-align: center; white-space: normal; min-width: 110px; max-width: 110px; line-height: 1.2; position: sticky; top: 0; z-index: 30; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border) !important;">
+                      Tỷ lệ %<br>(Khám/Còn lại)</th>
+                    <th colspan="3"
+                      style="text-align: center; background: var(--month-10-bg); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--panel-border) !important;">
+                      Tháng 10</th>
+                    <th colspan="3"
+                      style="text-align: center; background: var(--month-11-bg); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--panel-border) !important;">
+                      Tháng 11</th>
+                    <th colspan="3"
+                      style="text-align: center; background: var(--month-12-bg); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--panel-border) !important;">
+                      Tháng 12</th>
+                  </tr>
+                  <tr>
+                    <!-- Tháng 10 sub-cols -->
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-10-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&lt; 6T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 65px; background: var(--month-10-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">6-18T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-10-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&gt; 18T</th>
+                    <!-- Tháng 11 sub-cols -->
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-11-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&lt; 6T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 65px; background: var(--month-11-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">6-18T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-11-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&gt; 18T</th>
+                    <!-- Tháng 12 sub-cols -->
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-12-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&lt; 6T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 65px; background: var(--month-12-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">6-18T</th>
+                    <th style="font-size: 0.75rem; text-align: center; min-width: 60px; background: var(--month-12-bg); position: sticky; top: 40px; z-index: 30; border-bottom: 2px solid var(--panel-border) !important;">&gt; 18T</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Summary totals row (Fixed at top of tbody) -->
+                  <tr id="summary-q4-totals-row"
+                    style="font-weight: 700; background: var(--panel-bg); color: var(--text-primary); border-bottom: 2px solid var(--panel-border);">
+                    <td colspan="2" class="col-sticky-1"
+                      style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 20; background: var(--panel-bg); border-right: 2px solid var(--panel-border) !important;">
+                      TỔNG CỘNG</td>
+                    <td style="text-align: right; padding-right: 8px;"><%= (safeGrandQ4.residentPopulation || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px;"><%= (safeGrandQ4.remainingTarget || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary-color); padding-right: 8px;"><%= (safeGrandQ4.q4Checked || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: center;">
+                      <div style="font-size: 0.85rem; font-weight: 700;"><%= (safeGrandQ4.q4CompletionRate || 0).toFixed(1) %>%</div>
+                      <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%= (safeGrandQ4.q4Checked || 0).toLocaleString('vi-VN') %>/<%= (safeGrandQ4.remainingTarget || 0).toLocaleString('vi-VN') %>)</div>
+                    </td>
+                    <!-- Tháng 10: <6, [6, 18], >18 -->
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                    <!-- Tháng 11: <6, [6, 18], >18 -->
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                    <!-- Tháng 12: <6, [6, 18], >18 -->
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                  </tr>
+
+                  <% reportsTable.forEach((row, index) => { %>
+                    <tr class="unit-q4-data-row" data-unit-name="<%= row.unitName %>" data-border="<%= row.isBorder ? 'true' : 'false' %>">
+                      <td class="col-sticky-1 unit-q4-stt"
+                        style="vertical-align: middle; text-align: center; left: 0; position: sticky; z-index: 10;">
+                        <%= row.stt %>
+                      </td>
+                      <td class="col-sticky-2 unit-name-cell"
+                        style="vertical-align: middle; text-align: left; left: 50px; position: sticky; z-index: 10;">
+                        <%= row.unitName %>
+                        <% if (row.isBorder) { %>
+                          <span style="font-size: 0.7rem; color: #60a5fa; margin-left: 0.25rem;">(Biên giới)</span>
+                        <% } %>
+                      </td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px;"><%= (row.residentPopulation || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px;"><%= (row.remainingTarget || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; font-weight: 700; color: var(--primary-color); padding-right: 8px;">
+                        <%= (row.q4Checked || 0).toLocaleString('vi-VN') %>
+                      </td>
+                      <td style="vertical-align: middle; text-align: center;">
+                        <div style="font-weight: 700;"><%= (row.q4CompletionRate || 0).toFixed(1) %>%</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                          (<%= (row.q4Checked || 0).toLocaleString('vi-VN') %>/<%= (row.remainingTarget || 0).toLocaleString('vi-VN') %>)
+                        </div>
+                      </td>
+                      <!-- Tháng 10: <6, [6, 18], >18 -->
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((row.q4Month10 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((row.q4Month10 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((row.q4Month10 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                      <!-- Tháng 11: <6, [6, 18], >18 -->
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((row.q4Month11 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((row.q4Month11 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((row.q4Month11 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                      <!-- Tháng 12: <6, [6, 18], >18 -->
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((row.q4Month12 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((row.q4Month12 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                      <td style="vertical-align: middle; text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((row.q4Month12 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+                <tfoot>
+                  <tr id="summary-q4-totals-foot-row" style="font-weight: 700; background: rgba(0, 0, 0, 0.05); color: var(--text-primary);">
+                    <td colspan="2" class="col-sticky-1"
+                      style="text-align: center; font-weight: 700; left: 0; position: sticky; z-index: 21; border-right: 2px solid var(--panel-border) !important;">
+                      TỔNG CỘNG</td>
+                    <td style="text-align: right; padding-right: 8px;"><%= (safeGrandQ4.residentPopulation || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px;"><%= (safeGrandQ4.remainingTarget || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; font-weight: 700; color: var(--primary-color); padding-right: 8px;"><%= (safeGrandQ4.q4Checked || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: center;">
+                      <div style="font-size: 0.85rem; font-weight: 700;"><%= (safeGrandQ4.q4CompletionRate || 0).toFixed(1) %>%</div>
+                      <div style="font-size: 0.75rem; color: var(--text-secondary);">(<%= (safeGrandQ4.q4Checked || 0).toLocaleString('vi-VN') %>/<%= (safeGrandQ4.remainingTarget || 0).toLocaleString('vi-VN') %>)</div>
+                    </td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-10-bg);"><%= (((safeGrandQ4.q4Month10 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-11-bg);"><%= (((safeGrandQ4.q4Month11 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).under6) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).from6To18) || 0).toLocaleString('vi-VN') %></td>
+                    <td style="text-align: right; padding-right: 8px; background: var(--month-12-bg);"><%= (((safeGrandQ4.q4Month12 || {}).over18) || 0).toLocaleString('vi-VN') %></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Detailed Table Board Q3 (Tháng 7, 8, 9) -->
+          <div class="glass-panel">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+              <h3
+                style="font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; color: var(--primary-color);">
+                <!-- Table SVG -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="3" y1="15" x2="21" y2="15" />
+                  <line x1="12" y1="3" x2="12" y2="21" />
+                </svg>
+                THỐNG KÊ CHI TIẾT CÁC ĐƠN VỊ THÁNG 7, 8, 9
+              </h3>
+
+              <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <!-- Toggle Mode Segment Controller -->
+                <div
+                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                  <button type="button" class="btn segment-btn" id="btn-mode-month"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
+                    onclick="switchTableMode('month')">
+                    Thống kê Tháng
+                  </button>
+                  <button type="button" class="btn segment-btn" id="btn-mode-day"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                    onclick="switchTableMode('day')">
+                    Số liệu trong Ngày
+                  </button>
+                </div>
+
+                <!-- Region Filter Segment Controller (Tất cả / Nội địa / Biên giới) -->
+                <div class="segment-control"
+                  style="display: flex; align-items: center; gap: 0.25rem; background: var(--input-bg); padding: 0.25rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                  <button type="button" class="btn segment-btn btn-region-all"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--primary-color); color: #ffffff;"
+                    onclick="switchRegionFilter('all')">
+                    Tất cả
+                  </button>
+                  <button type="button" class="btn segment-btn btn-region-interior"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                    onclick="switchRegionFilter('interior')">
+                    Nội địa
+                  </button>
+                  <button type="button" class="btn segment-btn btn-region-border"
+                    style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-secondary);"
+                    onclick="switchRegionFilter('border')">
+                    Biên giới
+                  </button>
+                </div>
+
+                <!-- Export Excel Button for Q3 -->
+                <button type="button" class="btn btn-secondary" onclick="exportUnitsTableToExcel()"
+                  style="padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.35rem; background-color: #10b981; border-color: #10b981; color: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  Xuất Excel (T7-9)
+                </button>
+              </div>
+            </div>
 
               <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                 <table class="data-table" id="units-table">
@@ -1051,26 +1224,32 @@
 
                 window.switchRegionFilter = function (region) {
                   window.currentRegionFilter = region;
-                  const btnAll = document.getElementById('btn-region-all');
-                  const btnInterior = document.getElementById('btn-region-interior');
-                  const btnBorder = document.getElementById('btn-region-border');
+                  const allButtons = document.querySelectorAll('.btn-region-all');
+                  const interiorButtons = document.querySelectorAll('.btn-region-interior');
+                  const borderButtons = document.querySelectorAll('.btn-region-border');
 
-                  [btnAll, btnInterior, btnBorder].forEach(btn => {
+                  [...allButtons, ...interiorButtons, ...borderButtons].forEach(btn => {
                     if (btn) {
                       btn.style.background = 'transparent';
                       btn.style.color = 'var(--text-secondary)';
                     }
                   });
 
-                  if (region === 'all' && btnAll) {
-                    btnAll.style.background = 'var(--primary-color)';
-                    btnAll.style.color = '#ffffff';
-                  } else if (region === 'interior' && btnInterior) {
-                    btnInterior.style.background = 'var(--primary-color)';
-                    btnInterior.style.color = '#ffffff';
-                  } else if (region === 'border' && btnBorder) {
-                    btnBorder.style.background = 'var(--primary-color)';
-                    btnBorder.style.color = '#ffffff';
+                  if (region === 'all') {
+                    allButtons.forEach(btn => {
+                      btn.style.background = 'var(--primary-color)';
+                      btn.style.color = '#ffffff';
+                    });
+                  } else if (region === 'interior') {
+                    interiorButtons.forEach(btn => {
+                      btn.style.background = 'var(--primary-color)';
+                      btn.style.color = '#ffffff';
+                    });
+                  } else if (region === 'border') {
+                    borderButtons.forEach(btn => {
+                      btn.style.background = 'var(--primary-color)';
+                      btn.style.color = '#ffffff';
+                    });
                   }
 
                   filterTable();
@@ -1083,6 +1262,7 @@
                   const checkedNames = checkedBoxes.map(cb => cb.value.trim());
                   const region = window.currentRegionFilter || 'all';
 
+                  // Filter Q3 Table (#units-table)
                   const unitRows = document.querySelectorAll('#units-table tbody tr.unit-data-row');
                   let visibleCount = 0;
 
@@ -1111,6 +1291,35 @@
                     }
                   });
 
+                  // Filter Q4 Table (#units-q4-table)
+                  const unitQ4Rows = document.querySelectorAll('#units-q4-table tbody tr.unit-q4-data-row');
+                  let visibleQ4Count = 0;
+
+                  unitQ4Rows.forEach(row => {
+                    const isBorder = row.getAttribute('data-border') === 'true';
+                    const unitName = (row.getAttribute('data-unit-name') || '').trim();
+
+                    let matchRegion = true;
+                    if (region === 'interior') {
+                      matchRegion = !isBorder;
+                    } else if (region === 'border') {
+                      matchRegion = isBorder;
+                    }
+
+                    const matchMultiselect = (checkedBoxes.length === totalUnits || checkedNames.includes(unitName));
+
+                    if (matchRegion && matchMultiselect) {
+                      row.style.display = '';
+                      visibleQ4Count++;
+                      const sttCell = row.querySelector('.col-sticky-1');
+                      if (sttCell) {
+                        sttCell.textContent = visibleQ4Count;
+                      }
+                    } else {
+                      row.style.display = 'none';
+                    }
+                  });
+
                   // Update label text
                   let regionSuffix = '';
                   if (region === 'border') regionSuffix = ' (Biên giới)';
@@ -1131,6 +1340,7 @@
 
                   // Update summary totals row based on visible units
                   updateSummaryRow();
+                  updateSummaryQ4Row();
                 }
 
                 // Function to recalculate top summary row for visible units
@@ -1201,6 +1411,61 @@
                       summaryCells[16 + d].textContent = sumDay[d] > 0 ? sumDay[d].toLocaleString('vi-VN') : '-';
                     }
                   }
+                }
+
+                // Function to recalculate top summary row for visible units in Q4 table
+                function updateSummaryQ4Row() {
+                  const visibleUnitRows = Array.from(document.querySelectorAll('#units-q4-table tbody tr.unit-q4-data-row')).filter(r => r.style.display !== 'none');
+                  const summaryRow = document.getElementById('summary-q4-totals-row');
+                  const summaryFootRow = document.getElementById('summary-q4-totals-foot-row');
+                  if (!summaryRow && !summaryFootRow) return;
+
+                  const parseNum = (str) => {
+                    if (!str) return 0;
+                    const clean = str.replace(/\./g, '').replace(/,/g, '.').trim();
+                    if (clean === '-' || clean === '') return 0;
+                    const num = parseFloat(clean);
+                    return isNaN(num) ? 0 : num;
+                  };
+
+                  let sumResPop = 0;
+                  let sumRemainingTarget = 0;
+                  let sumChecked = 0;
+                  const sumMonthCols = new Array(9).fill(0);
+
+                  visibleUnitRows.forEach(row => {
+                    const cells = row.children;
+                    sumResPop += parseNum(cells[2]?.textContent);
+                    sumRemainingTarget += parseNum(cells[3]?.textContent);
+                    sumChecked += parseNum(cells[4]?.textContent);
+                    for (let i = 0; i < 9; i++) {
+                      sumMonthCols[i] += parseNum(cells[6 + i]?.textContent);
+                    }
+                  });
+
+                  const sumRate = sumRemainingTarget > 0 ? (sumChecked / sumRemainingTarget) * 100 : 0;
+
+                  const updateRowCells = (tr) => {
+                    if (!tr) return;
+                    const cells = tr.children;
+                    if (cells[1]) cells[1].textContent = sumResPop.toLocaleString('vi-VN');
+                    if (cells[2]) cells[2].textContent = sumRemainingTarget.toLocaleString('vi-VN');
+                    if (cells[3]) cells[3].textContent = sumChecked.toLocaleString('vi-VN');
+                    if (cells[4]) {
+                      cells[4].innerHTML = `
+                        <div style="font-size: 0.85rem; font-weight: 700;">${sumRate.toFixed(1)}%</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">(${sumChecked.toLocaleString('vi-VN')}/${sumRemainingTarget.toLocaleString('vi-VN')})</div>
+                      `;
+                    }
+                    for (let i = 0; i < 9; i++) {
+                      if (cells[5 + i]) {
+                        cells[5 + i].textContent = sumMonthCols[i].toLocaleString('vi-VN');
+                      }
+                    }
+                  };
+
+                  updateRowCells(summaryRow);
+                  updateRowCells(summaryFootRow);
                 }
 
                 // Checkbox toggle listener
@@ -1554,6 +1819,270 @@
                   const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
                   const modeSuffix = mode === 'month' ? 'Thang' : 'Ngay';
                   const fileName = `Thong_Ke_Chi_Tiet_96_Xa_Phuong_${modeSuffix}${dateSuffix}.xlsx`;
+
+                  const buffer = await workbook.xlsx.writeBuffer();
+                  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = fileName;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(link.href);
+                };
+
+                // Export units Q4 table to Excel using ExcelJS
+                window.exportUnitsQ4TableToExcel = async function () {
+                  if (!window.ExcelJS) {
+                    alert("Thư viện xuất Excel đang được tải, vui lòng thử lại sau vài giây.");
+                    return;
+                  }
+
+                  const dateInput = document.getElementById('dashboard-date-picker');
+                  const selectedDateStr = dateInput ? dateInput.value : '';
+                  const formattedDateTitle = selectedDateStr ? selectedDateStr.split('-').reverse().join('/') : '';
+
+                  const parseNum = (str) => {
+                    if (!str) return 0;
+                    const clean = str.replace(/\./g, '').replace(/,/g, '.').trim();
+                    if (clean === '-' || clean === '') return 0;
+                    const num = parseFloat(clean);
+                    return isNaN(num) ? 0 : num;
+                  };
+
+                  const parseRateText = (tdElement) => {
+                    if (!tdElement) return '0.0%';
+                    const rateDiv = tdElement.querySelector('div');
+                    const rawText = rateDiv ? rateDiv.textContent : tdElement.textContent;
+                    if (!rawText) return '0.0%';
+                    const match = rawText.match(/([\d]+(?:[\.,]\d+)?)\s*%/);
+                    if (match && match[1]) {
+                      const numStr = match[1].replace(',', '.');
+                      const val = parseFloat(numStr);
+                      return (isNaN(val) ? 0 : val).toFixed(1) + '%';
+                    }
+                    const clean = rawText.replace(/%/g, '').replace(/,/g, '.').trim();
+                    const val = parseFloat(clean);
+                    return (isNaN(val) ? 0 : val).toFixed(1) + '%';
+                  };
+
+                  const totalCols = 15;
+                  const workbook = new ExcelJS.Workbook();
+                  const worksheet = workbook.addWorksheet('Thống kê Tháng 10-11-12', {
+                    views: [{ showGridLines: true }]
+                  });
+
+                  const borderStyle = {
+                    top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                    right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                  };
+
+                  // Title Row
+                  const titleText = `BẢNG THỐNG KÊ CHI TIẾT CÁC ĐƠN VỊ THÁNG 10, 11, 12 ${formattedDateTitle ? '- NGÀY ' + formattedDateTitle : ''}`;
+                  const titleRow = worksheet.addRow([titleText]);
+                  titleRow.height = 35;
+                  worksheet.mergeCells(1, 1, 1, totalCols);
+                  const titleCell = titleRow.getCell(1);
+                  titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FF0284C7' } };
+                  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+                  // Blank Row
+                  worksheet.addRow([]);
+
+                  // Header Row 1 (Row 3)
+                  const h1Row = worksheet.addRow([
+                    'STT', 'TÊN ĐƠN VỊ', 'TỔNG NHÂN KHẨU', 'SỐ NGƯỜI CẦN KHÁM CÒN LẠI',
+                    'SỐ NGƯỜI ĐÃ KHÁM', 'TỶ LỆ HOÀN THÀNH',
+                    'THÁNG 10', '', '',
+                    'THÁNG 11', '', '',
+                    'THÁNG 12', '', ''
+                  ]);
+                  h1Row.height = 25;
+
+                  // Header Row 2 (Row 4)
+                  const h2Row = worksheet.addRow([
+                    '', '', '', '', '', '',
+                    '< 6 tuổi', '[6, 18]', '> 18 tuổi',
+                    '< 6 tuổi', '[6, 18]', '> 18 tuổi',
+                    '< 6 tuổi', '[6, 18]', '> 18 tuổi'
+                  ]);
+                  h2Row.height = 22;
+
+                  // Merge Main Headers (Rows 3-4 for cols 1-6)
+                  for (let c = 1; c <= 6; c++) {
+                    worksheet.mergeCells(3, c, 4, c);
+                    const cell = worksheet.getCell(3, c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0284C7' } };
+                    cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    cell.border = borderStyle;
+                  }
+
+                  // Merge & Style Month Headers
+                  worksheet.mergeCells(3, 7, 3, 9);
+                  const m10Cell = worksheet.getCell(3, 7);
+                  m10Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7C3AED' } };
+                  m10Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                  m10Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  m10Cell.border = borderStyle;
+
+                  worksheet.mergeCells(3, 10, 3, 12);
+                  const m11Cell = worksheet.getCell(3, 10);
+                  m11Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDB2777' } };
+                  m11Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                  m11Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  m11Cell.border = borderStyle;
+
+                  worksheet.mergeCells(3, 13, 3, 15);
+                  const m12Cell = worksheet.getCell(3, 13);
+                  m12Cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D9488' } };
+                  m12Cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                  m12Cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                  m12Cell.border = borderStyle;
+
+                  // Sub Headers Styling
+                  for (let c = 7; c <= 9; c++) {
+                    const cell = h2Row.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEDE9FE' } };
+                    cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF6D28D9' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.border = borderStyle;
+                  }
+                  for (let c = 10; c <= 12; c++) {
+                    const cell = h2Row.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE7F3' } };
+                    cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FFBE185D' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.border = borderStyle;
+                  }
+                  for (let c = 13; c <= 15; c++) {
+                    const cell = h2Row.getCell(c);
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFBF1' } };
+                    cell.font = { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FF0F766E' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.border = borderStyle;
+                  }
+
+                  // Summary Row
+                  const topSummaryTr = document.getElementById('summary-q4-totals-row');
+                  if (topSummaryTr) {
+                    const tds = topSummaryTr.children;
+                    const summaryValues = ['TỔNG CỘNG', ''];
+
+                    summaryValues.push(tds[1] ? parseNum(tds[1].textContent) : 0);
+                    summaryValues.push(tds[2] ? parseNum(tds[2].textContent) : 0);
+                    summaryValues.push(tds[3] ? parseNum(tds[3].textContent) : 0);
+                    summaryValues.push(parseRateText(tds[4]));
+                    for (let i = 0; i < 9; i++) {
+                      summaryValues.push(tds[5 + i] ? parseNum(tds[5 + i].textContent) : 0);
+                    }
+
+                    const sRow = worksheet.addRow(summaryValues);
+                    sRow.height = 24;
+                    const sRowIdx = sRow.number;
+
+                    worksheet.mergeCells(sRowIdx, 1, sRowIdx, 2);
+
+                    const summaryBorder = {
+                      top: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                      bottom: { style: 'medium', color: { argb: 'FF0284C7' } },
+                      right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    for (let c = 1; c <= totalCols; c++) {
+                      const cell = sRow.getCell(c);
+                      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0F2FE' } };
+                      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: (c === 5 ? { argb: 'FF0284C7' } : { argb: 'FF0F172A' }) };
+                      cell.border = summaryBorder;
+
+                      if (c === 1) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      } else if (c >= 3 && c <= 5) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 6) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                      } else {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFmt = '#,##0';
+                      }
+                    }
+                  }
+
+                  // Unit rows
+                  const allUnitTrs = document.querySelectorAll('#units-q4-table tbody tr.unit-q4-data-row');
+                  let rowIndex = 0;
+                  allUnitTrs.forEach(tr => {
+                    if (tr.style.display === 'none') return;
+
+                    rowIndex++;
+                    const isEven = rowIndex % 2 === 0;
+                    const rowBg = isEven ? 'FFF8FAFC' : 'FFFFFFFF';
+                    const tds = tr.children;
+                    const unitValues = [];
+
+                    unitValues.push(tds[0] ? parseNum(tds[0].textContent) : rowIndex);
+
+                    const unitNameCell = tds[1];
+                    const unitNameText = unitNameCell ? unitNameCell.childNodes[0].textContent.trim() : '';
+                    unitValues.push(unitNameText);
+
+                    unitValues.push(tds[2] ? parseNum(tds[2].textContent) : 0);
+                    unitValues.push(tds[3] ? parseNum(tds[3].textContent) : 0);
+                    unitValues.push(tds[4] ? parseNum(tds[4].textContent) : 0);
+                    unitValues.push(parseRateText(tds[5]));
+                    for (let i = 0; i < 9; i++) {
+                      unitValues.push(tds[6 + i] ? parseNum(tds[6 + i].textContent) : 0);
+                    }
+
+                    const uRow = worksheet.addRow(unitValues);
+                    uRow.height = 22;
+
+                    for (let c = 1; c <= totalCols; c++) {
+                      const cell = uRow.getCell(c);
+                      if (isEven) {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowBg } };
+                      }
+                      cell.border = borderStyle;
+
+                      if (c === 1) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                      } else if (c === 2) {
+                        cell.alignment = { horizontal: 'left', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                      } else if (c >= 3 && c <= 5) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.numFmt = '#,##0';
+                      } else if (c === 6) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF0284C7' } };
+                      } else {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF0F172A' } };
+                        cell.numFmt = '#,##0';
+                      }
+                    }
+                  });
+
+                  // Column Widths
+                  worksheet.columns.forEach((col, idx) => {
+                    if (idx === 0) col.width = 6;
+                    else if (idx === 1) col.width = 28;
+                    else if (idx === 2) col.width = 16;
+                    else if (idx === 3) col.width = 22;
+                    else if (idx === 4) col.width = 18;
+                    else if (idx === 5) col.width = 18;
+                    else col.width = 13;
+                  });
+
+                  const dateSuffix = selectedDateStr ? `_${selectedDateStr}` : '';
+                  const fileName = `Thong_Ke_Chi_Tiet_Don_Vi_Thang_10_11_12${dateSuffix}.xlsx`;
 
                   const buffer = await workbook.xlsx.writeBuffer();
                   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

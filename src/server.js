@@ -242,8 +242,10 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const grandFirstHalfTotal = await getConfigValue('grand_first_half_checked', 833233);
   let grandTargetTotal = 0;
   const grandResidentPopulation = await getConfigValue('grand_resident_population', 3194187);
+  const grandResidentPopulationChung = await getConfigValue('grand_resident_population_chung', 3182032);
   const campaignTarget = await getConfigValue('campaign_target', 2128099);
   const campaignOffset = await getConfigValue('campaign_offset', 40000);
+  const luyKeToanTinhBase = await getConfigValue('luy_ke_toan_tinh_base', 1869654);
   let grandFirstHalfCheckedSum = 0;
 
   const reportsTable = [];
@@ -352,6 +354,9 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
   const progressRateOverall = grandResidentPopulation > 0 ? (grandOverallTotal / grandResidentPopulation) * 100 : 0;
   const progressRateCampaign = campaignTarget > 0 ? (grandOverallTotal / campaignTarget) * 100 : 0;
 
+  const luyKeToanTinhChung = luyKeToanTinhBase + grandDailyTotal;
+  const progressRateChung = grandResidentPopulationChung > 0 ? (luyKeToanTinhChung / grandResidentPopulationChung) * 100 : 0;
+
   const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
   let dynamicTexts = '';
   let templateFile = '';
@@ -370,11 +375,11 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
       const baseShift = col * 765;
       const xName = 105 + baseShift;
       const xDaily = 503 + baseShift;
-      const xCumulative = 633 + baseShift;
-      const xRate = 753 + baseShift;
+      const xCumulative = 634 + baseShift;
+      const xRate = 754 + baseShift;
 
-      const yName = 1166.88 + row * 51;
-      const yVal = 1167.88 + row * 51;
+      const yName = 1468.89 + row * 58.43;
+      const yVal = 1470.03 + row * 58.43;
 
       const name = escapeXml(`${i + 1}. ${unit.unitName}`);
       const daily = unit.daily.toLocaleString('vi-VN');
@@ -505,27 +510,56 @@ async function compileReportSvg(dateStr, reportType = 'toantinh') {
 
   // Replace top card counters using placeholders
   template = template.replace('%%GRAND_DAILY_TOTAL%%', grandDailyTotal.toLocaleString('vi-VN'));
-  template = template.replace('%%GRAND_CUMULATIVE_TOTAL%%', grandCumulativeTotal.toLocaleString('vi-VN'));
+  template = template.replace('%%GRAND_CUMULATIVE_TOTAL%%', (reportType === 'chung' ? luyKeToanTinhChung : grandCumulativeTotal).toLocaleString('vi-VN'));
   template = template.replace('%%GRAND_FIRST_HALF_TOTAL%%', grandFirstHalfTotal.toLocaleString('vi-VN'));
   template = template.replace('%%GRAND_OVERALL_TOTAL%%', grandOverallTotal.toLocaleString('vi-VN'));
 
   // Replace short parameters globally
   template = template.replace(/\{1\}/g, grandDailyTotal.toLocaleString('vi-VN'));
-  template = template.replace(/\{2\}/g, grandCumulativeTotal.toLocaleString('vi-VN'));
+  if (reportType === 'chung') {
+    template = template.replace(/\{2\}/g, luyKeToanTinhChung.toLocaleString('vi-VN'));
+    template = template.replace(/\{6\}/g, progressRateChung.toFixed(2) + '%');
+  } else {
+    template = template.replace(/\{2\}/g, grandCumulativeTotal.toLocaleString('vi-VN'));
+    template = template.replace(/\{6\}/g, progressRateOverall.toFixed(1) + '%');
+  }
   template = template.replace(/\{3\}/g, grandFirstHalfTotal.toLocaleString('vi-VN'));
   template = template.replace(/\{4\}/g, grandOverallTotal.toLocaleString('vi-VN'));
   template = template.replace(/\{5\}/g, grandResidentPopulation.toLocaleString('vi-VN'));
-  template = template.replace(/\{6\}/g, progressRateOverall.toFixed(1) + '%');
   template = template.replace(/\{7\}/g, grandTargetTotal.toLocaleString('vi-VN'));
   template = template.replace(/\{8\}/g, grandBytToday.toLocaleString('vi-VN'));
   template = template.replace(/\{9\}/g, progressRateCampaign.toFixed(1) + '%');
   template = template.replace(/\{10\}/g, grandBytLuyKe.toLocaleString('vi-VN'));
   const cnldStr = cnldLuyKe.toLocaleString('vi-VN');
-  const cnldLength = cnldStr.length;
-  const cnldXOffset = cnldLength > 1 ? -15 * (cnldLength - 1) : 0;
-  const cnldX = (277.044 + cnldXOffset).toFixed(3);
-  template = template.replace(/x="277\.044"([^>]*>)\{CNLD_KSK\}/g, `x="${cnldX}"$1${cnldStr}`);
-  template = template.replace(/\{CNLD_KSK\}/g, cnldStr);
+  let cnldDisplayStr = cnldStr;
+  if (reportType === 'chung') {
+    const companyAgg = await DailyReport.aggregate([
+      {
+        $match: {
+          date: { $lte: selectedDate },
+          $or: [
+            { type: 'company' },
+            { adminIsCompany: true }
+          ]
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$adminCompany' }
+        }
+      }
+    ]);
+    const cnldLuyKeChung = companyAgg.length > 0 ? (companyAgg[0].total || 0) : 0;
+    cnldDisplayStr = cnldLuyKeChung.toLocaleString('vi-VN');
+    template = template.replace(/\{CNLD_KSK\}/g, cnldDisplayStr);
+  } else {
+    const cnldLength = cnldStr.length;
+    const cnldXOffset = cnldLength > 1 ? -15 * (cnldLength - 1) : 0;
+    const cnldX = (277.044 + cnldXOffset).toFixed(3);
+    template = template.replace(/x="277\.044"([^>]*>)\{CNLD_KSK\}/g, `x="${cnldX}"$1${cnldStr}`);
+    template = template.replace(/\{CNLD_KSK\}/g, cnldDisplayStr);
+  }
 
   const tehsStr = tehsLuyKe.toLocaleString('vi-VN');
   const tehsLength = tehsStr.length;
@@ -651,7 +685,7 @@ app.get('/', async (req, res) => {
     let defaultDate = '2026-07-06';
     const todayStrVN = getTodayStringVN();
     const [year, month, day] = todayStrVN.split('-').map(Number);
-    if (year === 2026 && month >= 7 && month <= 9) {
+    if (year === 2026 && month >= 7 && month <= 12) {
       defaultDate = todayStrVN;
     }
 
@@ -810,6 +844,65 @@ app.get('/', async (req, res) => {
       }
     });
 
+    // Q4 (Months 10, 11, 12) aggregation
+    const q4StartDate = parseDateUTC('2026-10-01');
+    const q4EndDate = parseDateUTC('2026-12-31');
+    const q4MatchLimit = (selectedDate && selectedDate >= q4StartDate && selectedDate <= q4EndDate) ? selectedDate : q4EndDate;
+
+    const monthlyAggQ4 = await DailyReport.aggregate([
+      { $match: { date: { $gte: q4StartDate, $lte: q4MatchLimit } } },
+      {
+        $project: {
+          unitId: 1,
+          month: { $month: '$date' },
+          under6: 1,
+          from6To18: 1,
+          over18: 1,
+          adminUnder6: 1,
+          adminFrom6To18: 1,
+          adminOver18: 1
+        }
+      },
+      {
+        $group: {
+          _id: { unitId: '$unitId', month: '$month' },
+          under6: { $sum: '$under6' },
+          from6To18: { $sum: '$from6To18' },
+          over18: { $sum: '$over18' },
+          adminUnder6: { $sum: '$adminUnder6' },
+          adminFrom6To18: { $sum: '$adminFrom6To18' },
+          adminOver18: { $sum: '$adminOver18' }
+        }
+      }
+    ]);
+
+    const monthlyMapQ4 = {};
+    monthlyAggQ4.forEach(item => {
+      const month = item._id.month; // 10, 11, or 12
+      if (item._id.unitId) {
+        const uId = item._id.unitId.toString();
+        if (!monthlyMapQ4[uId]) {
+          monthlyMapQ4[uId] = {
+            10: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+            11: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+            12: { under6: 0, from6To18: 0, over18: 0, total: 0 }
+          };
+        }
+        if (month === 10 || month === 11 || month === 12) {
+          const under6 = (item.under6 || 0) + (item.adminUnder6 || 0);
+          const from6To18 = (item.from6To18 || 0) + (item.adminFrom6To18 || 0);
+          const over18 = (item.over18 || 0) + (item.adminOver18 || 0);
+          const totalChecks = under6 + from6To18 + over18;
+          monthlyMapQ4[uId][month] = {
+            under6,
+            from6To18,
+            over18,
+            total: totalChecks
+          };
+        }
+      }
+    });
+
     // Fetch all units sorted by order, type, and name (A-Z)
     const units = await User.find({ role: 'unit' });
     units.sort((a, b) => {
@@ -852,6 +945,18 @@ app.get('/', async (req, res) => {
       9: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 }
     };
 
+    let grandQ4 = {
+      residentPopulation: 0,
+      remainingTarget: 0,
+      q4Checked: 0,
+      checked: 0,
+      q4CompletionRate: 0,
+      completionRate: 0,
+      q4Month10: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+      q4Month11: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+      q4Month12: { under6: 0, from6To18: 0, over18: 0, total: 0 }
+    };
+
     units.forEach(unit => {
       const uId = unit._id.toString();
 
@@ -879,12 +984,25 @@ app.get('/', async (req, res) => {
       const adminYearCumulative = adminCumulative.total;
       const adminCompletionRate = unit.planTarget > 0 ? (adminYearCumulative / unit.planTarget) * 100 : 0;
 
-      // Get monthly breakdown for this unit
+      // Get monthly breakdown for this unit (Q3)
       const uMonthly = monthlyMap[uId] || {
         7: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
         8: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 },
         9: { under6: 0, from6To18: 0, over18: 0, adminUnder6: 0, adminFrom6To18: 0, adminOver18: 0 }
       };
+
+      // Q4 metrics for this unit
+      const uMonthlyQ4 = monthlyMapQ4[uId] || {
+        10: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+        11: { under6: 0, from6To18: 0, over18: 0, total: 0 },
+        12: { under6: 0, from6To18: 0, over18: 0, total: 0 }
+      };
+      const q4Month10 = uMonthlyQ4[10] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
+      const q4Month11 = uMonthlyQ4[11] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
+      const q4Month12 = uMonthlyQ4[12] || { under6: 0, from6To18: 0, over18: 0, total: 0 };
+      const q4Checked = q4Month10.total + q4Month11.total + q4Month12.total;
+      const remainingTarget = unit.remainingTarget || 0;
+      const q4CompletionRate = remainingTarget > 0 ? (q4Checked / remainingTarget) * 100 : 0;
 
       reportsTable.push({
         unitId: uId,
@@ -895,6 +1013,12 @@ app.get('/', async (req, res) => {
         residentPopulation: unit.residentPopulation,
         localManagedPopulation: unit.localManagedPopulation || 0,
         firstHalfChecked: unit.firstHalfChecked,
+        remainingTarget,
+        q4Month10,
+        q4Month11,
+        q4Month12,
+        q4Checked,
+        q4CompletionRate,
         isBorder: Boolean(unit.isBorder),
         // Commune metrics
         daily,
@@ -936,6 +1060,26 @@ app.get('/', async (req, res) => {
       grandLocalManagedPopulation += (unit.localManagedPopulation || 0);
       grandFirstHalfCheckedSum += (unit.firstHalfChecked || 0);
 
+      // Q4 grand sums
+      grandQ4.remainingTarget += remainingTarget;
+      grandQ4.q4Checked += q4Checked;
+      grandQ4.checked += q4Checked;
+
+      grandQ4.q4Month10.under6 += q4Month10.under6;
+      grandQ4.q4Month10.from6To18 += q4Month10.from6To18;
+      grandQ4.q4Month10.over18 += q4Month10.over18;
+      grandQ4.q4Month10.total += q4Month10.total;
+
+      grandQ4.q4Month11.under6 += q4Month11.under6;
+      grandQ4.q4Month11.from6To18 += q4Month11.from6To18;
+      grandQ4.q4Month11.over18 += q4Month11.over18;
+      grandQ4.q4Month11.total += q4Month11.total;
+
+      grandQ4.q4Month12.under6 += q4Month12.under6;
+      grandQ4.q4Month12.from6To18 += q4Month12.from6To18;
+      grandQ4.q4Month12.over18 += q4Month12.over18;
+      grandQ4.q4Month12.total += q4Month12.total;
+
       // Sum monthly grand totals
       [7, 8, 9].forEach(m => {
         grandMonthly[m].under6 += uMonthly[m].under6;
@@ -946,6 +1090,10 @@ app.get('/', async (req, res) => {
         grandMonthly[m].adminOver18 += uMonthly[m].adminOver18;
       });
     });
+
+    grandQ4.residentPopulation = grandResidentPopulation;
+    grandQ4.q4CompletionRate = grandQ4.remainingTarget > 0 ? (grandQ4.q4Checked / grandQ4.remainingTarget) * 100 : 0;
+    grandQ4.completionRate = grandQ4.q4CompletionRate;
 
     // Fetch BytLinkage cumulative for the selected date
     let cnldLuyKeObj = await BytLinkage.findOne({ date: { $lte: dailyMatchDate }, cnldCount: { $gt: 0 } }).sort({ date: -1 });
@@ -1259,6 +1407,7 @@ app.get('/', async (req, res) => {
       overallCompletionRate: displayOverallCompletionRate,
       reportsTable,
       grandMonthly,
+      grandQ4,
       unitStats,
       unitCentersData,
       adminCentersData,
@@ -1284,7 +1433,7 @@ app.get('/input', requireAuth, async (req, res) => {
     let defaultDate = '2026-07-06';
     const todayStr = getTodayStringVN();
     const [year, month, day] = todayStr.split('-').map(Number);
-    if (year === 2026 && (month) >= 7 && (month) <= 9) {
+    if (year === 2026 && (month) >= 7 && (month) <= 12) {
       defaultDate = todayStr;
     }
 
@@ -1346,7 +1495,9 @@ app.get('/input', requireAuth, async (req, res) => {
       ? await DailyReport.find({
         $or: [
           { unitId: selectedUnitId },
-          { adminWorkplace: { $ne: '', $ne: null } }
+          { adminWorkplace: { $ne: '', $ne: null } },
+          { type: 'company' },
+          { adminIsCompany: true }
         ]
       }).populate('centerId').sort({ date: -1 })
       : await DailyReport.find({ date: selectedDate, unitId: selectedUnitId }).populate('centerId');
@@ -1357,6 +1508,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const localManagedPopulation = selectedUnitObj ? (selectedUnitObj.localManagedPopulation || 0) : 0;
     const firstHalfChecked = selectedUnitObj ? selectedUnitObj.firstHalfChecked : 0;
     const planTarget = selectedUnitObj ? (selectedUnitObj.planTarget || 0) : 0;
+    const remainingTarget = selectedUnitObj ? (selectedUnitObj.remainingTarget || 0) : 0;
 
     // Fetch entered history of all days for this unit
     const historyList = await DailyReport.aggregate([
@@ -1385,7 +1537,7 @@ app.get('/input', requireAuth, async (req, res) => {
     const isUserAdmin = req.session.userRole === 'admin';
     const allDays = [];
     const startDate = new Date(Date.UTC(2026, 6, 1)); // 2026-07-01
-    const endDate = new Date(Date.UTC(2026, 8, 30));  // 2026-09-30
+    const endDate = new Date(Date.UTC(2026, 11, 31)); // 2026-12-31
 
     let loopDate = new Date(startDate);
     while (loopDate <= endDate) {
@@ -1472,6 +1624,7 @@ app.get('/input', requireAuth, async (req, res) => {
       localManagedPopulation,
       firstHalfChecked,
       planTarget,
+      remainingTarget,
       allDays,
       dashboardNoteText,
       dashboardNoteVisible,
@@ -1506,6 +1659,7 @@ app.post('/input', requireAuth, async (req, res) => {
     adminChildren,
     adminPolitical,
     adminOthers,
+    adminCompany,
     adminInputMode,
     adminIncludeInTotal
   } = req.body;
@@ -1531,11 +1685,11 @@ app.post('/input', requireAuth, async (req, res) => {
 
     const selectedDate = parseDateUTC(date);
     const startDate = parseDateUTC('2026-07-01');
-    const endDate = parseDateUTC('2026-09-30');
+    const endDate = parseDateUTC('2026-12-31');
 
     // Validation date range
     if (selectedDate < startDate || selectedDate > endDate) {
-      return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Ngày nhập liệu phải nằm trong khoảng từ 01/07 đến 30/09')}`);
+      return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Ngày nhập liệu phải nằm trong khoảng từ 01/07 đến 31/12')}`);
     }
 
     const cId = (centerId && mongoose.isValidObjectId(centerId)) ? new mongoose.Types.ObjectId(centerId) : null;
@@ -1551,9 +1705,11 @@ app.post('/input', requireAuth, async (req, res) => {
     let children = 0;
     let political = 0;
     let others = 0;
+    let companyChecked = 0;
 
     const isGeneralAdminInput = isAdmin && (adminInputMode === 'general' || (!adminInputMode && (!adminWorkplace || adminWorkplace.trim() === '')));
     const isPoliticalInput = isAdmin && adminInputMode === 'political';
+    const isCompanyInput = isAdmin && adminInputMode === 'company';
 
     if (isAdmin) {
       if (isGeneralAdminInput) {
@@ -1571,6 +1727,16 @@ app.post('/input', requireAuth, async (req, res) => {
         valUnder6 = 0;
         valFrom6To18 = 0;
         valOver18 = political;
+      } else if (isCompanyInput) {
+        workplace = '';
+        workers = parseInt(adminWorkers) || 0; // Cần khám
+        companyChecked = parseInt(adminCompany) || 0; // Khám trong ngày
+        children = 0;
+        political = 0;
+        others = 0;
+        valUnder6 = 0;
+        valFrom6To18 = 0;
+        valOver18 = 0;
       } else {
         workplace = adminWorkplace.trim();
         workers = parseInt(adminWorkers) || 0;
@@ -1603,6 +1769,8 @@ app.post('/input', requireAuth, async (req, res) => {
       existing = await DailyReport.findById(reportId);
     } else if (isGeneralAdminInput) {
       existing = await DailyReport.findOne({ date: selectedDate, centerId: cId, type: 'admin_general' });
+    } else if (isCompanyInput) {
+      existing = await DailyReport.findOne({ date: selectedDate, type: 'company' });
     } else if (!isAdmin) {
       existing = await DailyReport.findOne({ date: selectedDate, unitId: uId, type: 'commune' });
     }
@@ -1620,6 +1788,13 @@ app.post('/input', requireAuth, async (req, res) => {
           existing.from6To18 = valFrom6To18;
           existing.over18 = valOver18;
           existing.centerId = null; // Decouple commune report from station
+        } else if (isCompanyInput || existing.type === 'company' || existing.adminIsCompany) {
+          existing.adminWorkers = workers;
+          existing.adminCompany = companyChecked;
+          existing.type = 'company';
+          existing.adminIsCompany = true;
+          existing.adminWorkplace = '';
+          existing.adminIncludeInTotal = false;
         } else {
           existing.adminUnder6 = valUnder6;
           existing.adminFrom6To18 = valFrom6To18;
@@ -1663,7 +1838,9 @@ app.post('/input', requireAuth, async (req, res) => {
             ? `Cập nhật số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
             : (isPoliticalInput
               ? `Cập nhật số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
-              : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
+              : (isCompanyInput || existing.type === 'company' || existing.adminIsCompany
+                ? `Cập nhật số liệu CNLĐ công ty ngày ${date}: Cần khám (${workers}), Khám trong ngày (${companyChecked})`
+                : `Cập nhật đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`)))
           : `Cập nhật số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${oldUnder6}->${valUnder6}), 6-18 tuổi (${oldFrom6To18}->${valFrom6To18}), Trên 18 tuổi (${oldOver18}->${valOver18})`
       });
 
@@ -1689,6 +1866,22 @@ app.post('/input', requireAuth, async (req, res) => {
           createData.adminIsPolitical = false;
           createData.adminIncludeInTotal = false;
           createData.type = 'admin_general';
+        } else if (isCompanyInput) {
+          createData.unitId = null;
+          createData.centerId = null;
+          createData.adminUnder6 = 0;
+          createData.adminFrom6To18 = 0;
+          createData.adminOver18 = 0;
+          createData.adminWorkplace = '';
+          createData.adminWorkers = workers;
+          createData.adminChildren = 0;
+          createData.adminPolitical = 0;
+          createData.adminOthers = 0;
+          createData.adminCompany = companyChecked;
+          createData.adminIsCompany = true;
+          createData.adminIsPolitical = false;
+          createData.adminIncludeInTotal = false;
+          createData.type = 'company';
         } else {
           createData.unitId = null;
           createData.centerId = null;
@@ -1741,7 +1934,9 @@ app.post('/input', requireAuth, async (req, res) => {
             ? `Nhập mới số liệu khám chung [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
             : (isPoliticalInput
               ? `Nhập mới số liệu CQ chính trị [${workplace}] ngày ${date}: Số CBCC CV NLĐ (${workers}), Số đã KSK (${political})`
-              : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`))
+              : (isCompanyInput
+                ? `Nhập mới số liệu CNLĐ công ty ngày ${date}: Cần khám (${workers}), Khám trong ngày (${companyChecked})`
+                : `Nhập mới đơn vị KSK [${workplace}] ngày ${date}: CN/VC/NLĐ (${workers}), Trẻ em (${children}), HT chính trị (${political}), Khác (${others})`)))
           : `Nhập mới số liệu [${center ? center.name : '-'}] ngày ${date}: Dưới 6 tuổi (${valUnder6}), 6-18 tuổi (${valFrom6To18}), Trên 18 tuổi (${valOver18})`
       });
     }
@@ -1781,25 +1976,36 @@ app.post('/input/delete', requireAuth, async (req, res) => {
     await DailyReport.deleteOne({ _id: reportId });
 
     if (isAdmin) {
-      const workplace = report.adminWorkplace || '';
-      if (!workplace || workplace.trim() === '') {
-        // Log deletion of admin general report
+      if (report.type === 'company' || report.adminIsCompany) {
+        // Log deletion of company report
         await AuditLog.create({
           userId: req.session.userId,
           username: req.session.username,
           action: 'DELETE',
           targetType: 'REPORT',
-          details: `Xóa số liệu Sở nhập [${centerName}] ngày ${formattedDate}: Dưới 6 tuổi (${report.adminUnder6}), 6-18 tuổi (${report.adminFrom6To18}), Trên 18 tuổi (${report.adminOver18})`
+          details: `Xóa số liệu CNLĐ công ty ngày ${formattedDate}: Cần khám (${report.adminWorkers || 0}), Khám trong ngày (${report.adminCompany || 0})`
         });
       } else {
-        // Log deletion of workplace/political report
-        await AuditLog.create({
-          userId: req.session.userId,
-          username: req.session.username,
-          action: 'DELETE',
-          targetType: 'REPORT',
-          details: `Xóa đơn vị KSK [${workplace}] tại [${centerName}] ngày ${formattedDate}`
-        });
+        const workplace = report.adminWorkplace || '';
+        if (!workplace || workplace.trim() === '') {
+          // Log deletion of admin general report
+          await AuditLog.create({
+            userId: req.session.userId,
+            username: req.session.username,
+            action: 'DELETE',
+            targetType: 'REPORT',
+            details: `Xóa số liệu Sở nhập [${centerName}] ngày ${formattedDate}: Dưới 6 tuổi (${report.adminUnder6}), 6-18 tuổi (${report.adminFrom6To18}), Trên 18 tuổi (${report.adminOver18})`
+          });
+        } else {
+          // Log deletion of workplace/political report
+          await AuditLog.create({
+            userId: req.session.userId,
+            username: req.session.username,
+            action: 'DELETE',
+            targetType: 'REPORT',
+            details: `Xóa đơn vị KSK [${workplace}] tại [${centerName}] ngày ${formattedDate}`
+          });
+        }
       }
     } else {
       // Log deletion of commune report
@@ -2013,6 +2219,42 @@ app.post('/input/plan-target', requireAuth, async (req, res) => {
   }
 });
 
+// Update remaining target (so nguoi can kham con lai)
+app.post('/input/remaining-target', requireAuth, async (req, res) => {
+  const { remainingTarget, date } = req.body;
+
+  let targetUnitId = req.session.userId;
+  if (req.session.userRole === 'admin' && req.body.unitId) {
+    targetUnitId = req.body.unitId;
+  }
+
+  try {
+    const valRemaining = parseInt(remainingTarget) || 0;
+    const unit = await User.findById(targetUnitId);
+    if (!unit || unit.role !== 'unit') {
+      return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Đơn vị không hợp lệ')}`);
+    }
+
+    const oldRemaining = unit.remainingTarget || 0;
+    unit.remainingTarget = valRemaining;
+    await unit.save();
+
+    // Log update
+    await AuditLog.create({
+      userId: req.session.userId,
+      username: req.session.username,
+      action: 'UPDATE',
+      targetType: 'USER',
+      details: `Cập nhật số người cần khám còn lại cho đơn vị ${unit.unitName}: ${oldRemaining.toLocaleString('vi-VN')} -> ${valRemaining.toLocaleString('vi-VN')}`
+    });
+
+    return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&success=${encodeURIComponent('Cập nhật số người cần khám còn lại thành công!')}`);
+  } catch (error) {
+    console.error('Update remaining target error:', error);
+    return res.redirect(`/input?date=${date}&unitId=${targetUnitId}&error=${encodeURIComponent('Lỗi hệ thống khi cập nhật số người cần khám còn lại')}`);
+  }
+});
+
 // -------------------------------------------------------------
 // ROUTES: ADMIN SYSTEM CONFIGURATION
 // -------------------------------------------------------------
@@ -2030,6 +2272,7 @@ app.get('/admin/config', requireAuth, requireRole('admin'), async (req, res) => 
     const grandFirstHalfCheckedConfig = await getConfigValue('grand_first_half_checked', 833233);
     const campaignTargetConfig = await getConfigValue('campaign_target', 2128099);
     const campaignOffsetConfig = await getConfigValue('campaign_offset', 40000);
+    const luyKeToanTinhBaseConfig = await getConfigValue('luy_ke_toan_tinh_base', 1869654);
 
     res.render('admin/config', {
       user: {
@@ -2048,6 +2291,7 @@ app.get('/admin/config', requireAuth, requireRole('admin'), async (req, res) => 
       grandFirstHalfCheckedConfig,
       campaignTargetConfig,
       campaignOffsetConfig,
+      luyKeToanTinhBaseConfig,
       success: req.query.success || null,
       error: req.query.error || null
     });
@@ -2074,7 +2318,8 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
     grandResidentPopulation,
     grandFirstHalfChecked,
     campaignTarget,
-    campaignOffset
+    campaignOffset,
+    luyKeToanTinhBase
   } = req.body;
 
   const isVisible = noteVisible === 'true' || noteVisible === true;
@@ -2086,6 +2331,7 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
   const parsedFirstHalfChecked = parseInt(grandFirstHalfChecked);
   const parsedCampaignTarget = parseInt(campaignTarget);
   const parsedCampaignOffset = parseInt(campaignOffset);
+  const parsedLuyKeBase = parseInt(luyKeToanTinhBase);
 
   try {
     await SystemConfig.findOneAndUpdate(
@@ -2158,13 +2404,21 @@ app.post('/admin/dashboard-note-config', requireAuth, async (req, res) => {
       );
     }
 
+    if (!isNaN(parsedLuyKeBase)) {
+      await SystemConfig.findOneAndUpdate(
+        { key: 'luy_ke_toan_tinh_base' },
+        { value: parsedLuyKeBase },
+        { upsert: true, new: true }
+      );
+    }
+
     // Log update
     await AuditLog.create({
       userId: req.session.userId,
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Cập nhật cấu hình hệ thống: kiểu sắp xếp=${unitSortType}, hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}, tổng dân số toàn tỉnh=${parsedResidentPopulation}, đã khám 6T đầu năm=${parsedFirstHalfChecked}, chỉ tiêu chiến dịch=${parsedCampaignTarget}, sai số điều chỉnh=${parsedCampaignOffset}`
+      details: `Cập nhật cấu hình hệ thống: kiểu sắp xếp=${unitSortType}, hiển thị ghi chú=${isVisible}, ghi chú="${noteText}", cho phép nhập ngày cũ=${isAllowPast}, tính tổng CNLĐ và CBCCVC=${isIncludeCnldCbccvc}, tính tổng TE&HS=${isIncludeTehs}, tổng dân số toàn tỉnh=${parsedResidentPopulation}, đã khám 6T đầu năm=${parsedFirstHalfChecked}, chỉ tiêu chiến dịch=${parsedCampaignTarget}, sai số điều chỉnh=${parsedCampaignOffset}, lũy kế toàn tỉnh ban đầu (mẫu chung)=${parsedLuyKeBase}`
     });
 
     return res.redirect(`/admin/config?success=${encodeURIComponent('Cập nhật cấu hình hệ thống thành công!')}`);
@@ -2352,7 +2606,7 @@ app.get('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =>
 });
 
 app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) => {
-  const { unitId, planTarget, residentPopulation, localManagedPopulation, firstHalfChecked, contactName, contactPhone, contactEmail } = req.body;
+  const { unitId, planTarget, residentPopulation, localManagedPopulation, firstHalfChecked, remainingTarget, contactName, contactPhone, contactEmail } = req.body;
 
   try {
     const unit = await User.findById(unitId);
@@ -2368,11 +2622,14 @@ app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =
     const newLocPop = parseInt(localManagedPopulation) || 0;
     const oldFirstHalf = unit.firstHalfChecked;
     const newFirstHalf = parseInt(firstHalfChecked) || 0;
+    const oldRemaining = unit.remainingTarget || 0;
+    const newRemaining = parseInt(remainingTarget) || 0;
 
     unit.planTarget = newTarget;
     unit.residentPopulation = newPop;
     unit.localManagedPopulation = newLocPop;
     unit.firstHalfChecked = newFirstHalf;
+    unit.remainingTarget = newRemaining;
     unit.contactName = contactName ? contactName.trim() : '';
     unit.contactPhone = contactPhone ? contactPhone.trim() : '';
     unit.contactEmail = contactEmail ? contactEmail.trim() : '';
@@ -2385,7 +2642,7 @@ app.post('/admin/targets', requireAuth, requireRole('admin'), async (req, res) =
       username: req.session.username,
       action: 'UPDATE',
       targetType: 'TARGET',
-      details: `Thay đổi cấu hình đơn vị ${unit.unitName}: Chỉ tiêu kế hoạch (${oldTarget}->${newTarget}), Tổng NK (${oldPop}->${newPop}), NK ĐPQL (${oldLocPop}->${newLocPop}), Khám 6T đầu năm (${oldFirstHalf}->${newFirstHalf}), Họ tên liên hệ (${unit.contactName}), SĐT (${unit.contactPhone}), Email (${unit.contactEmail})`
+      details: `Thay đổi cấu hình đơn vị ${unit.unitName}: Chỉ tiêu kế hoạch (${oldTarget}->${newTarget}), Tổng NK (${oldPop}->${newPop}), NK ĐPQL (${oldLocPop}->${newLocPop}), Khám 6T đầu năm (${oldFirstHalf}->${newFirstHalf}), Cần khám còn lại (${oldRemaining}->${newRemaining}), Họ tên liên hệ (${unit.contactName}), SĐT (${unit.contactPhone}), Email (${unit.contactEmail})`
     });
 
     return res.redirect('/admin/targets?success=' + encodeURIComponent(`Đã cập nhật chỉ số cho đơn vị ${unit.unitName}`));
@@ -2899,15 +3156,19 @@ function startKeepAlive() {
   }, 14 * 60 * 1000);
 }
 
-// Connect to Database and then start Express Server
-connectDB().then(async () => {
-  const borderCount = await User.countDocuments({ isBorder: true });
-  const totalUnits = await User.countDocuments({ role: 'unit' });
-  console.log(`[DB Info] Total units: ${totalUnits}, Border units (isBorder=true): ${borderCount}`);
+module.exports = { app, compileReportSvg };
 
-  app.listen(PORT, () => {
-    console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
-    startKeepAlive();
+// Connect to Database and then start Express Server
+if (require.main === module) {
+  connectDB().then(async () => {
+    const borderCount = await User.countDocuments({ isBorder: true });
+    const totalUnits = await User.countDocuments({ role: 'unit' });
+    console.log(`[DB Info] Total units: ${totalUnits}, Border units (isBorder=true): ${borderCount}`);
+
+    app.listen(PORT, () => {
+      console.log(`Sở Y Tế health check app running on http://localhost:${PORT}`);
+      startKeepAlive();
+    });
   });
-});
+}
 
